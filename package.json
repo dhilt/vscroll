@@ -1,0 +1,39 @@
+{
+  "name": "vscroll",
+  "version": "1.0.0-beta",
+  "description": "Virtual scroll",
+  "main": "dist/bundles/vscroll.js",
+  "module": "dist/bundles/vscroll.es.js",
+  "jsnext:main": "dist/bundles/vscroll.es.js",
+  "types": "dist/typings/workflow.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node build",
+    "prepare": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dhilt/vscroll.git"
+  },
+  "keywords": [],
+  "author": "Denis Hilt <dhilt.public@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dhilt/vscroll/issues"
+  },
+  "homepage": "https://github.com/dhilt/vscroll",
+  "devDependencies": {
+    "chalk": "^4.1.0",
+    "rollup": "^2.35.1",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.29.0",
+    "shelljs": "^0.8.4",
+    "typescript": "^4.1.3"
+  }
+}

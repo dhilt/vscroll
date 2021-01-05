@@ -1,10 +1,10 @@
-import { Observable } from 'rxjs';
 import { Settings, DevSettings } from './settings';
 import { IAdapter } from './adapter';
 
+interface ObservableLike { subscribe(): () => void; }
 type SuccessCallback = (data: any[]) => any;
 type DatasourceGetCallback = (index: number, count: number, success: SuccessCallback, fail?: Function) => void;
-type DatasourceGetObservable = (index: number, count: number) => Observable<any[]>;
+type DatasourceGetObservable = (index: number, count: number) => ObservableLike;
 type DatasourceGetPromise = (index: number, count: number) => PromiseLike<any[]>;
 
 export type DatasourceGet = DatasourceGetCallback | DatasourceGetObservable | DatasourceGetPromise;

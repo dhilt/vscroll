@@ -1,5 +1,5 @@
 import { ADAPTER_PROPS } from './props';
-import version from '../../../ui-scroll.version';
+import version from '../../version';
 import {
   AdapterPropName, AdapterPropType, IReactivePropsStore, IAdapterConfig, ItemAdapter
 } from '../../interfaces/index';

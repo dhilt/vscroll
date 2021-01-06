@@ -21,7 +21,7 @@ shell.echo(`Start building...`);
 shell.rm(`-Rf`, `${DIST_DIR}/*`);
 
 shell.echo(`Create TS declarations`);
-if (shell.exec(`tsc -p tsconfig.json --declaration --emitDeclarationOnly --outDir ${TYPINGS_DIR}`).code !== 0) {
+if (shell.exec(`tsc -p tsconfig-cjs.json --declaration --emitDeclarationOnly --outDir ${TYPINGS_DIR}`).code !== 0) {
   shell.echo(chalk.red(`Error: tsc declarations failed`));
   shell.exit(1);
 }
@@ -39,7 +39,7 @@ if (shell.exec(`tsc -p tsconfig-cjs.json`).code !== 0) {
 }
 
 shell.echo(`Run Rollup conversion on package`);
-if (shell.exec(`rollup -c rollup.config.js -i src/workflow.ts`).code !== 0) {
+if (shell.exec(`rollup -c rollup.config.js`).code !== 0) {
   shell.echo(chalk.red(`Error: Rollup conversion failed`));
   shell.exit(1);
 }

@@ -5,13 +5,13 @@
   "main": "dist/bundles/vscroll.js",
   "module": "dist/bundles/vscroll.es.js",
   "jsnext:main": "dist/bundles/vscroll.es.js",
-  "types": "dist/typings/workflow.d.ts",
+  "types": "dist/typings/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "node build",
-    "prepare": "npm run build",
+    "pack": "npm run build && npm pack .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

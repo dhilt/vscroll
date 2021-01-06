@@ -7,10 +7,10 @@ import { terser } from 'rollup-plugin-terser';
 
 import pkg from './package.json';
 
-const tesrerConfig = { output: { comments: false } };
+const minPlugins = [terser({ output: { comments: false } })];
 
 export default {
-  input: 'src/workflow.ts',
+  input: 'src/index.ts',
   output: [
     {
       file: pkg.main,
@@ -23,7 +23,7 @@ export default {
       format: 'cjs',
       exports: 'named',
       sourcemap: true,
-      plugins: [terser(tesrerConfig)],
+      plugins: minPlugins,
     },
     {
       file: pkg.module,
@@ -36,7 +36,7 @@ export default {
       format: 'es',
       exports: 'named',
       sourcemap: true,
-      plugins: [terser(tesrerConfig)]
+      plugins: minPlugins
     },
   ],
   plugins: [

@@ -1,6 +1,6 @@
 import { getBaseProcess } from './_base';
 import { Scroller } from '../scroller';
-import { EMPTY_ITEM } from '../classes/adapter/context';
+import { EMPTY_ITEM } from '../classes/adapter/props';
 import { CommonProcess, ProcessStatus, Direction, ScrollerWorkflow } from '../interfaces/index';
 
 const isInterrupted = ({ call }: ScrollerWorkflow): boolean => !!call.interrupted;

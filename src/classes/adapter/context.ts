@@ -1,15 +1,10 @@
-import { ADAPTER_PROPS } from './props';
+import { getDefaultAdapterProps } from './props';
 import version from '../../version';
 import {
   AdapterPropName, AdapterPropType, IReactivePropsStore, IAdapterConfig, ItemAdapter
 } from '../../interfaces/index';
 
 let instanceCount = 0;
-
-export const EMPTY_ITEM = {
-  data: {},
-  element: {}
-} as ItemAdapter;
 
 export class AdapterContext {
 
@@ -26,7 +21,7 @@ export class AdapterContext {
     Object.defineProperty(this, AdapterPropName.version, { get: () => version, ...conf });
 
     // set up default props, they will be reassigned during the Adapter instantiation
-    ADAPTER_PROPS(EMPTY_ITEM)
+    getDefaultAdapterProps()
       .filter(({ permanent }) => !permanent)
       .forEach(({ name, value, type }) => {
 

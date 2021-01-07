@@ -14,7 +14,12 @@ const bufferInfoDefault: IBufferInfo = {
   absMaxIndex: +Infinity,
 };
 
-export const ADAPTER_PROPS = (nullItem: any): IAdapterProp[] => [
+export const EMPTY_ITEM = {
+  data: {},
+  element: {}
+} as ItemAdapter;
+
+export const getDefaultAdapterProps = (): IAdapterProp[] => [
   {
     type: Type.Scalar,
     name: Name.id,
@@ -48,14 +53,14 @@ export const ADAPTER_PROPS = (nullItem: any): IAdapterProp[] => [
   {
     type: Type.Scalar,
     name: Name.firstVisible,
-    value: nullItem,
+    value: EMPTY_ITEM,
     reactive: Name.firstVisible$,
     wanted: true
   },
   {
     type: Type.Scalar,
     name: Name.lastVisible,
-    value: nullItem,
+    value: EMPTY_ITEM,
     reactive: Name.lastVisible$,
     wanted: true
   },
@@ -156,12 +161,12 @@ export const ADAPTER_PROPS = (nullItem: any): IAdapterProp[] => [
   {
     type: Type.Reactive,
     name: Name.firstVisible$,
-    value: new Reactive<ItemAdapter>(nullItem, { emitOnSubscribe: true })
+    value: new Reactive<ItemAdapter>(EMPTY_ITEM, { emitOnSubscribe: true })
   },
   {
     type: Type.Reactive,
     name: Name.lastVisible$,
-    value: new Reactive<ItemAdapter>(nullItem, { emitOnSubscribe: true })
+    value: new Reactive<ItemAdapter>(EMPTY_ITEM, { emitOnSubscribe: true })
   },
   {
     type: Type.Reactive,

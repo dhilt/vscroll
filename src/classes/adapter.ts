@@ -1,8 +1,7 @@
 import { Logger } from './logger';
 import { Buffer } from './buffer';
 import { Reactive } from './reactive';
-import { EMPTY_ITEM } from './adapter/context';
-import { ADAPTER_PROPS } from './adapter/props';
+import { getDefaultAdapterProps } from './adapter/props';
 import {
   WorkflowGetter,
   AdapterPropName,
@@ -29,7 +28,7 @@ import {
   ProcessSubject,
 } from '../interfaces/index';
 
-const ADAPTER_PROPS_STUB = ADAPTER_PROPS(EMPTY_ITEM);
+const ADAPTER_PROPS_STUB = getDefaultAdapterProps();
 
 const convertAppendArgs = (prepend: boolean, options: any, eof?: boolean) => {
   if (!(options !== null && typeof options === 'object' && options.hasOwnProperty('items'))) {
@@ -127,7 +126,7 @@ export class Adapter implements IAdapter {
         ...prop,
         value: publicContext[prop.name]
       }))
-      : ADAPTER_PROPS(EMPTY_ITEM);
+      : getDefaultAdapterProps();
 
     // restore default reactive props if they were configured
     Object.entries(reactivePropsStore).forEach(([key, value]) => {

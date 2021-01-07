@@ -1,6 +1,6 @@
 {
   "name": "vscroll",
-  "version": "1.0.0-beta",
+  "version": "1.0.0-beta.2",
   "description": "Virtual scroll",
   "main": "dist/bundles/vscroll.js",
   "module": "dist/bundles/vscroll.es.js",
@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "build": "node build",
-    "pack": "npm run build && npm pack .",
+    "prepare": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

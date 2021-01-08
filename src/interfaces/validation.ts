@@ -1,19 +1,4 @@
-export enum ValidatorType {
-  number = 'must be a number',
-  integer = 'must be an integer',
-  integerUnlimited = 'must be an integer or infinity',
-  moreOrEqual = 'must be a number greater than (or equal to) arg1',
-  itemList = 'must be an array of items',
-  boolean = 'must be a boolean',
-  object = 'must be an object',
-  element = 'must be an html element',
-  function = 'must be a function',
-  funcOfxArguments = 'must have arg1 arguments',
-  funcOfxAndMoreArguments = 'must have at least arg1 arguments',
-  oneOfCan = 'can be present only if none of arg1 list is present',
-  oneOfMust = 'must be present if none of arg1 list is present',
-  or = 'must satisfy at least 1 validator from arg1 list',
-}
+import { ValidatorType } from '../inputs/validation';
 
 type ValidatorMethod = (value: any, context?: any) => ValidatedValue;
 

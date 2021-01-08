@@ -1,12 +1,20 @@
-import { getBaseProcess } from '../_base';
+import { AdapterProcess, ProcessStatus } from './enums';
 import { Scroller } from '../../scroller';
 import { ADAPTER_METHODS, validate } from '../../inputs/index';
-import { AdapterProcess, IValidatedData, ProcessStatus } from '../../interfaces/index';
+import { Process, IValidatedData } from '../../interfaces/index';
 
 export interface IParseInput<T> {
   data: IValidatedData;
   params?: T;
 }
+
+export const getBaseProcess = (process: Process) =>
+
+  class BaseAdapterProcess {
+
+    static process: Process = process;
+
+  };
 
 export const getBaseAdapterProcess = (process: AdapterProcess) =>
 

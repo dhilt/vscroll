@@ -1,6 +1,6 @@
-import { getBaseAdapterProcess } from './_base';
 import { Scroller } from '../../scroller';
-import { AdapterClipOptions, AdapterProcess, ProcessStatus } from '../../interfaces/index';
+import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
+import { AdapterClipOptions } from '../../interfaces/index';
 
 export default class UserClip extends getBaseAdapterProcess(AdapterProcess.clip) {
 

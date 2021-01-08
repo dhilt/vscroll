@@ -1,5 +1,6 @@
 import { Scroller } from '../scroller';
-import { CommonProcess, AdapterProcess, ProcessStatus as Status, ProcessSubject } from '../interfaces/index';
+import { CommonProcess, AdapterProcess, ProcessStatus as Status } from '../processes/index';
+import { ProcessSubject } from '../interfaces/index';
 
 type LogType = [any?, ...any[]];
 

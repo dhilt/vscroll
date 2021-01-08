@@ -1,8 +1,6 @@
-import { getDefaultAdapterProps } from './props';
+import { AdapterPropName, AdapterPropType, getDefaultAdapterProps } from './props';
 import version from '../../version';
-import {
-  AdapterPropName, AdapterPropType, IReactivePropsStore, IAdapterConfig, ItemAdapter
-} from '../../interfaces/index';
+import { IReactivePropsStore, IAdapterConfig } from '../../interfaces/index';
 
 let instanceCount = 0;
 

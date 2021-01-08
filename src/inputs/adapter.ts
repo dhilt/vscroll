@@ -1,6 +1,7 @@
 import { VALIDATORS } from './validation';
 import { DatasourceProps as AdapterResetParams } from './datasource';
-import { ICommonProps, AdapterProcessMap, AdapterProcess as Process } from '../interfaces/index';
+import { AdapterProcess as Process } from '../processes/misc/enums';
+import { ICommonProps, AdapterProcessMap } from '../interfaces/index';
 
 const {
   INTEGER,

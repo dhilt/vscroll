@@ -1,6 +1,6 @@
-import { getBaseProcess } from './_base';
+import { getBaseProcess, CommonProcess, AdapterProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
-import { CommonProcess, AdapterProcess, Process, ProcessStatus } from '../interfaces/index';
+import { Process } from '../interfaces/index';
 
 const initProcesses = [CommonProcess.init, AdapterProcess.reset, AdapterProcess.reload];
 

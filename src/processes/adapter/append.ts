@@ -1,7 +1,7 @@
-import { getBaseAdapterProcess } from './_base';
 import { Scroller } from '../../scroller';
 import { Item } from '../../classes/item';
-import { AdapterProcess, ProcessStatus, AdapterAppendOptions, AdapterPrependOptions } from '../../interfaces/index';
+import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
+import { AdapterAppendOptions, AdapterPrependOptions } from '../../interfaces/index';
 
 type AdapterAppendPrependOptions = AdapterAppendOptions & AdapterPrependOptions;
 

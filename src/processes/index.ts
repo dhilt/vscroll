@@ -19,8 +19,11 @@ import PreClip from './preClip';
 import Clip from './clip';
 import End from './end';
 
+import { CommonProcess, AdapterProcess, ProcessStatus } from './misc/enums';
+
 export {
   Init, Scroll,
   Reset, Reload, Append, Check, Remove, UserClip, Insert, Replace, Fix,
-  Start, PreFetch, Fetch, PostFetch, Render, PreClip, Clip, Adjust, End
+  Start, PreFetch, Fetch, PostFetch, Render, PreClip, Clip, Adjust, End,
+  CommonProcess, AdapterProcess, ProcessStatus,
 };

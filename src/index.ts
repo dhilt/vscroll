@@ -3,13 +3,12 @@ import { Workflow } from './workflow';
 import { INVALID_DATASOURCE_PREFIX } from './scroller';
 import { makeDatasource } from './classes/datasource';
 import { Item } from './classes/item';
-import { EMPTY_ITEM, getDefaultAdapterProps } from './classes/adapter/props';
+import { AdapterPropName, EMPTY_ITEM, getDefaultAdapterProps } from './classes/adapter/props';
 
 import {
   IDatasourceGeneric,
   IDatasource,
   Direction,
-  AdapterPropName,
   IReactivePropConfig,
   IAdapterConfig,
   ItemAdapter,
@@ -23,9 +22,9 @@ export {
   INVALID_DATASOURCE_PREFIX,
   makeDatasource,
   Item,
+  AdapterPropName,
   EMPTY_ITEM,
   getDefaultAdapterProps,
-  AdapterPropName,
   Direction,
 };
 

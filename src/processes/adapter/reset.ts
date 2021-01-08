@@ -1,8 +1,8 @@
-import { getBaseAdapterProcess } from './_base';
 import { Scroller } from '../../scroller';
 import { ADAPTER_METHODS } from '../../inputs/index';
 import { Datasource } from '../../classes/datasource';
-import { AdapterProcess, ProcessStatus, IDatasourceOptional } from '../../interfaces/index';
+import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
+import { IDatasourceOptional } from '../../interfaces/index';
 
 export default class Reset extends getBaseAdapterProcess(AdapterProcess.reset) {
 

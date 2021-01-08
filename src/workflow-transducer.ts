@@ -1,4 +1,7 @@
 import {
+  CommonProcess,
+  AdapterProcess,
+  ProcessStatus as Status,
   Init,
   Scroll,
   Reset,
@@ -18,15 +21,10 @@ import {
   PreClip,
   Clip,
   Adjust,
-  End
+  End,
 } from './processes/index';
 
-import {
-  CommonProcess,
-  AdapterProcess,
-  ProcessStatus as Status,
-  StateMachineParams
-} from './interfaces/index';
+import { StateMachineParams } from './interfaces/index';
 
 export const runStateMachine = ({
   input: { process, status, payload = {} },

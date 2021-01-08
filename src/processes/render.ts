@@ -1,7 +1,6 @@
-import { getBaseProcess } from './_base';
+import { getBaseProcess, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
 import { Item } from '../classes/item';
-import { CommonProcess, ProcessStatus } from '../interfaces/index';
 
 export default class Render extends getBaseProcess(CommonProcess.render) {
 

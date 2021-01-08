@@ -2,13 +2,11 @@ import { Scroller } from './scroller';
 import { runStateMachine } from './workflow-transducer';
 import { Reactive } from './classes/reactive';
 import { Item } from './classes/item';
+import { CommonProcess, ProcessStatus as Status, } from './processes/index';
 import {
   IDatasource,
-  CommonProcess,
   Process,
-  ProcessStatus as Status,
   ProcessSubject,
-  ProcessStatus,
   WorkflowError,
   InterruptParams,
   StateMachineMethods,
@@ -68,7 +66,7 @@ export class Workflow {
     const onScrollHandler: EventListener =
       event => this.callWorkflow({
         process: CommonProcess.scroll,
-        status: ProcessStatus.start,
+        status: Status.start,
         payload: { event }
       });
     scrollEventReceiver.addEventListener('scroll', onScrollHandler);

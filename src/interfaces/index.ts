@@ -18,8 +18,6 @@ import {
   StateMachineParams,
 } from './workflow';
 import {
-  AdapterPropName,
-  AdapterPropType,
   IReactivePropConfig,
   IReactivePropsConfig,
   IReactivePropsStore,
@@ -43,9 +41,8 @@ import {
 import { Settings, DevSettings } from './settings';
 import { Direction } from './direction';
 import { ScrollEventData, ScrollState, State } from './state';
-import { CommonProcess, AdapterProcess, Process, ProcessStatus, ProcessSubject, AdapterProcessMap } from './process';
+import { Process, ProcessSubject, AdapterProcessMap } from './process';
 import {
-  ValidatorType,
   ValidatedValue,
   IValidator,
   ICommonProp,
@@ -70,8 +67,6 @@ export {
   InterruptParams,
   StateMachineMethods,
   StateMachineParams,
-  AdapterPropName,
-  AdapterPropType,
   IReactivePropConfig,
   IReactivePropsConfig,
   IReactivePropsStore,
@@ -97,13 +92,9 @@ export {
   ScrollEventData,
   ScrollState,
   State,
-  CommonProcess,
-  AdapterProcess,
   Process,
-  ProcessStatus,
   ProcessSubject,
   AdapterProcessMap,
-  ValidatorType,
   ValidatedValue,
   IValidator,
   ICommonProp,

@@ -1,9 +1,7 @@
-import { getBaseAdapterProcess } from './_base';
 import { Scroller } from '../../scroller';
 import { Item } from '../../classes/item';
-import {
-  AdapterProcess, ProcessStatus, AdapterInsertOptions, ItemsPredicate
-} from '../../interfaces/index';
+import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
+import { AdapterInsertOptions, ItemsPredicate } from '../../interfaces/index';
 
 export default class Insert extends getBaseAdapterProcess(AdapterProcess.insert) {
 

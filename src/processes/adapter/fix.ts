@@ -1,9 +1,7 @@
-import { getBaseAdapterProcess } from './_base';
 import { Scroller } from '../../scroller';
 import { AdapterMethods } from '../../inputs/index';
+import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
 import {
-  AdapterProcess,
-  ProcessStatus,
   ItemsPredicate,
   ItemsLooper,
   AdapterFixOptions,

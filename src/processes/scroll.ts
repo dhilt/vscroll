@@ -1,6 +1,6 @@
-import { getBaseProcess } from './_base';
+import { getBaseProcess, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
-import { Direction, CommonProcess, ProcessStatus, ScrollEventData, ScrollerWorkflow } from '../interfaces/index';
+import { Direction, ScrollEventData, ScrollerWorkflow } from '../interfaces/index';
 
 export default class Scroll extends getBaseProcess(CommonProcess.scroll) {
 

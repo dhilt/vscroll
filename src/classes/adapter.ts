@@ -1,17 +1,14 @@
 import { Logger } from './logger';
 import { Buffer } from './buffer';
 import { Reactive } from './reactive';
-import { getDefaultAdapterProps } from './adapter/props';
+import { AdapterPropName, AdapterPropType, getDefaultAdapterProps } from './adapter/props';
+import { AdapterProcess, ProcessStatus } from '../processes/index';
 import {
   WorkflowGetter,
-  AdapterPropName,
-  AdapterPropType,
   IAdapterProp,
   IReactivePropsStore,
   AdapterMethodResult,
   IAdapter,
-  AdapterProcess,
-  ProcessStatus,
   ItemAdapter,
   ItemsPredicate,
   AdapterPrependOptions,

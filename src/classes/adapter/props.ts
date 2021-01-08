@@ -1,7 +1,47 @@
 import { Reactive } from '../reactive';
-import {
-  AdapterPropName as Name, AdapterPropType as Type, IAdapterProp, IBufferInfo, ItemAdapter
-} from '../../interfaces/index';
+import { IAdapterProp, IBufferInfo, ItemAdapter } from '../../interfaces/index';
+
+export enum AdapterPropName {
+  id = 'id',
+  mock = 'mock',
+  version = 'version',
+  isLoading = 'isLoading',
+  isLoading$ = 'isLoading$',
+  loopPending = 'loopPending',
+  loopPending$ = 'loopPending$',
+  firstVisible = 'firstVisible',
+  firstVisible$ = 'firstVisible$',
+  lastVisible = 'lastVisible',
+  lastVisible$ = 'lastVisible$',
+  bof = 'bof',
+  bof$ = 'bof$',
+  eof = 'eof',
+  eof$ = 'eof$',
+  itemsCount = 'itemsCount',
+  bufferInfo = 'bufferInfo',
+  reset = 'reset',
+  reload = 'reload',
+  append = 'append',
+  prepend = 'prepend',
+  check = 'check',
+  remove = 'remove',
+  clip = 'clip',
+  insert = 'insert',
+  replace = 'replace',
+  fix = 'fix',
+  relax = 'relax',
+  showLog = 'showLog',
+}
+
+export enum AdapterPropType {
+  Scalar,
+  Reactive,
+  WorkflowRunner,
+  Function,
+}
+
+const Name = AdapterPropName;
+const Type = AdapterPropType;
 
 const noop = () => null;
 

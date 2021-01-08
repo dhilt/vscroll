@@ -1,6 +1,6 @@
-import { getBaseProcess } from './_base';
+import { getBaseProcess, CommonProcess, AdapterProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
-import { CommonProcess, AdapterProcess, ProcessStatus, Direction } from '../interfaces/index';
+import { Direction } from '../interfaces/index';
 
 export default class PreFetch extends getBaseProcess(CommonProcess.preFetch) {
 

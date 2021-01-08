@@ -1,6 +1,5 @@
-import { getBaseAdapterProcess } from './_base';
 import { Scroller } from '../../scroller';
-import { AdapterProcess, ProcessStatus } from '../../interfaces/index';
+import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
 
 export default class Reload extends getBaseAdapterProcess(AdapterProcess.reload) {
 

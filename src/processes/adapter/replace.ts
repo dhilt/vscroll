@@ -1,10 +1,8 @@
-import { getBaseAdapterProcess } from './_base';
 import { Scroller } from '../../scroller';
 import Remove from './remove';
 import Insert from './insert';
-import {
-  AdapterProcess, ProcessStatus, AdapterReplaceOptions, AdapterInsertOptions, AdapterRemoveOptions
-} from '../../interfaces/index';
+import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
+import { AdapterReplaceOptions, AdapterInsertOptions, AdapterRemoveOptions } from '../../interfaces/index';
 
 export default class Replace extends getBaseAdapterProcess(AdapterProcess.replace) {
 

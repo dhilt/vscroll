@@ -44,6 +44,16 @@ export type ItemsPredicate = (item: ItemAdapter) => boolean;
 export type ItemsLooper = (item: ItemAdapter) => any;
 export type ItemsProcessor = (items: ItemAdapter[]) => void;
 
+export interface IPackage {
+  name: string;
+  version: string;
+}
+
+export interface IPackages {
+  core: IPackage;
+  consumer: IPackage;
+}
+
 export interface IBufferInfo {
   firstIndex: number;
   lastIndex: number;
@@ -107,6 +117,9 @@ export interface IAdapter {
   readonly id: number;
   readonly mock: boolean;
   readonly version: string;
+  readonly packageInfo: IPackages;
+  readonly itemsCount: number;
+  readonly bufferInfo: IBufferInfo;
   readonly isLoading: boolean;
   readonly isLoading$: Reactive<boolean>;
   readonly loopPending: boolean;
@@ -119,8 +132,6 @@ export interface IAdapter {
   readonly bof$: Reactive<boolean>;
   readonly eof: boolean;
   readonly eof$: Reactive<boolean>;
-  readonly itemsCount: number;
-  readonly bufferInfo: IBufferInfo;
   reset(datasource?: IDatasourceOptional): MethodResult;
   reload(reloadIndex?: number | string): MethodResult;
   append(options: AdapterAppendOptions): MethodResult;

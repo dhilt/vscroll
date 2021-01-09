@@ -1,10 +1,13 @@
 import { Reactive } from '../reactive';
-import { IAdapterProp, IBufferInfo, ItemAdapter } from '../../interfaces/index';
+import { IAdapterProp, IBufferInfo, ItemAdapter, IPackages } from '../../interfaces/index';
 
 export enum AdapterPropName {
   id = 'id',
   mock = 'mock',
   version = 'version',
+  packageInfo = 'packageInfo',
+  itemsCount = 'itemsCount',
+  bufferInfo = 'bufferInfo',
   isLoading = 'isLoading',
   isLoading$ = 'isLoading$',
   loopPending = 'loopPending',
@@ -17,8 +20,6 @@ export enum AdapterPropName {
   bof$ = 'bof$',
   eof = 'eof',
   eof$ = 'eof$',
-  itemsCount = 'itemsCount',
-  bufferInfo = 'bufferInfo',
   reset = 'reset',
   reload = 'reload',
   append = 'append',
@@ -44,6 +45,17 @@ const Name = AdapterPropName;
 const Type = AdapterPropType;
 
 const noop = () => null;
+
+const emptyPackageInfo: IPackages = {
+  core: {
+    name: '',
+    version: ''
+  },
+  consumer: {
+    name: '',
+    version: ''
+  }
+};
 
 const bufferInfoDefault: IBufferInfo = {
   firstIndex: NaN,
@@ -77,6 +89,24 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
     name: Name.version,
     value: '',
     permanent: true
+  },
+  {
+    type: Type.Scalar,
+    name: Name.packageInfo,
+    value: emptyPackageInfo,
+    onDemand: true
+  },
+  {
+    type: Type.Scalar,
+    name: Name.itemsCount,
+    value: 0,
+    onDemand: true
+  },
+  {
+    type: Type.Scalar,
+    name: Name.bufferInfo,
+    value: bufferInfoDefault,
+    onDemand: true
   },
   {
     type: Type.Scalar,
@@ -115,18 +145,6 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
     name: Name.eof,
     value: false,
     reactive: Name.eof$
-  },
-  {
-    type: Type.Scalar,
-    name: Name.itemsCount,
-    value: 0,
-    onDemand: true
-  },
-  {
-    type: Type.Scalar,
-    name: Name.bufferInfo,
-    value: bufferInfoDefault,
-    onDemand: true
   },
   {
     type: Type.WorkflowRunner,

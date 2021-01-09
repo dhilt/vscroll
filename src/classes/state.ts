@@ -4,11 +4,11 @@ import { FetchModel } from './state/fetch';
 import { ClipModel } from './state/clip';
 import { RenderModel } from './state/render';
 import { ScrollState } from './state/scroll';
-import { State as IState, ScrollState as IScrollState } from '../interfaces/index';
+import { State as IState, IPackages, ScrollState as IScrollState } from '../interfaces/index';
 
 export class State implements IState {
 
-  readonly version: string;
+  readonly packageInfo: IPackages;
   private settings: Settings;
 
   initTime: number;
@@ -25,8 +25,8 @@ export class State implements IState {
     return Number(new Date()) - this.initTime;
   }
 
-  constructor(version: string, settings: Settings, state?: IState) {
-    this.version = version;
+  constructor(packageInfo: IPackages, settings: Settings, state?: IState) {
+    this.packageInfo = packageInfo;
     this.settings = settings;
 
     this.initTime = Number(new Date());

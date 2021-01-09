@@ -9,12 +9,14 @@ const TYPINGS_DIR = `${DIST_DIR}/typings`;
 
 // Package version 
 shell.echo(`Setup package version`);
-const version = config.version;
-const versionContent = `export default '${version}';`;
+const versionContent = `export default {
+  name: '${config.name}',
+  version: '${config.version}'
+};`;
 const versionFilePath = `./src/version.ts`;
 shell.touch(versionFilePath);
 shell.echo(versionContent).to(versionFilePath);
-shell.echo(chalk.green(`${config.name} v${version}`));
+shell.echo(chalk.green(`${config.name} v${config.version}`));
 
 shell.echo(`Start building...`);
 

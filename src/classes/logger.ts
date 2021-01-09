@@ -1,6 +1,6 @@
 import { Scroller } from '../scroller';
 import { CommonProcess, AdapterProcess, ProcessStatus as Status } from '../processes/index';
-import { ProcessSubject } from '../interfaces/index';
+import { IPackages, ProcessSubject } from '../interfaces/index';
 
 type LogType = [any?, ...any[]];
 
@@ -18,7 +18,7 @@ export class Logger {
   readonly getScrollPosition: Function;
   private logs: any[] = [];
 
-  constructor(scroller: Scroller, version: string) {
+  constructor(scroller: Scroller, packageInfo: IPackages) {
     const { settings } = scroller;
     this.debug = settings.debug;
     this.immediateLog = settings.immediateLog;
@@ -48,7 +48,11 @@ export class Logger {
     this.getWorkflowCycleData = (): string =>
       `${settings.instanceIndex}-${scroller.state.cycle.count}`;
     this.getScrollPosition = (element: HTMLElement) => scroller.routines.getScrollPosition(element);
-    this.log(() => `uiScroll Workflow has been started (v${version}, instance ${settings.instanceIndex})`);
+    this.log(() =>
+      `uiScroll Workflow has been started, ` +
+      `core: ${packageInfo.core.name} v${packageInfo.core.version} (instance ${settings.instanceIndex}), ` +
+      `consumer: ${packageInfo.consumer.name} v${packageInfo.consumer.version}`
+    );
   }
 
   object(str: string, obj: any, stringify?: boolean) {

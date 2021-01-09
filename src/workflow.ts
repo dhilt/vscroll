@@ -4,7 +4,7 @@ import { Reactive } from './classes/reactive';
 import { Item } from './classes/item';
 import { CommonProcess, ProcessStatus as Status, } from './processes/index';
 import {
-  IDatasource,
+  WorkflowParams,
   Process,
   ProcessSubject,
   WorkflowError,
@@ -27,7 +27,7 @@ export class Workflow {
 
   scroller: Scroller;
 
-  constructor(element: HTMLElement, datasource: IDatasource, version: string, run: Function) {
+  constructor({ element, datasource, consumer, run }: WorkflowParams) {
     this.isInitialized = false;
     this.adapterRun$ = new Reactive();
     this.cyclesDone = 0;
@@ -42,7 +42,7 @@ export class Workflow {
       onError: this.onError.bind(this)
     };
 
-    this.scroller = new Scroller({ element, datasource, version, workflow: this.getUpdater() });
+    this.scroller = new Scroller({ element, datasource, consumer, workflow: this.getUpdater() });
 
     if (this.scroller.settings.initializeDelay) {
       setTimeout(() => this.init(), this.scroller.settings.initializeDelay);

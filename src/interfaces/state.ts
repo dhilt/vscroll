@@ -1,4 +1,4 @@
-import { Direction } from './index';
+import { Direction, IPackages } from './index';
 import { WorkflowCycleModel } from '../classes/state/cycle';
 import { FetchModel } from '../classes/state/fetch';
 import { ClipModel } from '../classes/state/clip';
@@ -29,7 +29,7 @@ export interface ScrollState {
 }
 
 export interface State {
-  version: string;
+  packageInfo: IPackages;
   initTime: number;
   cycle: WorkflowCycleModel;
   fetch: FetchModel;

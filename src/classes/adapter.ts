@@ -20,6 +20,7 @@ import {
   AdapterFixOptions,
   ScrollerWorkflow,
   IDatasourceOptional,
+  IPackages,
   IBufferInfo,
   State,
   ProcessSubject,
@@ -73,6 +74,9 @@ export class Adapter implements IAdapter {
   id: number;
   mock: boolean;
   version: string;
+  packageInfo: IPackages;
+  itemsCount: number;
+  bufferInfo: IBufferInfo;
   isLoading: boolean;
   isLoading$: Reactive<boolean>;
   loopPending: boolean;
@@ -85,8 +89,6 @@ export class Adapter implements IAdapter {
   bof$: Reactive<boolean>;
   eof: boolean;
   eof$: Reactive<boolean>;
-  itemsCount: number;
-  bufferInfo: IBufferInfo;
 
   private initialized: boolean;
   private relax$: Reactive<AdapterMethodResult> | null;
@@ -233,7 +235,7 @@ export class Adapter implements IAdapter {
     delete (publicContext as any).reactiveConfiguredProps;
   }
 
-  init(buffer: Buffer, { cycle }: State, logger: Logger, adapterRun$?: Reactive<ProcessSubject>) {
+  init(buffer: Buffer, state: State, logger: Logger, adapterRun$?: Reactive<ProcessSubject>) {
     // buffer
     Object.defineProperty(this.demand, AdapterPropName.itemsCount, {
       get: () => buffer.getVisibleItemsCount()
@@ -254,10 +256,13 @@ export class Adapter implements IAdapter {
     buffer.eof.on(eof => this.eof = eof);
 
     // state
-    this.loopPending = cycle.innerLoop.busy.get();
-    cycle.innerLoop.busy.on(busy => this.loopPending = busy);
-    this.isLoading = cycle.busy.get();
-    cycle.busy.on(busy => this.isLoading = busy);
+    Object.defineProperty(this.demand, AdapterPropName.packageInfo, {
+      get: () => state.packageInfo
+    });
+    this.loopPending = state.cycle.innerLoop.busy.get();
+    state.cycle.innerLoop.busy.on(busy => this.loopPending = busy);
+    this.isLoading = state.cycle.busy.get();
+    state.cycle.busy.on(busy => this.isLoading = busy);
 
     // logger
     this.logger = logger;

@@ -8,6 +8,7 @@ import {
   IDatasourceClass,
 } from './datasource';
 import {
+  WorkflowParams,
   OnDataChanged,
   ScrollerWorkflow,
   ScrollerParams,
@@ -27,6 +28,8 @@ import {
   ItemsPredicate,
   ItemsLooper,
   ItemsProcessor,
+  IPackage,
+  IPackages,
   IBufferInfo,
   AdapterAppendOptions,
   AdapterPrependOptions,
@@ -59,6 +62,7 @@ export {
   IDatasource,
   IDatasourceConstructed,
   IDatasourceClass,
+  WorkflowParams,
   OnDataChanged,
   ScrollerWorkflow,
   ScrollerParams,
@@ -78,6 +82,8 @@ export {
   ItemsPredicate,
   ItemsLooper,
   ItemsProcessor,
+  IPackage,
+  IPackages,
   IBufferInfo,
   AdapterAppendOptions,
   AdapterPrependOptions,

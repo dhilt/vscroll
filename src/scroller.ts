@@ -8,8 +8,9 @@ import { State } from './classes/state';
 import { Adapter } from './classes/adapter';
 import { Reactive } from './classes/reactive';
 import { validate, DATASOURCE } from './inputs/index';
+import core from './version';
 import {
-  ScrollerWorkflow, IDatasource, IDatasourceConstructed, ScrollerParams, IAdapter, ProcessSubject
+  ScrollerWorkflow, IDatasource, IDatasourceConstructed, ScrollerParams, IPackages, IAdapter, ProcessSubject
 } from './interfaces/index';
 
 export const INVALID_DATASOURCE_PREFIX = 'Invalid datasource:';
@@ -28,21 +29,21 @@ export class Scroller {
   public state: State;
   public adapter: Adapter;
 
-  constructor({ datasource, version, element, workflow, scroller }: ScrollerParams) {
+  constructor({ datasource, consumer, element, workflow, scroller }: ScrollerParams) {
     const { params: { get } } = validate(datasource, DATASOURCE);
     if (!get.isValid) {
       throw new Error(`${INVALID_DATASOURCE_PREFIX} ${get.errors[0]}`);
     }
 
-    version = scroller ? scroller.state.version : (version as string);
+    const packageInfo = scroller ? scroller.state.packageInfo : ({ consumer, core } as IPackages);
     element = scroller ? scroller.viewport.element : (element as HTMLElement);
     workflow = scroller ? scroller.workflow : (workflow as ScrollerWorkflow);
 
     this.workflow = workflow;
     this.settings = new Settings(datasource.settings, datasource.devSettings, ++instanceCount);
-    this.logger = new Logger(this, version);
+    this.logger = new Logger(this, packageInfo);
     this.routines = new Routines(this.settings);
-    this.state = new State(version, this.settings, scroller ? scroller.state : void 0);
+    this.state = new State(packageInfo, this.settings, scroller ? scroller.state : void 0);
     this.buffer = new Buffer(this.settings, workflow.onDataChanged, this.logger);
     this.viewport = new Viewport(element, this.settings, this.routines, this.state, this.logger);
     this.logger.object('uiScroll settings object', this.settings, true);

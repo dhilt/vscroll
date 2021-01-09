@@ -1,1 +1,4 @@
-export default '1.0.0-beta.2';
+export default {
+  name: 'vscroll',
+  version: '1.0.0-beta.4'
+};

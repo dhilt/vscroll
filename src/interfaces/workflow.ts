@@ -1,4 +1,4 @@
-import { Process, ProcessSubject } from './process';
+import { ProcessClass, ProcessName, ProcessPayload, ProcessSubject } from './process';
 import { IDatasource } from './datasource';
 import { IPackage } from './adapter';
 import { Item } from '../classes/item';
@@ -12,7 +12,7 @@ export interface WorkflowParams {
 }
 
 interface CallWorkflow {
-  (process: ProcessSubject): any;
+  (process: ProcessSubject): void;
   interrupted?: boolean;
 }
 
@@ -37,20 +37,20 @@ export interface WorkflowError {
   loop: string;
   time: number;
   message: string;
-  process: Process;
+  process: ProcessName;
 }
 
 export interface InterruptParams {
-  process: Process;
-  finalize: boolean;
-  datasource: IDatasource;
+  process: ProcessName;
+  finalize?: boolean;
+  datasource?: IDatasource;
 }
 
 export interface StateMachineMethods {
-  run: (process: any) => (...args: any[]) => void;
+  run: (process: ProcessClass) => (...args: any[]) => void;
   interrupt: (params: InterruptParams) => void;
   done: () => void;
-  onError: (process: Process, payload: any) => void;
+  onError: (process: ProcessName, payload: ProcessPayload) => void;
 }
 
 export interface StateMachineParams {

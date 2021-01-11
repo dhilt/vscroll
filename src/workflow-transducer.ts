@@ -29,7 +29,7 @@ import { StateMachineParams } from './interfaces/index';
 export const runStateMachine = ({
   input: { process, status, payload = {} },
   methods: { run, interrupt, done, onError }
-}: StateMachineParams) => {
+}: StateMachineParams): void => {
   if (status === Status.error) {
     onError(process, payload);
     if (!process.startsWith('adapter')) {
@@ -37,6 +37,7 @@ export const runStateMachine = ({
     }
     return;
   }
+  const { options } = payload;
   switch (process) {
     case CommonProcess.init:
       if (status === Status.start) { // App start
@@ -58,9 +59,9 @@ export const runStateMachine = ({
     case AdapterProcess.reload:
       if (status === Status.start) {
         if (process === AdapterProcess.reset) {
-          run(Reset)(payload);
+          run(Reset)(options);
         } else {
-          run(Reload)(payload);
+          run(Reload)(options);
         }
       }
       if (status === Status.next) {
@@ -74,7 +75,7 @@ export const runStateMachine = ({
       break;
     case AdapterProcess.append:
       if (status === Status.start) {
-        run(Append)(payload);
+        run(Append)(options);
       }
       if (status === Status.next) {
         run(Init)(process);
@@ -90,7 +91,7 @@ export const runStateMachine = ({
       break;
     case AdapterProcess.remove:
       if (status === Status.start) {
-        run(Remove)(payload);
+        run(Remove)(options);
       }
       if (status === Status.next) {
         run(Init)(process);
@@ -98,7 +99,7 @@ export const runStateMachine = ({
       break;
     case AdapterProcess.clip:
       if (status === Status.start) {
-        run(UserClip)(payload);
+        run(UserClip)(options);
       }
       if (status === Status.next) {
         run(Init)(process);
@@ -106,7 +107,7 @@ export const runStateMachine = ({
       break;
     case AdapterProcess.insert:
       if (status === Status.start) {
-        run(Insert)(payload);
+        run(Insert)(options);
       }
       if (status === Status.next) {
         run(Init)(process);
@@ -114,7 +115,7 @@ export const runStateMachine = ({
       break;
     case AdapterProcess.replace:
       if (status === Status.start) {
-        run(Replace)(payload);
+        run(Replace)(options);
       }
       if (status === Status.next) {
         run(Init)(process);
@@ -122,7 +123,7 @@ export const runStateMachine = ({
       break;
     case AdapterProcess.fix:
       if (status === Status.start) {
-        run(Fix)(payload);
+        run(Fix)(options);
       }
       if (status === Status.next) {
         run(Init)(process);

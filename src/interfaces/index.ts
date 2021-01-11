@@ -1,4 +1,5 @@
 import {
+  ObservableLike,
   DatasourceGet,
   IDatasourceOptional,
   IDatasourceGeneric,
@@ -44,7 +45,13 @@ import {
 import { Settings, DevSettings } from './settings';
 import { Direction } from './direction';
 import { ScrollEventData, ScrollState, State } from './state';
-import { Process, ProcessSubject, AdapterProcessMap } from './process';
+import {
+  ProcessName,
+  ProcessClass,
+  ProcessPayload,
+  ProcessSubject,
+  AdapterProcessMap,
+} from './process';
 import {
   ValidatedValue,
   IValidator,
@@ -55,6 +62,7 @@ import {
 } from './validation';
 
 export {
+  ObservableLike,
   DatasourceGet,
   IDatasourceOptional,
   IDatasourceGeneric,
@@ -98,7 +106,9 @@ export {
   ScrollEventData,
   ScrollState,
   State,
-  Process,
+  ProcessName,
+  ProcessClass,
+  ProcessPayload,
   ProcessSubject,
   AdapterProcessMap,
   ValidatedValue,

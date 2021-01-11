@@ -18,10 +18,10 @@ export class Item {
     this.container.$index = value;
   }
 
-  get data(): any {
+  get data(): unknown {
     return this.container.data;
   }
-  set data(value: any) {
+  set data(value: unknown) {
     this.container.data = value;
   }
 
@@ -32,7 +32,7 @@ export class Item {
     this.container.element = value;
   }
 
-  constructor($index: number, data: any, routines: Routines) {
+  constructor($index: number, data: unknown, routines: Routines) {
     this.container = {
       $index,
       data
@@ -42,23 +42,23 @@ export class Item {
     this.invisible = true;
   }
 
-  setSize() {
+  setSize(): void {
     this.size = this.routines.getSize(this.element);
   }
 
-  hide() {
+  hide(): void {
     if (this.element) {
       this.routines.hideElement(this.element);
     }
   }
 
-  scrollTo(argument?: boolean | ScrollIntoViewOptions) {
+  scrollTo(argument?: boolean | ScrollIntoViewOptions): void {
     if (this.element) {
       this.routines.scrollTo(this.element, argument);
     }
   }
 
-  updateIndex(index: number) {
+  updateIndex(index: number): void {
     this.$index = index;
     this.nodeId = String(index);
   }

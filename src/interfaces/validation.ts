@@ -1,9 +1,11 @@
 import { ValidatorType } from '../inputs/validation';
 
-type ValidatorMethod = (value: any, context?: any) => ValidatedValue;
+export interface IValidationContext { [key: string]: unknown }
+
+type ValidatorMethod = (value: unknown, context?: IValidationContext) => ValidatedValue;
 
 export interface ValidatedValue {
-  value: any;
+  value: unknown;
   isSet: boolean;
   isValid: boolean;
   errors: string[];
@@ -17,7 +19,7 @@ export interface IValidator {
 export interface ICommonProp {
   validators: IValidator[];
   mandatory?: boolean; // if true, undefined prop will produce error
-  defaultValue?: any; // if present, undefined non-mandatory prop will be set to defaultValue
+  defaultValue?: unknown; // if present, undefined non-mandatory prop will be set to defaultValue
 }
 
 export type ICommonProps<T extends PropertyKey> = {
@@ -31,6 +33,6 @@ export type IValidatedCommonProps<T extends PropertyKey> = {
 export interface IValidatedData {
   isValid: boolean;
   errors: string[];
-  params: IValidatedCommonProps<any>;
-  showErrors: Function;
+  params: IValidatedCommonProps<PropertyKey>;
+  showErrors: () => void;
 }

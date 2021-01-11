@@ -28,12 +28,12 @@ export class Reactive<T> {
     this.subscriptions = new Map();
   }
 
-  set(value: T) {
+  set(value: T): void {
     if (this.value === value && !this.options.emitEqual) {
       return;
     }
     this.value = value;
-    for (const [id, sub] of this.subscriptions) {
+    for (const [, sub] of this.subscriptions) {
       sub.emit(value);
       if (this.value !== value && !this.options.emitChanged) {
         break;
@@ -69,7 +69,7 @@ export class Reactive<T> {
     return off;
   }
 
-  dispose() {
+  dispose(): void {
     this.subscriptions.forEach(sub => sub.off());
   }
 }

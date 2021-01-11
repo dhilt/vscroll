@@ -35,12 +35,12 @@ export class Buffer {
     this.reset();
   }
 
-  dispose() {
+  dispose(): void {
     this.bof.dispose();
     this.eof.dispose();
   }
 
-  reset(reload?: boolean, startIndex?: number) {
+  reset(reload?: boolean, startIndex?: number): void {
     if (reload) {
       this.items.forEach(item => item.hide());
     }
@@ -55,7 +55,7 @@ export class Buffer {
     this.pristine = false;
   }
 
-  setCurrentStartIndex(newStartIndex?: any) {
+  setCurrentStartIndex(newStartIndex?: unknown): void {
     const min = this.minIndexUser;
     const max = this.maxIndexUser;
     const start = this.startIndexUser;
@@ -187,15 +187,15 @@ export class Buffer {
     return true;
   }
 
-  append(items: Item[]) {
+  append(items: Item[]): void {
     this.items = [...this.items, ...items];
   }
 
-  prepend(items: Item[]) {
+  prepend(items: Item[]): void {
     this.items = [...items, ...this.items];
   }
 
-  removeItems(indexes: number[], immutableTop: boolean, virtual = false) {
+  removeItems(indexes: number[], immutableTop: boolean, virtual = false): void {
     const result: Item[] = [];
     const toRemove: number[] = virtual ? indexes : [];
     const length = this.items.length;
@@ -234,7 +234,7 @@ export class Buffer {
     this.cache.removeItems(toRemove, immutableTop);
   }
 
-  insertItems(items: Item[], from: Item, addition: number, immutableTop: boolean) {
+  insertItems(items: Item[], from: Item, addition: number, immutableTop: boolean): void {
     const count = items.length;
     const index = this.items.indexOf(from) + addition;
     const itemsBefore = this.items.slice(0, index);
@@ -259,7 +259,7 @@ export class Buffer {
     this.cache.insertItems(from.$index + addition, count, immutableTop);
   }
 
-  cacheItem(item: Item) {
+  cacheItem(item: Item): void {
     this.cache.add(item);
   }
 
@@ -315,11 +315,17 @@ export class Buffer {
   }
 
   getIndexToAppend(eof?: boolean): number {
-    return (!eof ? (this.size ? this.items[this.size - 1].$index : this.maxIndex) : this.absMaxIndex) + (this.size ? 1 : 0);
+    return (!eof
+      ? (this.size ? this.items[this.size - 1].$index : this.maxIndex)
+      : this.absMaxIndex
+    ) + (this.size ? 1 : 0);
   }
 
   getIndexToPrepend(bof?: boolean): number {
-    return (!bof ? (this.size ? this.items[0].$index : this.minIndex) : this.absMinIndex) - (this.size ? 1 : 0);
+    return (!bof
+      ? (this.size ? this.items[0].$index : this.minIndex)
+      : this.absMinIndex
+    ) - (this.size ? 1 : 0);
   }
 
   getIndexToAdd(eof: boolean, prepend: boolean): number {

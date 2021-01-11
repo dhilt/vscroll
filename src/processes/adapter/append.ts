@@ -1,19 +1,25 @@
 import { Scroller } from '../../scroller';
 import { Item } from '../../classes/item';
-import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
+import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
 import { AdapterAppendOptions, AdapterPrependOptions } from '../../interfaces/index';
 
 type AdapterAppendPrependOptions = AdapterAppendOptions & AdapterPrependOptions;
 
-export default class Append extends getBaseAdapterProcess(AdapterProcess.append) {
+interface AppendRunOptions {
+  process: AdapterProcess;
+  options: AdapterAppendPrependOptions;
+}
 
-  static run(scroller: Scroller, { prepend, options }: { prepend: boolean, options: AdapterAppendPrependOptions }) {
+export default class Append extends BaseAdapterProcessFactory(AdapterProcess.append) {
+
+  static run(scroller: Scroller, { process, options }: AppendRunOptions): void {
 
     const { params } = Append.parseInput(scroller, options);
     if (!params) {
       return;
     }
     const { items, bof, eof } = params;
+    const prepend = process !== AdapterProcess.append;
     const _eof = !!(prepend ? bof : eof);
 
     // virtual prepend case: shift abs min index and update viewport params
@@ -37,7 +43,7 @@ export default class Append extends getBaseAdapterProcess(AdapterProcess.append)
     });
   }
 
-  static doVirtualize(scroller: Scroller, items: any[], prepend: boolean) {
+  static doVirtualize(scroller: Scroller, items: unknown[], prepend: boolean): void {
     const { buffer, viewport: { paddings } } = scroller;
     const bufferToken = prepend ? 'absMinIndex' : 'absMaxIndex';
     if (isFinite(buffer[bufferToken])) {
@@ -53,12 +59,12 @@ export default class Append extends getBaseAdapterProcess(AdapterProcess.append)
     }
   }
 
-  static simulateFetch(scroller: Scroller, items: any[], eof: boolean, prepend: boolean): boolean {
+  static simulateFetch(scroller: Scroller, items: unknown[], eof: boolean, prepend: boolean): boolean {
     const { buffer, state, state: { fetch } } = scroller;
     const bufferToken = prepend ? 'absMinIndex' : 'absMaxIndex';
     let indexToAdd = buffer.getIndexToAdd(eof, prepend);
     let bufferLimit = buffer[bufferToken];
-    const newItems: any[] = [];
+    const newItems: Item[] = [];
 
     for (let i = 0; i < items.length; i++) {
       const itemToAdd = new Item(indexToAdd, items[i], scroller.routines);

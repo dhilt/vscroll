@@ -1,13 +1,13 @@
-import { getBaseProcess, CommonProcess, ProcessStatus } from './misc/index';
+import { BaseProcessFactory, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
 import { EMPTY_ITEM } from '../classes/adapter/props';
 import { Direction, ScrollerWorkflow } from '../interfaces/index';
 
 const isInterrupted = ({ call }: ScrollerWorkflow): boolean => !!call.interrupted;
 
-export default class End extends getBaseProcess(CommonProcess.end) {
+export default class End extends BaseProcessFactory(CommonProcess.end) {
 
-  static run(scroller: Scroller, { error }: any = {}) {
+  static run(scroller: Scroller, { error }: { error?: unknown } = {}): void {
     const { workflow, state: { cycle: { interrupter } } } = scroller;
 
     if (!error && !interrupter) {
@@ -30,7 +30,7 @@ export default class End extends getBaseProcess(CommonProcess.end) {
     });
   }
 
-  static calculateParams(scroller: Scroller, workflow: ScrollerWorkflow) {
+  static calculateParams(scroller: Scroller, workflow: ScrollerWorkflow): void {
     const { adapter, viewport, buffer: { items } } = scroller;
 
     if (adapter.wanted.firstVisible) {
@@ -49,7 +49,7 @@ export default class End extends getBaseProcess(CommonProcess.end) {
     }
   }
 
-  static finalizeInnerLoop(scroller: Scroller, error: any): boolean {
+  static finalizeInnerLoop(scroller: Scroller, error: unknown): boolean {
     const { state, state: { cycle, clip, fetch } } = scroller;
     const next = !!cycle.interrupter || (error ? false : End.getNext(scroller));
     cycle.innerLoop.isInitial = false;

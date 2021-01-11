@@ -25,7 +25,7 @@ export class DatasourceGeneric<A> implements IDatasourceConstructedGeneric<A> {
       this.devSettings = datasource.devSettings;
     }
     const adapterContext = new AdapterContext(config || { mock: false });
-    this.adapter = adapterContext as any;
+    this.adapter = adapterContext as A;
   }
 }
 

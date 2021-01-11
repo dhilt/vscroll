@@ -14,7 +14,7 @@ export class Settings implements ISettings, IDevSettings {
   infinite: boolean;
   horizontal: boolean;
   windowViewport: boolean;
-  viewportElement: HTMLElement | Function | null;
+  viewportElement: HTMLElement | (() => void) | null;
   inverse: boolean; // if true, bwd padding element will have a priority when filling the viewport (if lack of items)
   onBeforeClip: ItemsProcessor | null;
 
@@ -46,7 +46,7 @@ export class Settings implements ISettings, IDevSettings {
     // todo: min/max indexes must be ignored if infinite mode is enabled ??
   }
 
-  parseInput(input: ISettings | IDevSettings | undefined, props: ICommonProps<any>) {
+  parseInput(input: ISettings | IDevSettings | undefined, props: ICommonProps<PropertyKey>): void {
     const result = validate(input, props);
     if (!result.isValid) {
       throw new Error('Invalid settings');
@@ -76,6 +76,6 @@ export class Settings implements ISettings, IDevSettings {
     if (!result.isValid) {
       return null; // fallback to default (null) if Function didn't return HTML element synchronously
     }
-    return result.value;
+    return result.value as HTMLElement;
   }
 }

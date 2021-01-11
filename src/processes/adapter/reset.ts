@@ -1,12 +1,12 @@
 import { Scroller } from '../../scroller';
 import { ADAPTER_METHODS } from '../../inputs/index';
 import { Datasource } from '../../classes/datasource';
-import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
-import { IDatasourceOptional } from '../../interfaces/index';
+import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
+import { IDatasourceOptional, ProcessPayload } from '../../interfaces/index';
 
-export default class Reset extends getBaseAdapterProcess(AdapterProcess.reset) {
+export default class Reset extends BaseAdapterProcessFactory(AdapterProcess.reset) {
 
-  static run(scroller: Scroller, options?: IDatasourceOptional) {
+  static run(scroller: Scroller, options?: IDatasourceOptional): void {
     const { datasource, buffer, viewport: { paddings }, state: { cycle } } = scroller;
 
     if (options) {
@@ -17,8 +17,8 @@ export default class Reset extends getBaseAdapterProcess(AdapterProcess.reset) {
       const constructed = options instanceof Datasource;
       Object.keys(ADAPTER_METHODS[Reset.process]).forEach(key => {
         const param = data.params[key];
-        if (param.isSet || (constructed && datasource.hasOwnProperty(key))) {
-          (datasource as any)[key] = param.value;
+        if (param.isSet || (constructed && datasource[key])) {
+          datasource[key] = param.value;
         }
       });
     }
@@ -27,7 +27,7 @@ export default class Reset extends getBaseAdapterProcess(AdapterProcess.reset) {
     paddings.backward.reset();
     paddings.forward.reset();
 
-    const payload: any = { datasource };
+    const payload: ProcessPayload = { datasource };
     if (cycle.busy.get()) {
       payload.finalize = true;
       cycle.interrupter = Reset.process;

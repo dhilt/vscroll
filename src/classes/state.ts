@@ -40,7 +40,7 @@ export class State implements IState {
     this.scrollState = new ScrollState();
   }
 
-  endInnerLoop() {
+  endInnerLoop(): void {
     const { fetch, render, cycle } = this;
     if (fetch.cancel) {
       fetch.cancel();
@@ -53,7 +53,7 @@ export class State implements IState {
     cycle.innerLoop.done();
   }
 
-  startInnerLoop() {
+  startInnerLoop(): void {
     const { cycle, scrollState: scroll, fetch, render, clip } = this;
     cycle.innerLoop.start();
     scroll.positionBeforeAsync = null;
@@ -66,7 +66,7 @@ export class State implements IState {
     render.reset();
   }
 
-  dispose() {
+  dispose(): void {
     this.cycle.dispose();
     this.endInnerLoop();
     this.scrollState.cleanupTimers();

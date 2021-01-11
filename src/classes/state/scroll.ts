@@ -20,7 +20,7 @@ export class ScrollState implements IScrollState {
     this.reset();
   }
 
-  reset() {
+  reset(): void {
     this.previous = null;
     this.current = null;
     this.syntheticPosition = null;
@@ -31,7 +31,7 @@ export class ScrollState implements IScrollState {
     this.cleanupTimers();
   }
 
-  cleanupTimers() {
+  cleanupTimers(): void {
     if (this.scrollTimer) {
       clearTimeout(this.scrollTimer);
       this.scrollTimer = null;

@@ -5,7 +5,9 @@ import { Item } from './classes/item';
 import { CommonProcess, ProcessStatus as Status, } from './processes/index';
 import {
   WorkflowParams,
-  Process,
+  ProcessName,
+  ProcessPayload,
+  ProcessClass,
   ProcessSubject,
   WorkflowError,
   InterruptParams,
@@ -21,8 +23,8 @@ export class Workflow {
   interruptionCount: number;
   errors: WorkflowError[];
 
-  private disposeScrollEventHandler: Function;
-  readonly propagateChanges: Function;
+  private disposeScrollEventHandler: () => void;
+  readonly propagateChanges: WorkflowParams['run'];
   readonly stateMachineMethods: StateMachineMethods;
 
   scroller: Scroller;
@@ -51,7 +53,7 @@ export class Workflow {
     }
   }
 
-  init() {
+  init(): void {
     this.scroller.init(this.adapterRun$);
     this.isInitialized = true;
 
@@ -74,11 +76,11 @@ export class Workflow {
       scrollEventReceiver.removeEventListener('scroll', onScrollHandler);
   }
 
-  changeItems(items: Item[]) {
+  changeItems(items: Item[]): void {
     this.propagateChanges(items);
   }
 
-  callWorkflow(processSubject: ProcessSubject) {
+  callWorkflow(processSubject: ProcessSubject): void {
     if (!this.isInitialized) {
       return;
     }
@@ -95,7 +97,7 @@ export class Workflow {
     };
   }
 
-  process(data: ProcessSubject) {
+  process(data: ProcessSubject): void {
     const { status, process, payload } = data;
     if (this.scroller.settings.logProcessRun) {
       this.scroller.logger.log(() => [
@@ -115,8 +117,8 @@ export class Workflow {
   }
 
   runProcess() {
-    return ({ run, process, name }: any) =>
-      (...args: any[]) => {
+    return ({ run, process, name }: ProcessClass) =>
+      (...args: any[]): void => {
         if (this.scroller.settings.logProcessRun) {
           this.scroller.logger.log(() => [
             '%crun%c', ...['color: #333399;', 'color: #000000;'],
@@ -127,8 +129,8 @@ export class Workflow {
       };
   }
 
-  onError(process: Process, payload: any) {
-    const message: string = payload && payload.error || '';
+  onError(process: ProcessName, payload?: ProcessPayload): void {
+    const message: string = payload && String(payload.error) || '';
     const { time, cycle } = this.scroller.state;
     this.errors.push({
       process,
@@ -139,12 +141,13 @@ export class Workflow {
     this.scroller.logger.logError(message);
   }
 
-  interrupt({ process, finalize, datasource }: InterruptParams) {
+  interrupt({ process, finalize, datasource }: InterruptParams): void {
     if (finalize) {
       const { workflow, logger } = this.scroller;
       // we are going to create a new reference for the scroller.workflow object
       // calling the old version of the scroller.workflow by any outstanding async processes will be skipped
-      workflow.call = (p: ProcessSubject) => logger.log('[skip wf call]');
+      workflow.call = (p: ProcessSubject) => // eslint-disable-line @typescript-eslint/no-unused-vars
+        logger.log('[skip wf call]');
       workflow.call.interrupted = true;
       this.scroller.workflow = this.getUpdater();
       this.interruptionCount++;
@@ -161,7 +164,7 @@ export class Workflow {
     }
   }
 
-  done() {
+  done(): void {
     const { state, logger } = this.scroller;
     this.cyclesDone++;
     logger.logCycle(false);
@@ -169,14 +172,14 @@ export class Workflow {
     this.finalize();
   }
 
-  dispose() {
+  dispose(): void {
     this.disposeScrollEventHandler();
     this.adapterRun$.dispose();
     this.scroller.dispose(true);
     this.isInitialized = false;
   }
 
-  finalize() {
+  finalize(): void {
   }
 
 }

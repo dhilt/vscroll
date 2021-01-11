@@ -48,7 +48,7 @@ export class ClipModel {
     this.reset();
   }
 
-  reset(isForce?: boolean) {
+  reset(isForce?: boolean): void {
     this.doClip = false;
     if (!isForce) {
       this.forceReset();
@@ -59,7 +59,7 @@ export class ClipModel {
     this.virtual.reset();
   }
 
-  forceReset() {
+  forceReset(): void {
     this.simulate = false;
     this.forceForward = false;
     this.forceBackward = false;

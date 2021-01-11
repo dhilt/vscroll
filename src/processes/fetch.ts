@@ -1,26 +1,27 @@
-import { getBaseProcess, CommonProcess, ProcessStatus } from './misc/index';
+import { BaseProcessFactory, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
+import { ObservableLike } from '../interfaces/index';
 
 interface Immediate {
-  data: any[] | null;
-  error: any | null;
+  data: unknown[] | null;
+  error: unknown | null;
   isError: boolean;
 }
 
-type FetchGetResult = Immediate | Promise<any>;
+type FetchGetResult = Immediate | Promise<unknown>;
 
 interface FetchBox {
-  success: (value: any[]) => void;
+  success: (value: unknown[]) => void;
   fail: (value: unknown) => void;
 }
 
-export default class Fetch extends getBaseProcess(CommonProcess.fetch) {
+export default class Fetch extends BaseProcessFactory(CommonProcess.fetch) {
 
-  static run(scroller: Scroller) {
+  static run(scroller: Scroller): void {
     const { workflow } = scroller;
 
     const box = {
-      success: (data: any[]) => {
+      success: (data: unknown[]) => {
         scroller.logger.log(() =>
           `resolved ${data.length} items ` +
           `(index = ${scroller.state.fetch.index}, count = ${scroller.state.fetch.count})`
@@ -31,7 +32,7 @@ export default class Fetch extends getBaseProcess(CommonProcess.fetch) {
           status: ProcessStatus.next
         });
       },
-      fail: (error: any) =>
+      fail: (error: unknown) =>
         workflow.call({
           process: Fetch.process,
           status: ProcessStatus.error,
@@ -43,8 +44,8 @@ export default class Fetch extends getBaseProcess(CommonProcess.fetch) {
     Fetch.complete(scroller, box, result);
   }
 
-  static complete(scroller: Scroller, box: FetchBox, result: FetchGetResult) {
-    if (result.hasOwnProperty('data')) {
+  static complete(scroller: Scroller, box: FetchBox, result: FetchGetResult): void {
+    if (Object.prototype.hasOwnProperty.call(result, 'data')) {
       const { data, error, isError } = result as Immediate;
       if (!isError) {
         box.success(data || []);
@@ -60,7 +61,7 @@ export default class Fetch extends getBaseProcess(CommonProcess.fetch) {
         box.success = () => null;
         box.fail = () => null;
       };
-      (result as Promise<any>).then(
+      (result as Promise<unknown[]>).then(
         (data) => box.success(data),
         (error) => box.fail(error)
       );
@@ -68,20 +69,20 @@ export default class Fetch extends getBaseProcess(CommonProcess.fetch) {
   }
 
   static get(scroller: Scroller): FetchGetResult {
-    const _get = scroller.datasource.get as Function;
+    const _get = scroller.datasource.get;
     const { index, count } = scroller.state.fetch;
 
     let immediateData, immediateError;
     let resolve: (value: unknown) => void, reject: (value: unknown) => void;
 
-    const done = (data: any[]) => {
+    const done = (data: unknown[]) => {
       if (!resolve) {
         immediateData = data || null;
         return;
       }
       resolve(data);
     };
-    const fail = (error: any) => {
+    const fail = (error: unknown) => {
       if (!reject) {
         immediateError = error || null;
         return;
@@ -91,11 +92,11 @@ export default class Fetch extends getBaseProcess(CommonProcess.fetch) {
 
     const getResult = _get(index, count, done, fail);
 
-    if (getResult && typeof getResult === 'object') {
-      if (typeof getResult.then === 'function') { // promise case, no wrapping needed
-        return getResult;
-      } else if (typeof getResult.subscribe === 'function') { // observable case
-        const sub = getResult.subscribe(done, fail, () => sub.unsubscribe());
+    if (getResult && typeof getResult === 'object' && getResult !== null) {
+      if (typeof (getResult as PromiseLike<unknown>).then === 'function') {
+        return getResult as Promise<unknown>;
+      } else if (typeof (getResult as ObservableLike).subscribe === 'function') {
+        const sub = (getResult as ObservableLike).subscribe(done, fail, () => sub.unsubscribe());
       }
     }
 

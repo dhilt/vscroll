@@ -49,7 +49,7 @@ class Last {
 }
 
 export class FetchModel {
-  private _newItemsData: any[] | null;
+  private _newItemsData: unknown[] | null;
 
   items: Item[];
   positions: Positions;
@@ -76,7 +76,7 @@ export class FetchModel {
     this.reset();
   }
 
-  reset() {
+  reset(): void {
     this._newItemsData = null;
     this.items = [];
     this.positions.reset();
@@ -93,11 +93,11 @@ export class FetchModel {
     this.isReplace = false;
   }
 
-  get newItemsData(): Item[] | null {
+  get newItemsData(): unknown[] | null {
     return this._newItemsData;
   }
 
-  set newItemsData(items: Item[] | null) {
+  set newItemsData(items: unknown[] | null) {
     this._newItemsData = items;
     if (items && items.length) {
       this.callCount++;
@@ -120,7 +120,7 @@ export class FetchModel {
     return !isNaN(this.first.index) && !isNaN(this.last.index) ? this.last.index - this.first.index + 1 : 0;
   }
 
-  startSimulate(items: Item[]) {
+  startSimulate(items: Item[]): void {
     this.simulate = true;
     this._newItemsData = items.map(item => item.data);
     this.items = items;
@@ -128,20 +128,20 @@ export class FetchModel {
     this.negativeSize = 0;
   }
 
-  stopSimulate() {
+  stopSimulate(): void {
     this.simulate = false;
     this.isPrepend = false;
     this.isReplace = false;
   }
 
-  append(items: Item[]) {
+  append(items: Item[]): void {
     this.startSimulate(items);
     this.last.index = items[items.length - 1].$index;
     this.first.index = items[0].$index;
     this.direction = Direction.forward;
   }
 
-  prepend(items: Item[]) {
+  prepend(items: Item[]): void {
     this.startSimulate(items);
     this.last.index = items[0].$index;
     this.first.index = items[items.length - 1].$index;
@@ -149,14 +149,14 @@ export class FetchModel {
     this.isPrepend = true;
   }
 
-  replace(items: Item[]) {
+  replace(items: Item[]): void {
     this.startSimulate(items);
     this.last.index = items[0].$index;
     this.first.index = items[items.length - 1].$index;
     this.isReplace = true;
   }
 
-  insert(items: Item[]) {
+  insert(items: Item[]): void {
     this.startSimulate(items);
     this.last.index = items[0].$index;
     this.first.index = items[items.length - 1].$index;

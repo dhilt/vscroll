@@ -11,7 +11,7 @@ export class Routines {
     this.window = settings.windowViewport;
   }
 
-  checkElement(element: HTMLElement) {
+  checkElement(element: HTMLElement): void {
     if (!element) {
       throw new Error('HTML element is not defined');
     }
@@ -25,7 +25,7 @@ export class Routines {
     return element[this.horizontal ? 'scrollLeft' : 'scrollTop'];
   }
 
-  setScrollPosition(element: HTMLElement, value: number) {
+  setScrollPosition(element: HTMLElement, value: number): void {
     value = Math.max(0, value);
     if (this.window) {
       if (this.horizontal) {
@@ -64,7 +64,7 @@ export class Routines {
     return parseInt(size as string, 10) || 0;
   }
 
-  setSizeStyle(element: HTMLElement, value: number) {
+  setSizeStyle(element: HTMLElement, value: number): void {
     this.checkElement(element);
     value = Math.max(0, Math.round(value));
     element.style[this.horizontal ? 'width' : 'height'] = `${value}px`;
@@ -82,7 +82,7 @@ export class Routines {
       (direction === (!opposite ? Direction.forward : Direction.backward) ? this.getSize(element) : 0);
   }
 
-  hideElement(element: HTMLElement) {
+  hideElement(element: HTMLElement): void {
     this.checkElement(element);
     element.style.display = 'none';
   }
@@ -92,7 +92,7 @@ export class Routines {
     return (this.horizontal ? element.offsetLeft : element.offsetTop) || 0;
   }
 
-  scrollTo(element: HTMLElement, argument?: boolean | ScrollIntoViewOptions) {
+  scrollTo(element: HTMLElement, argument?: boolean | ScrollIntoViewOptions): void {
     this.checkElement(element);
     element.scrollIntoView(argument);
   }

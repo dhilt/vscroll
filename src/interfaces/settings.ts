@@ -11,7 +11,7 @@ export interface Settings {
   infinite?: boolean;
   horizontal?: boolean;
   windowViewport?: boolean;
-  viewportElement?: HTMLElement | Function | null;
+  viewportElement?: HTMLElement | (() => void) | null;
   inverse?: boolean;
   onBeforeClip?: ItemsProcessor | null;
 }

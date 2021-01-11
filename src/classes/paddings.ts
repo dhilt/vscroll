@@ -14,7 +14,7 @@ export class Padding {
     this.routines = routines;
   }
 
-  reset(size?: number) {
+  reset(size?: number): void {
     this.size = size || 0;
   }
 
@@ -45,7 +45,7 @@ export class Paddings {
       : (opposite ? this.backward : this.forward);
   }
 
-  reset(viewportSize: number, startIndex: number, offset: number) {
+  reset(viewportSize: number, startIndex: number, offset: number): void {
     const positive = this.getPositiveSize(startIndex, viewportSize, offset);
     const negative = this.getNegativeSize(startIndex);
     if (this.settings.inverse) {
@@ -68,7 +68,7 @@ export class Paddings {
 
   }
 
-  getPositiveSize(startIndex: number, viewportSize: number, offset: number) {
+  getPositiveSize(startIndex: number, viewportSize: number, offset: number): number {
     const { settings } = this;
     let positiveSize = viewportSize;
     if (isFinite(settings.maxIndex)) {
@@ -80,7 +80,7 @@ export class Paddings {
     return positiveSize;
   }
 
-  getNegativeSize(startIndex: number) {
+  getNegativeSize(startIndex: number): number {
     const { settings } = this;
     let negativeSize = 0;
     if (isFinite(settings.minIndex)) {

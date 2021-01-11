@@ -1,9 +1,9 @@
-import { getBaseProcess, CommonProcess, ProcessStatus } from './misc/index';
+import { BaseProcessFactory, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
 
-export default class Adjust extends getBaseProcess(CommonProcess.adjust) {
+export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
 
-  static run(scroller: Scroller) {
+  static run(scroller: Scroller): void {
     const { workflow, viewport, state: { scrollState } } = scroller;
     scrollState.positionBeforeAdjust = viewport.scrollPosition;
 
@@ -12,7 +12,7 @@ export default class Adjust extends getBaseProcess(CommonProcess.adjust) {
       return workflow.call({
         process: Adjust.process,
         status: ProcessStatus.error,
-        payload: { error: `Can't get visible item` }
+        payload: { error: 'Can\'t get visible item' }
       });
     }
     scrollState.positionAfterAdjust = viewport.scrollPosition;
@@ -104,7 +104,7 @@ export default class Adjust extends getBaseProcess(CommonProcess.adjust) {
     return Math.round(position);
   }
 
-  static setPosition(scroller: Scroller, position: number, done: Function) {
+  static setPosition(scroller: Scroller, position: number, done: () => void): void {
     const { state: { scrollState }, viewport } = scroller;
     if (!scrollState.hasPositionChanged(position)) {
       return done();

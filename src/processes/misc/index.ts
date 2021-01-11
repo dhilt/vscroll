@@ -1,2 +1,2 @@
 export { CommonProcess, AdapterProcess, ProcessStatus } from './enums';
-export { getBaseProcess, getBaseAdapterProcess } from './base';
+export { BaseProcessFactory, BaseAdapterProcessFactory } from './base';

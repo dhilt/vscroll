@@ -1,10 +1,10 @@
 import { Scroller } from '../../scroller';
-import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
+import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
 import { Direction } from '../../interfaces/index';
 
-export default class Check extends getBaseAdapterProcess(AdapterProcess.check) {
+export default class Check extends BaseAdapterProcessFactory(AdapterProcess.check) {
 
-  static run(scroller: Scroller) {
+  static run(scroller: Scroller): void {
     const { workflow, buffer, state: { fetch }, viewport } = scroller;
     let min = Infinity, max = -Infinity;
 

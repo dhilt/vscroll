@@ -12,7 +12,7 @@ export class RenderModel {
     this.reset();
   }
 
-  reset() {
+  reset(): void {
     this.sizeBefore = 0;
     this.sizeAfter = 0;
     this.positionBefore = 0;

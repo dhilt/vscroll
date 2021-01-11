@@ -1,11 +1,16 @@
 import { Settings, DevSettings } from './settings';
 import { IAdapter } from './adapter';
 
-interface ObservableLike { subscribe(): () => void; }
-type SuccessCallback = (data: any[]) => any;
-type DatasourceGetCallback = (index: number, count: number, success: SuccessCallback, fail?: Function) => void;
+type SuccessCallback = (data: unknown[]) => void;
+type ErrorCallback = (error: unknown) => void;
+
+export interface ObservableLike {
+  subscribe(next: SuccessCallback, error: ErrorCallback, complete: () => void): { unsubscribe: () => void };
+}
+
+type DatasourceGetCallback = (index: number, count: number, success: SuccessCallback, fail?: ErrorCallback) => void;
 type DatasourceGetObservable = (index: number, count: number) => ObservableLike;
-type DatasourceGetPromise = (index: number, count: number) => PromiseLike<any[]>;
+type DatasourceGetPromise = (index: number, count: number) => PromiseLike<unknown[]>;
 
 export type DatasourceGet = DatasourceGetCallback | DatasourceGetObservable | DatasourceGetPromise;
 
@@ -24,8 +29,10 @@ export interface IDatasourceConstructedGeneric<A> extends Omit<IDatasourceGeneri
   adapter: A;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IDatasource extends IDatasourceGeneric<IAdapter> { }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IDatasourceConstructed extends IDatasourceConstructedGeneric<IAdapter> { }
 
 export interface IDatasourceClass<A> extends IDatasourceConstructedGeneric<A> {

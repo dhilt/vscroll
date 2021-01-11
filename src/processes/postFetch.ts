@@ -1,10 +1,10 @@
-import { getBaseProcess, CommonProcess, ProcessStatus } from './misc/index';
+import { BaseProcessFactory, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
 import { Item } from '../classes/item';
 
-export default class PostFetch extends getBaseProcess(CommonProcess.postFetch) {
+export default class PostFetch extends BaseProcessFactory(CommonProcess.postFetch) {
 
-  static run(scroller: Scroller) {
+  static run(scroller: Scroller): void {
     const { workflow } = scroller;
     if (PostFetch.setItems(scroller)) {
       PostFetch.setBufferLimits(scroller);
@@ -18,12 +18,12 @@ export default class PostFetch extends getBaseProcess(CommonProcess.postFetch) {
       workflow.call({
         process: PostFetch.process,
         status: ProcessStatus.error,
-        payload: { error: `Can't set buffer items` }
+        payload: { error: 'Can\'t set buffer items' }
       });
     }
   }
 
-  static setBufferLimits(scroller: Scroller) {
+  static setBufferLimits(scroller: Scroller): void {
     const { buffer, state: { fetch, fetch: { items }, cycle: { innerLoop } } } = scroller;
     const first = fetch.first.index;
     const last = fetch.last.index;

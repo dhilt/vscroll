@@ -3,12 +3,12 @@ import { Reactive } from '../classes/reactive';
 import { IDatasourceOptional } from './datasource';
 
 export interface IReactivePropConfig {
-  source: any;
-  emit: (source: any, value: any) => void;
+  source: unknown;
+  emit: (source: unknown, value: unknown) => void;
 }
 
 interface IReactivePropStore extends IReactivePropConfig {
-  default: any;
+  default: unknown;
 }
 
 export type IReactivePropsConfig = {
@@ -27,7 +27,7 @@ export interface IAdapterConfig {
 export interface IAdapterProp {
   name: AdapterPropName;
   type: AdapterPropType;
-  value: any;
+  value: unknown;
   reactive?: AdapterPropName;
   wanted?: boolean;
   onDemand?: boolean;
@@ -36,12 +36,12 @@ export interface IAdapterProp {
 
 export interface ItemAdapter {
   $index: number;
-  data: any;
+  data: unknown;
   element?: HTMLElement;
 }
 
 export type ItemsPredicate = (item: ItemAdapter) => boolean;
-export type ItemsLooper = (item: ItemAdapter) => any;
+export type ItemsLooper = (item: ItemAdapter) => void;
 export type ItemsProcessor = (items: ItemAdapter[]) => void;
 
 export interface IPackage {
@@ -64,12 +64,12 @@ export interface IBufferInfo {
 }
 
 export interface AdapterAppendOptions {
-  items: any[];
+  items: unknown[];
   eof?: boolean;
 }
 
 export interface AdapterPrependOptions {
-  items: any[];
+  items: unknown[];
   bof?: boolean;
 }
 
@@ -85,14 +85,14 @@ export interface AdapterClipOptions {
 }
 
 export interface AdapterInsertOptions {
-  items: any[];
+  items: unknown[];
   before?: ItemsPredicate;
   after?: ItemsPredicate;
   decrease?: boolean;
 }
 
 export interface AdapterReplaceOptions {
-  items: any[];
+  items: unknown[];
   predicate: ItemsPredicate;
   fixRight?: boolean;
 }
@@ -135,15 +135,15 @@ export interface IAdapter {
   reset(datasource?: IDatasourceOptional): MethodResult;
   reload(reloadIndex?: number | string): MethodResult;
   append(options: AdapterAppendOptions): MethodResult;
-  append(items: any, eof?: boolean): MethodResult; // old signature
+  append(items: unknown, eof?: boolean): MethodResult; // old signature
   prepend(options: AdapterPrependOptions): MethodResult;
-  prepend(items: any, bof?: boolean): MethodResult; // old signature
+  prepend(items: unknown, bof?: boolean): MethodResult; // old signature
   check(): MethodResult;
   remove(args: AdapterRemoveOptions | ItemsPredicate): MethodResult; // + old signature
   clip(options?: AdapterClipOptions): MethodResult;
   insert(options: AdapterInsertOptions): MethodResult;
   replace(options: AdapterReplaceOptions): MethodResult;
   fix(options: AdapterFixOptions): MethodResult; // experimental
-  relax(callback?: Function): MethodResult;
+  relax(callback?: () => void): MethodResult;
   showLog(): void;
 }

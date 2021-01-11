@@ -1,4 +1,4 @@
-import { Process } from '../../interfaces/index';
+import { ProcessName } from '../../interfaces/index';
 import { Reactive } from '../reactive';
 
 class InnerLoopModel {
@@ -36,9 +36,9 @@ export class WorkflowCycleModel {
   instanceIndex: number;
   count: number;
   isInitial: boolean;
-  initiator: Process;
+  initiator: ProcessName;
   innerLoop: InnerLoopModel;
-  interrupter: Process | null;
+  interrupter: ProcessName | null;
   busy: Reactive<boolean>;
 
   get loopId(): string {
@@ -60,13 +60,13 @@ export class WorkflowCycleModel {
     this.done(cycleCount);
   }
 
-  done(count: number) {
+  done(count: number): void {
     this.count = count;
     this.isInitial = false;
     this.busy.set(false);
   }
 
-  start(isInitial: boolean, initiator: Process) {
+  start(isInitial: boolean, initiator: ProcessName): void {
     this.isInitial = isInitial;
     this.initiator = initiator;
     this.innerLoop.isInitial = isInitial;
@@ -75,7 +75,7 @@ export class WorkflowCycleModel {
     this.busy.set(true);
   }
 
-  dispose(forever?: boolean) {
+  dispose(forever?: boolean): void {
     if (forever) {
       // otherwise the value will be persisted during re-instantiation
       this.busy.dispose();

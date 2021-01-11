@@ -1,24 +1,33 @@
 import { AdapterProcess, ProcessStatus } from './enums';
 import { Scroller } from '../../scroller';
 import { ADAPTER_METHODS, validate } from '../../inputs/index';
-import { Process, IValidatedData } from '../../interfaces/index';
+import { ProcessName, IValidatedData } from '../../interfaces/index';
 
 export interface IParseInput<T> {
   data: IValidatedData;
   params?: T;
 }
 
-export const getBaseProcess = (process: Process) =>
+export interface IBaseProcess {
+  new(): any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  process: ProcessName;
+}
 
-  class BaseAdapterProcess {
+export interface IBaseAdapterProcess extends IBaseProcess {
+  parseInput: <T>(scroller: Scroller, options: T, ignoreErrors?: boolean) => IParseInput<T>;
+}
 
-    static process: Process = process;
+export const BaseProcessFactory = (process: ProcessName): IBaseProcess =>
+
+  class BaseProcess {
+
+    static process: ProcessName = process;
 
   };
 
-export const getBaseAdapterProcess = (process: AdapterProcess) =>
+export const BaseAdapterProcessFactory = (process: AdapterProcess): IBaseAdapterProcess =>
 
-  class BaseAdapterProcess extends getBaseProcess(process) {
+  class BaseAdapterProcess extends (BaseProcessFactory(process) as IBaseProcess) {
 
     static process: AdapterProcess = process;
 

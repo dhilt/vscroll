@@ -1,19 +1,18 @@
 import { Scroller } from '../../scroller';
-import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
+import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
+import { ProcessPayload } from '../../interfaces/index';
 
-export default class Reload extends getBaseAdapterProcess(AdapterProcess.reload) {
+export default class Reload extends BaseAdapterProcessFactory(AdapterProcess.reload) {
 
-  static run(scroller: Scroller, reloadIndex: any) {
+  static run(scroller: Scroller, reloadIndex: number): void {
     const { viewport, state, buffer } = scroller;
-    const scrollPosition = viewport.scrollPosition;
 
     const { params } = Reload.parseInput(scroller, { reloadIndex }, true);
-    reloadIndex = params ? params.reloadIndex : void 0;
 
-    buffer.reset(true, reloadIndex);
-    viewport.reset(buffer.startIndex, scrollPosition);
+    buffer.reset(true, params ? params.reloadIndex : void 0);
+    viewport.reset(buffer.startIndex);
 
-    const payload: any = {};
+    const payload: ProcessPayload = {};
     if (state.cycle.busy.get()) {
       state.scrollState.cleanupTimers();
       payload.finalize = true;

@@ -1,10 +1,10 @@
-import { getBaseProcess, CommonProcess, ProcessStatus } from './misc/index';
+import { BaseProcessFactory, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
 import { Direction } from '../interfaces/index';
 
-export default class PreClip extends getBaseProcess(CommonProcess.preClip) {
+export default class PreClip extends BaseProcessFactory(CommonProcess.preClip) {
 
-  static run(scroller: Scroller) {
+  static run(scroller: Scroller): void {
     PreClip.prepareClip(scroller);
 
     scroller.workflow.call({
@@ -16,7 +16,7 @@ export default class PreClip extends getBaseProcess(CommonProcess.preClip) {
     });
   }
 
-  static prepareClip(scroller: Scroller) {
+  static prepareClip(scroller: Scroller): void {
     const { state: { fetch, clip } } = scroller;
     if (PreClip.shouldNotClip(scroller)) {
       return;
@@ -33,7 +33,7 @@ export default class PreClip extends getBaseProcess(CommonProcess.preClip) {
       PreClip.prepareClipByDirection(scroller, Direction.forward, lastIndex);
     }
     if (!clip.doClip) {
-      scroller.logger.log(`skipping clip [no items to clip]`);
+      scroller.logger.log('skipping clip [no items to clip]');
     }
     return;
   }
@@ -41,15 +41,15 @@ export default class PreClip extends getBaseProcess(CommonProcess.preClip) {
   static shouldNotClip(scroller: Scroller): boolean {
     const { settings, buffer, state } = scroller;
     if (settings.infinite) {
-      scroller.logger.log(`skipping clip [infinite mode]`);
+      scroller.logger.log('skipping clip [infinite mode]');
       return true;
     }
     if (!buffer.size) {
-      scroller.logger.log(`skipping clip [empty buffer]`);
+      scroller.logger.log('skipping clip [empty buffer]');
       return true;
     }
     if (state.cycle.isInitial) {
-      scroller.logger.log(`skipping clip [initial cycle]`);
+      scroller.logger.log('skipping clip [initial cycle]');
       return true;
     }
     return false;
@@ -81,7 +81,7 @@ export default class PreClip extends getBaseProcess(CommonProcess.preClip) {
     return false;
   }
 
-  static prepareClipByDirection(scroller: Scroller, direction: Direction, edgeIndex: number) {
+  static prepareClipByDirection(scroller: Scroller, direction: Direction, edgeIndex: number): void {
     const forward = direction === Direction.forward;
     scroller.buffer.items.forEach(item => {
       if (

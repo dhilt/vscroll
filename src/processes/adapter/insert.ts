@@ -1,11 +1,11 @@
 import { Scroller } from '../../scroller';
 import { Item } from '../../classes/item';
-import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
+import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
 import { AdapterInsertOptions, ItemsPredicate } from '../../interfaces/index';
 
-export default class Insert extends getBaseAdapterProcess(AdapterProcess.insert) {
+export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.insert) {
 
-  static run(scroller: Scroller, options: AdapterInsertOptions) {
+  static run(scroller: Scroller, options: AdapterInsertOptions): void {
 
     const { params } = Insert.parseInput(scroller, options);
     if (!params) {
@@ -31,13 +31,13 @@ export default class Insert extends getBaseAdapterProcess(AdapterProcess.insert)
   }
 
   static simulateFetch(
-    scroller: Scroller, from: Item, items: any[], before: boolean, decrement: boolean
+    scroller: Scroller, from: Item, items: unknown[], before: boolean, decrement: boolean
   ): boolean {
     const { buffer, routines, state: { fetch, clip } } = scroller;
     const bufferLimit = decrement ? buffer.absMinIndex : buffer.absMaxIndex;
     const addition = before ? 0 : 1;
     const count = items.length;
-    const itemsToInsert = items.map((item: any, i: number) =>
+    const itemsToInsert = items.map((item, i) =>
       new Item(from.$index + i + addition - (decrement ? count : 0), item, routines)
     );
     buffer.insertItems(itemsToInsert, from, addition, !decrement);
@@ -46,7 +46,7 @@ export default class Insert extends getBaseAdapterProcess(AdapterProcess.insert)
       const isChange = bufferLimit !== newBufferLimit;
       const token = decrement ? 'absMinIndex' : 'absMaxIndex';
       return `buffer.${token} value ` + (
-        isChange ? `has been changed from ${bufferLimit} to ${newBufferLimit}` : `has not been changed`
+        isChange ? `has been changed from ${bufferLimit} to ${newBufferLimit}` : 'has not been changed'
       );
     });
     fetch.insert(itemsToInsert);

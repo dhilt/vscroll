@@ -4,7 +4,7 @@ import { Logger } from './logger';
 export class ItemCache {
   $index: number;
   nodeId: string;
-  data: any;
+  data: unknown;
   size: number;
   position: number;
 
@@ -15,7 +15,7 @@ export class ItemCache {
     this.size = item.size;
   }
 
-  changeIndex(value: number) {
+  changeIndex(value: number): void {
     this.$index = value;
     this.nodeId = String(value);
   }
@@ -35,7 +35,7 @@ export class RecalculateAverage {
     this.reset();
   }
 
-  reset() {
+  reset(): void {
     this.newItems = [];
     this.oldItems = [];
   }
@@ -64,7 +64,7 @@ export class Cache {
     this.logger = logger;
   }
 
-  reset() {
+  reset(): void {
     this.minIndex = +Infinity;
     this.maxIndex = -Infinity;
     this.items.clear();
@@ -137,7 +137,7 @@ export class Cache {
     return this.items.size;
   }
 
-  removeItems(toRemove: number[], immutableTop: boolean) {
+  removeItems(toRemove: number[], immutableTop: boolean): void {
     const items = new Map<number, ItemCache>();
     let min = Infinity, max = -Infinity;
     this.items.forEach((item: ItemCache) => {
@@ -157,7 +157,7 @@ export class Cache {
     this.maxIndex = max;
   }
 
-  insertItems(index: number, count: number, immutableTop: boolean) {
+  insertItems(index: number, count: number, immutableTop: boolean): void {
     // we do not insert new items here, we just shift indexes of the existed items
     // new items adding must be performed via Cache.add
     const items = new Map<number, ItemCache>();

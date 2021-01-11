@@ -1,12 +1,12 @@
 import { Scroller } from '../../scroller';
 import Remove from './remove';
 import Insert from './insert';
-import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
+import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
 import { AdapterReplaceOptions, AdapterInsertOptions, AdapterRemoveOptions } from '../../interfaces/index';
 
-export default class Replace extends getBaseAdapterProcess(AdapterProcess.replace) {
+export default class Replace extends BaseAdapterProcessFactory(AdapterProcess.replace) {
 
-  static run(scroller: Scroller, options: AdapterReplaceOptions) {
+  static run(scroller: Scroller, options: AdapterReplaceOptions): void {
     const { params } = Replace.parseInput(scroller, options);
     if (!params) {
       return;
@@ -33,7 +33,7 @@ export default class Replace extends getBaseAdapterProcess(AdapterProcess.replac
     });
   }
 
-  static doRemove(scroller: Scroller, params: AdapterReplaceOptions) {
+  static doRemove(scroller: Scroller, params: AdapterReplaceOptions): boolean {
     const removeOptions: AdapterRemoveOptions = {
       predicate: params.predicate,
       increase: params.fixRight
@@ -41,7 +41,7 @@ export default class Replace extends getBaseAdapterProcess(AdapterProcess.replac
     return Remove.doRemove(scroller, removeOptions, true);
   }
 
-  static doInsert(scroller: Scroller, params: AdapterReplaceOptions) {
+  static doInsert(scroller: Scroller, params: AdapterReplaceOptions): boolean {
     const insertOptions: AdapterInsertOptions = {
       items: params.items,
       after: params.predicate,

@@ -51,7 +51,7 @@ export class Scroller {
     this.initDatasource(datasource, scroller);
   }
 
-  initDatasource(datasource: IDatasource, scroller?: Scroller) {
+  initDatasource(datasource: IDatasource, scroller?: Scroller): void {
     if (scroller) { // scroller re-instantiating case
       this.datasource = datasource as IDatasourceConstructed;
       this.adapter = scroller.adapter;
@@ -74,13 +74,13 @@ export class Scroller {
     this.adapter = new Adapter(publicContext, () => this.workflow, this.logger);
   }
 
-  init(adapterRun$?: Reactive<ProcessSubject>) {
-    this.viewport.reset(this.buffer.startIndex, 0);
+  init(adapterRun$?: Reactive<ProcessSubject>): void {
+    this.viewport.reset(this.buffer.startIndex);
     this.logger.stat('initialization');
     this.adapter.init(this.buffer, this.state, this.logger, adapterRun$);
   }
 
-  dispose(forever?: boolean) {
+  dispose(forever?: boolean): void {
     if (forever) { // Adapter is not re-instantiated on reset
       this.adapter.dispose();
     }
@@ -88,7 +88,7 @@ export class Scroller {
     this.state.dispose();
   }
 
-  finalize() {
+  finalize(): void {
   }
 
 }

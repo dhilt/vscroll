@@ -6,7 +6,7 @@ let instanceCount = 0;
 
 export class AdapterContext {
 
-  reactiveConfiguredProps: IReactivePropsStore = {};
+  reactiveConfiguredProps?: IReactivePropsStore;
 
   constructor(config: IAdapterConfig) {
     const { mock, reactive } = config;
@@ -25,6 +25,7 @@ export class AdapterContext {
 
         // reactive props might be reconfigured
         if (reactive && type === AdapterPropType.Reactive) {
+          this.reactiveConfiguredProps = this.reactiveConfiguredProps || {};
           const react = reactive[name];
           if (react) {
             // here we have a configured reactive prop that came from the outer config

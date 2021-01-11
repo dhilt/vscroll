@@ -1,10 +1,10 @@
-import { getBaseProcess, CommonProcess, ProcessStatus } from './misc/index';
+import { BaseProcessFactory, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
 import { Item } from '../classes/item';
 
-export default class Render extends getBaseProcess(CommonProcess.render) {
+export default class Render extends BaseProcessFactory(CommonProcess.render) {
 
-  static run(scroller: Scroller) {
+  static run(scroller: Scroller): void {
     const { workflow, state: { cycle, render, scrollState }, viewport } = scroller;
     scroller.logger.stat('before new items render');
     if (scrollState.positionBeforeAsync === null) {
@@ -22,7 +22,7 @@ export default class Render extends getBaseProcess(CommonProcess.render) {
         workflow.call({
           process: Render.process,
           status: ProcessStatus.error,
-          payload: { error: `Can't associate item with element` }
+          payload: { error: 'Can\'t associate item with element' }
         });
       }
     }, 0);

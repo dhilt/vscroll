@@ -1,10 +1,10 @@
 import { Scroller } from '../../scroller';
-import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
+import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
 import { AdapterClipOptions } from '../../interfaces/index';
 
-export default class UserClip extends getBaseAdapterProcess(AdapterProcess.clip) {
+export default class UserClip extends BaseAdapterProcessFactory(AdapterProcess.clip) {
 
-  static run(scroller: Scroller, options?: AdapterClipOptions) {
+  static run(scroller: Scroller, options?: AdapterClipOptions): void {
     const { params } = UserClip.parseInput(scroller, options);
 
     scroller.state.clip.forceForward = !(params && params.backwardOnly);

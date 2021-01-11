@@ -1,4 +1,4 @@
-import { VALIDATORS, validateOne, validate } from '../src/inputs';
+import { ValidatorType, VALIDATORS, validateOne, validate } from '../src/inputs';
 import { IValidator } from '../src/interfaces';
 
 const {
@@ -71,7 +71,7 @@ describe('Input Params Validation', () => {
           value: input.parsed,
           isSet: true,
           isValid: false,
-          errors: ['must be an integer']
+          errors: [ValidatorType.integer]
         });
       });
       done();
@@ -100,7 +100,7 @@ describe('Input Params Validation', () => {
           value: input.parsed,
           isSet: true,
           isValid: false,
-          errors: ['must be an integer or +/- Infinity']
+          errors: [ValidatorType.integerUnlimited]
         });
       });
       done();

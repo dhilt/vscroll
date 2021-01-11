@@ -170,7 +170,7 @@ const FIX_METHOD_PARAMS: ICommonProps<AdapterFixParams> = {
   },
 };
 
-export const AdapterMethods: AdapterProcessMap<any> = {
+export const AdapterMethods: AdapterProcessMap<{ [key: string]: string }> = {
   [Process.reset]: AdapterResetParams,
   [Process.reload]: AdapterReloadParams,
   [Process.append]: AdapterAppendParams,
@@ -182,7 +182,7 @@ export const AdapterMethods: AdapterProcessMap<any> = {
   [Process.fix]: AdapterFixParams,
 };
 
-export const ADAPTER_METHODS: AdapterProcessMap<ICommonProps<any>> = {
+export const ADAPTER_METHODS: AdapterProcessMap<ICommonProps<PropertyKey>> = {
   [Process.reset]: RESET_METHOD_PARAMS,
   [Process.reload]: RELOAD_METHOD_PARAMS,
   [Process.append]: APPEND_METHOD_PARAMS,

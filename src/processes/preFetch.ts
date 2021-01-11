@@ -1,10 +1,10 @@
-import { getBaseProcess, CommonProcess, AdapterProcess, ProcessStatus } from './misc/index';
+import { BaseProcessFactory, CommonProcess, AdapterProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
 import { Direction } from '../interfaces/index';
 
-export default class PreFetch extends getBaseProcess(CommonProcess.preFetch) {
+export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch) {
 
-  static run(scroller: Scroller) {
+  static run(scroller: Scroller): void {
     const { workflow, buffer, state: { fetch, cycle } } = scroller;
     fetch.minIndex = buffer.minIndex;
 
@@ -32,14 +32,14 @@ export default class PreFetch extends getBaseProcess(CommonProcess.preFetch) {
     });
   }
 
-  static setPositionsAndIndexes(scroller: Scroller) {
+  static setPositionsAndIndexes(scroller: Scroller): void {
     PreFetch.setPositions(scroller);
     PreFetch.setFirstIndex(scroller);
     PreFetch.setLastIndex(scroller);
     scroller.logger.fetch();
   }
 
-  static setPositions(scroller: Scroller) {
+  static setPositions(scroller: Scroller): void {
     const { state: { fetch: { positions } }, viewport } = scroller;
     const paddingDelta = viewport.getBufferPadding();
     positions.before = viewport.scrollPosition;
@@ -67,19 +67,19 @@ export default class PreFetch extends getBaseProcess(CommonProcess.preFetch) {
     return startDelta;
   }
 
-  static setFirstIndex(scroller: Scroller) {
+  static setFirstIndex(scroller: Scroller): void {
     const { state, buffer } = scroller;
     const { positions: { start }, first } = state.fetch;
     let firstIndex = buffer.startIndex;
     let firstIndexPosition = 0;
     if (state.cycle.innerLoop.isInitial) {
-      scroller.logger.log(`skipping fetch backward direction [initial loop]`);
+      scroller.logger.log('skipping fetch backward direction [initial loop]');
     } else if (!buffer.hasItemSize) {
-      scroller.logger.log(`skipping fetch backward direction [no item size]`);
+      scroller.logger.log('skipping fetch backward direction [no item size]');
     } else {
       let position = firstIndexPosition;
       let index = firstIndex;
-      while (1) {
+      while (1) { // eslint-disable-line no-constant-condition
         if (start >= 0) {
           const size = buffer.getSizeByIndex(index);
           const diff = (position + size) - start;
@@ -113,19 +113,19 @@ export default class PreFetch extends getBaseProcess(CommonProcess.preFetch) {
     first.position = firstIndexPosition;
   }
 
-  static setLastIndex(scroller: Scroller) {
+  static setLastIndex(scroller: Scroller): void {
     const { state: { fetch, cycle }, buffer, settings } = scroller;
     const { positions: { relative, end }, first, last } = fetch;
     let lastIndex;
     if (!buffer.hasItemSize) {
       // just to fetch forward bufferSize items if neither averageItemSize nor itemSize are present
       lastIndex = buffer.startIndex + settings.bufferSize - 1;
-      scroller.logger.log(`forcing fetch forward direction [no item size]`);
+      scroller.logger.log('forcing fetch forward direction [no item size]');
     } else {
       let index = first.indexBuffer;
       let position = first.position;
       lastIndex = index;
-      while (1) {
+      while (1) { // eslint-disable-line no-constant-condition
         lastIndex = index;
         const size = buffer.getSizeByIndex(index);
         position += size;
@@ -146,7 +146,7 @@ export default class PreFetch extends getBaseProcess(CommonProcess.preFetch) {
     last.index = last.indexBuffer = Math.min(lastIndex, buffer.absMaxIndex);
   }
 
-  static skipBufferedItems(scroller: Scroller) {
+  static skipBufferedItems(scroller: Scroller): void {
     const { buffer } = scroller;
     if (!buffer.size) {
       return;
@@ -179,7 +179,7 @@ export default class PreFetch extends getBaseProcess(CommonProcess.preFetch) {
     }
   }
 
-  static checkBufferGaps(scroller: Scroller) {
+  static checkBufferGaps(scroller: Scroller): void {
     const { buffer, state: { fetch } } = scroller;
     if (!buffer.size) {
       return;
@@ -199,7 +199,7 @@ export default class PreFetch extends getBaseProcess(CommonProcess.preFetch) {
     }
   }
 
-  static checkFetchPackSize(scroller: Scroller) {
+  static checkFetchPackSize(scroller: Scroller): void {
     const { buffer, state: { fetch } } = scroller;
     if (!fetch.shouldFetch) {
       return;
@@ -227,7 +227,7 @@ export default class PreFetch extends getBaseProcess(CommonProcess.preFetch) {
     }
   }
 
-  static setFetchDirection(scroller: Scroller) {
+  static setFetchDirection(scroller: Scroller): void {
     const { buffer, state: { fetch } } = scroller;
     if (fetch.last.index) {
       let direction = Direction.forward;

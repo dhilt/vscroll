@@ -1,6 +1,6 @@
 import { Scroller } from '../../scroller';
 import { AdapterMethods } from '../../inputs/index';
-import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
+import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
 import {
   ItemsPredicate,
   ItemsLooper,
@@ -10,9 +10,9 @@ import {
 
 const { [AdapterProcess.fix]: FixParams } = AdapterMethods;
 
-export default class Fix extends getBaseAdapterProcess(AdapterProcess.fix) {
+export default class Fix extends BaseAdapterProcessFactory(AdapterProcess.fix) {
 
-  static run(scroller: Scroller, options: AdapterFixOptions) {
+  static run(scroller: Scroller, options: AdapterFixOptions): void {
     const { workflow } = scroller;
 
     const { data, params } = Fix.parseInput(scroller, options);
@@ -32,26 +32,30 @@ export default class Fix extends getBaseAdapterProcess(AdapterProcess.fix) {
     });
   }
 
-  static runByType(scroller: Scroller, token: string, value: any, methodData: IValidatedData) {
+  static runByType(scroller: Scroller, token: string, value: unknown, methodData: IValidatedData): void {
     switch (token) {
       case FixParams.scrollPosition:
-        return Fix.setScrollPosition(scroller, value);
+        return Fix.setScrollPosition(scroller, value as number);
       case FixParams.minIndex:
-        return Fix.setMinIndex(scroller, value);
+        return Fix.setMinIndex(scroller, value as number);
       case FixParams.maxIndex:
-        return Fix.setMaxIndex(scroller, value);
+        return Fix.setMaxIndex(scroller, value as number);
       case FixParams.updater:
-        return Fix.updateItems(scroller, value);
+        return Fix.updateItems(scroller, value as ItemsLooper);
       case FixParams.scrollToItem:
-        const scrollToItemOpt = methodData.params[FixParams.scrollToItemOpt];
-        return Fix.scrollToItem(scroller, value, scrollToItemOpt ? scrollToItemOpt.value : void 0);
+        if (methodData.params) {
+          const scrollToItemOpt = methodData.params[FixParams.scrollToItemOpt];
+          const options = scrollToItemOpt ? scrollToItemOpt.value as AdapterFixOptions['scrollToItemOpt'] : void 0;
+          return Fix.scrollToItem(scroller, value as ItemsPredicate, options);
+        }
+        return;
       case FixParams.scrollToItemOpt:
         return;
     }
   }
 
-  static setScrollPosition({ state, viewport }: Scroller, value: any) {
-    let result = value as number;
+  static setScrollPosition({ viewport }: Scroller, value: number): void {
+    let result = value;
     if (value === -Infinity) {
       result = 0;
     } else if (value === Infinity) {
@@ -60,24 +64,24 @@ export default class Fix extends getBaseAdapterProcess(AdapterProcess.fix) {
     viewport.setPosition(result);
   }
 
-  static setMinIndex({ buffer, settings }: Scroller, value: any) {
+  static setMinIndex({ buffer, settings }: Scroller, value: number): void {
     settings.minIndex = value;
     buffer.absMinIndex = value;
   }
 
-  static setMaxIndex({ buffer, settings }: Scroller, value: any) {
+  static setMaxIndex({ buffer, settings }: Scroller, value: number): void {
     settings.maxIndex = value;
     buffer.absMaxIndex = value;
   }
 
-  static updateItems({ buffer }: Scroller, value: any) {
-    buffer.items.forEach(item => (value as ItemsLooper)(item.get()));
+  static updateItems({ buffer }: Scroller, value: ItemsLooper): void {
+    buffer.items.forEach(item => value(item.get()));
   }
 
-  static scrollToItem(scroller: Scroller, value: any, options?: any) {
-    const found = scroller.buffer.items.find(item => (value as ItemsPredicate)(item.get()));
+  static scrollToItem(scroller: Scroller, value: ItemsPredicate, options?: boolean | ScrollIntoViewOptions): void {
+    const found = scroller.buffer.items.find(item => value(item.get()));
     if (!found) {
-      scroller.logger.log(() => `scrollToItem cancelled, item not found`);
+      scroller.logger.log(() => 'scrollToItem cancelled, item not found');
       return;
     }
     found.scrollTo(options);

@@ -2,21 +2,21 @@ import { Scroller } from '../scroller';
 import { CommonProcess, AdapterProcess, ProcessStatus as Status } from '../processes/index';
 import { IPackages, ProcessSubject } from '../interfaces/index';
 
-type LogType = [any?, ...any[]];
+type LogType = [unknown?, ...unknown[]];
 
 export class Logger {
 
   readonly debug: boolean;
   readonly immediateLog: boolean;
   readonly logTime: boolean;
-  readonly getTime: Function;
-  readonly getStat: Function;
-  readonly getFetchRange: Function;
-  readonly getWorkflowCycleData: Function;
-  readonly getLoopId: Function;
-  readonly getLoopIdNext: Function;
-  readonly getScrollPosition: Function;
-  private logs: any[] = [];
+  readonly getTime: () => string;
+  readonly getStat: () => string;
+  readonly getFetchRange: () => string;
+  readonly getWorkflowCycleData: () => string;
+  readonly getLoopId: () => string;
+  readonly getLoopIdNext: () => string;
+  readonly getScrollPosition: (element: HTMLElement) => number;
+  private logs: unknown[][] = [];
 
   constructor(scroller: Scroller, packageInfo: IPackages) {
     const { settings } = scroller;
@@ -49,13 +49,13 @@ export class Logger {
       `${settings.instanceIndex}-${scroller.state.cycle.count}`;
     this.getScrollPosition = (element: HTMLElement) => scroller.routines.getScrollPosition(element);
     this.log(() =>
-      `uiScroll Workflow has been started, ` +
+      'uiScroll Workflow has been started, ' +
       `core: ${packageInfo.core.name} v${packageInfo.core.version} (instance ${settings.instanceIndex}), ` +
       `consumer: ${packageInfo.consumer.name} v${packageInfo.consumer.version}`
     );
   }
 
-  object(str: string, obj: any, stringify?: boolean) {
+  object(str: string, obj: unknown, stringify?: boolean): void {
     this.log(() => [
       str,
       stringify
@@ -81,20 +81,23 @@ export class Logger {
           return v;
         })
           .replace(/"/g, '')
-          .replace(/(\{|\:|\,)/g, '$1 ')
+          .replace(/(\{|:|,)/g, '$1 ')
           .replace(/(\})/g, ' $1')
         : obj
     ]);
   }
 
-  stat(str?: string) {
+  stat(str?: string): void {
     if (this.debug) {
-      const logStyles = ['color: #888; border: dashed #888 0; border-bottom-width: 0px', 'color: #000; border-width: 0'];
+      const logStyles = [
+        'color: #888; border: dashed #888 0; border-bottom-width: 0px',
+        'color: #000; border-width: 0'
+      ];
       this.log(() => ['%cstat' + (str ? ` ${str}` : '') + ',%c ' + this.getStat(), ...logStyles]);
     }
   }
 
-  fetch(str?: string) {
+  fetch(str?: string): void {
     if (this.debug) {
       const _text = 'fetch interval' + (str ? ` ${str}` : '');
       const logStyles = ['color: #888', 'color: #000'];
@@ -102,13 +105,13 @@ export class Logger {
     }
   }
 
-  prepareForLog(data: any) {
-    return data instanceof Event
-      ? this.getScrollPosition(data.target)
+  prepareForLog(data: unknown): unknown {
+    return data instanceof Event && data.target
+      ? this.getScrollPosition(data.target as HTMLElement)
       : data;
   }
 
-  logProcess(data: ProcessSubject) {
+  logProcess(data: ProcessSubject): void {
     if (!this.debug) {
       return;
     }
@@ -134,28 +137,28 @@ export class Logger {
     }
   }
 
-  logCycle(start = true) {
+  logCycle(start = true): void {
     const logData = this.getWorkflowCycleData();
     const border = start ? '1px 0 0 1px' : '0 0 1px 1px';
     const logStyles = `color: #0000aa; border: solid #555 1px; border-width: ${border}; margin-left: -2px`;
     this.log(() => [`%c   ~~~ WF Cycle ${logData} ${start ? 'STARTED' : 'FINALIZED'} ~~~  `, logStyles]);
   }
 
-  logError(str: string) {
+  logError(str: string): void {
     if (this.debug) {
       const logStyles = ['color: #a00;', 'color: #000'];
       this.log(() => ['error:%c' + (str ? ` ${str}` : '') + `%c (loop ${this.getLoopIdNext()})`, ...logStyles]);
     }
   }
 
-  logAdapterMethod = (methodName: string, args?: any, add?: string) => {
+  logAdapterMethod = (methodName: string, args?: unknown, add?: string): void => {
     if (!this.debug) {
       return;
     }
     const params = (
       args === void 0 ? [] : (Array.isArray(args) ? args : [args])
     )
-      .map((arg: any) => {
+      .map((arg: unknown) => {
         if (typeof arg === 'function') {
           return 'func';
         } else if (typeof arg !== 'object' || !arg) {
@@ -169,7 +172,7 @@ export class Logger {
     this.log(`adapter: ${methodName}(${params || ''})${add || ''}`);
   }
 
-  log(...args: any[]) {
+  log(...args: any[]): void {
     if (this.debug) {
       if (typeof args[0] === 'function') {
         args = args[0]();
@@ -183,7 +186,7 @@ export class Logger {
       if (this.logTime) {
         args = [...args, this.getTime()];
       }
-      args = args.map((arg: any) => this.prepareForLog(arg));
+      args = args.map((arg: unknown) => this.prepareForLog(arg));
       if (this.immediateLog) {
         console.log.apply(this, args as LogType);
       } else {
@@ -202,7 +205,7 @@ export class Logger {
   //   (this as any).immediateLog = immediateLog;
   // }
 
-  logForce(...args: any[]) {
+  logForce(...args: unknown[]): void {
     if (this.debug) {
       if (!this.immediateLog && this.logs.length) {
         this.logs.forEach(logArgs => console.log.apply(this, logArgs));

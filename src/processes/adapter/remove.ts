@@ -1,10 +1,10 @@
 import { Scroller } from '../../scroller';
-import { getBaseAdapterProcess, AdapterProcess, ProcessStatus } from '../misc/index';
+import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
 import { Direction, AdapterRemoveOptions, ItemsPredicate } from '../../interfaces/index';
 
-export default class Remove extends getBaseAdapterProcess(AdapterProcess.remove) {
+export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.remove) {
 
-  static run(scroller: Scroller, options: AdapterRemoveOptions) {
+  static run(scroller: Scroller, options: AdapterRemoveOptions): void {
 
     const { params } = Remove.parseInput(scroller, options);
     if (!params) {

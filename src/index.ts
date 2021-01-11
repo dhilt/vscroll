@@ -36,4 +36,4 @@ export {
   IAdapterConfig,
   ItemAdapter as IAdapterItem,
   IAdapter,
-}
+};

@@ -23,8 +23,8 @@ export interface ScrollState {
   positionBeforeAdjust: number | null;
   positionAfterAdjust: number | null;
 
-  reset: Function;
-  cleanupTimers: Function;
+  reset: () => void;
+  cleanupTimers: () => void;
   hasPositionChanged: (position: number) => boolean;
 }
 

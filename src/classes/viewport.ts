@@ -49,7 +49,7 @@ export class Viewport {
     }
   }
 
-  reset(startIndex: number, scrollPosition: number) {
+  reset(startIndex: number): void {
     this.setOffset();
     this.paddings.reset(this.getSize(), startIndex, this.offset);
     this.scrollPosition = this.paddings.backward.size || 0;
@@ -78,7 +78,7 @@ export class Viewport {
     this.setPosition(value);
   }
 
-  disableScrollForOneLoop() {
+  disableScrollForOneLoop(): void {
     if (this.disabled) {
       return;
     }
@@ -111,14 +111,14 @@ export class Viewport {
     return this.routines.getEdge(this.hostElement, direction, true);
   }
 
-  setOffset() {
+  setOffset(): void {
     this.offset = this.routines.getOffset(this.element);
     if (!this.settings.windowViewport) {
       this.offset -= this.routines.getOffset(this.hostElement);
     }
   }
 
-  getEdgeVisibleItem(items: Item[], direction: Direction) {
+  getEdgeVisibleItem(items: Item[], direction: Direction): { item?: Item, diff: number } {
     const bwd = direction === Direction.backward;
     const opposite = bwd ? Direction.forward : Direction.backward;
     const viewportEdge = this.getEdge(direction);

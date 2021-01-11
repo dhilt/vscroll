@@ -1,10 +1,11 @@
-import { getBaseProcess, CommonProcess, ProcessStatus } from './misc/index';
+import { BaseProcessFactory, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
 import { Direction, ScrollEventData, ScrollerWorkflow } from '../interfaces/index';
 
-export default class Scroll extends getBaseProcess(CommonProcess.scroll) {
+export default class Scroll extends BaseProcessFactory(CommonProcess.scroll) {
 
-  static run(scroller: Scroller, payload?: { event?: Event }) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  static run(scroller: Scroller, payload?: { event?: Event }): void {
     const { workflow, viewport } = scroller;
     const position = viewport.scrollPosition;
 
@@ -37,7 +38,7 @@ export default class Scroll extends getBaseProcess(CommonProcess.scroll) {
     return false;
   }
 
-  static onThrottle(scroller: Scroller, position: number, done: Function) {
+  static onThrottle(scroller: Scroller, position: number, done: () => void): void {
     const { state: { scrollState }, settings: { throttle }, logger } = scroller;
     scrollState.current = Scroll.getScrollEvent(position, scrollState.previous);
     const { direction, time } = scrollState.current;
@@ -90,7 +91,7 @@ export default class Scroll extends getBaseProcess(CommonProcess.scroll) {
     return { position, direction, time };
   }
 
-  static onScroll(scroller: Scroller, workflow: ScrollerWorkflow) {
+  static onScroll(scroller: Scroller, workflow: ScrollerWorkflow): void {
     const { state: { scrollState, cycle } } = scroller;
     scrollState.previous = { ...(scrollState.current as ScrollEventData) };
     scrollState.current = null;

@@ -2,6 +2,7 @@ import { Logger } from './logger';
 import { Buffer } from './buffer';
 import { Reactive } from './reactive';
 import { AdapterPropName, AdapterPropType, getDefaultAdapterProps } from './adapter/props';
+import { AdapterContext } from './adapter/context';
 import { AdapterProcess, ProcessStatus } from '../processes/index';
 import {
   WorkflowGetter,
@@ -28,18 +29,22 @@ import {
 
 const ADAPTER_PROPS_STUB = getDefaultAdapterProps();
 
-const convertAppendArgs = (prepend: boolean, options: any, eof?: boolean) => {
-  if (!(options !== null && typeof options === 'object' && options.hasOwnProperty('items'))) {
+const _has = (obj: unknown, prop: string): boolean =>
+  typeof obj === 'object' && obj !== null && Object.prototype.hasOwnProperty.call(obj, prop);
+
+const convertAppendArgs = (
+  prepend: boolean, options: unknown, eof?: boolean
+): AdapterAppendOptions & AdapterPrependOptions => {
+  let result = options as AdapterAppendOptions & AdapterPrependOptions;
+  if (!_has(options, 'items')) {
     const items = !Array.isArray(options) ? [options] : options;
-    options = prepend ? { items, bof: eof } : { items, eof };
+    result = prepend ? { items, bof: eof } : { items, eof: eof };
   }
-  return options;
+  return result;
 };
 
 const convertRemoveArgs = (options: AdapterRemoveOptions | ItemsPredicate) => {
-  if (!(options !== null && typeof options === 'object' && (
-    options.hasOwnProperty('predicate') || options.hasOwnProperty('indexes'))
-  )) {
+  if (!(_has(options, 'predicate') || _has(options, 'indexes'))) {
     const predicate = options as ItemsPredicate;
     options = { predicate };
   }
@@ -56,9 +61,9 @@ export class Adapter implements IAdapter {
   private logger: Logger;
   private getWorkflow: WorkflowGetter;
   private reloadCounter: number;
-  private source: { [key: string]: Reactive<any> } = {}; // for Reactive props
-  private box: { [key: string]: any } = {}; // for Scalars over Reactive props
-  private demand: { [key: string]: any } = {}; // for Scalars on demand
+  private source: { [key: string]: Reactive<unknown> } = {}; // for Reactive props
+  private box: { [key: string]: unknown } = {}; // for Scalars over Reactive props
+  private demand: { [key: string]: unknown } = {}; // for Scalars on demand
   public wanted: { [key: string]: boolean } = {};
 
   get workflow(): ScrollerWorkflow {
@@ -94,7 +99,7 @@ export class Adapter implements IAdapter {
   private relax$: Reactive<AdapterMethodResult> | null;
   private relaxRun: Promise<AdapterMethodResult> | null;
 
-  private getPromisifiedMethod(method: Function) {
+  private getPromisifiedMethod(method: (...args: any[]) => void) {
     return (...args: any[]): Promise<AdapterMethodResult> =>
       new Promise(resolve => {
         if (this.relax$) {
@@ -114,16 +119,17 @@ export class Adapter implements IAdapter {
     this.relax$ = null;
     this.relaxRun = null;
     this.reloadCounter = 0;
+    const context: AdapterContext | null = publicContext ? (publicContext as unknown as AdapterContext) : null;
 
     // public context stores Reactive props configuration
     const reactivePropsStore: IReactivePropsStore =
-      publicContext && (publicContext as any).reactiveConfiguredProps || {};
+      context && context.reactiveConfiguredProps || {};
 
-    // make array of the original values from publicContext if present
-    const adapterProps = publicContext
+    // make array of the original values from public context if present
+    const adapterProps = context
       ? ADAPTER_PROPS_STUB.map(prop => ({
         ...prop,
-        value: publicContext[prop.name]
+        value: context[prop.name]
       }))
       : getDefaultAdapterProps();
 
@@ -150,7 +156,7 @@ export class Adapter implements IAdapter {
     adapterProps
       .filter(prop => prop.type === AdapterPropType.Reactive)
       .forEach(({ name, value }: IAdapterProp) => {
-        this.source[name] = value;
+        this.source[name] = value as Reactive<unknown>;
         Object.defineProperty(this, name, {
           get: () => {
             const scalarWanted = ADAPTER_PROPS_STUB.find(
@@ -176,7 +182,7 @@ export class Adapter implements IAdapter {
         }
         this.box[name] = value;
         Object.defineProperty(this, name, {
-          set: (newValue: any) => {
+          set: (newValue: unknown) => {
             if (newValue !== this.box[name]) {
               this.box[name] = newValue;
               this.source[reactive as AdapterPropName].set(newValue);
@@ -208,34 +214,34 @@ export class Adapter implements IAdapter {
         });
       });
 
-    if (!publicContext) {
+    if (!context) {
       return;
     }
 
     // Adapter public context augmentation
     adapterProps
       .forEach(({ name, type }: IAdapterProp) => {
-        let value = (this as any)[name];
+        let value = (this as IAdapter)[name];
         if (type === AdapterPropType.Function) {
-          value = value.bind(this);
+          value = (value as () => void).bind(this);
         } else if (type === AdapterPropType.WorkflowRunner) {
-          value = this.getPromisifiedMethod(value);
+          value = this.getPromisifiedMethod(value as () => void);
         } else if (type === AdapterPropType.Reactive && reactivePropsStore[name]) {
-          value = publicContext[name];
+          value = context[name];
         }
-        Object.defineProperty(publicContext, name, {
+        Object.defineProperty(context, name, {
           configurable: false,
           get: () => type === AdapterPropType.Scalar
-            ? (this as any)[name] // Scalars should be taken in runtime
+            ? (this as IAdapter)[name] // Scalars should be taken in runtime
             : value // Reactive props and methods (Functions/WorkflowRunners) can be defined once
         });
       });
 
     // public context cleanup
-    delete (publicContext as any).reactiveConfiguredProps;
+    delete context.reactiveConfiguredProps;
   }
 
-  init(buffer: Buffer, state: State, logger: Logger, adapterRun$?: Reactive<ProcessSubject>) {
+  init(buffer: Buffer, state: State, logger: Logger, adapterRun$?: Reactive<ProcessSubject>): void {
     // buffer
     Object.defineProperty(this.demand, AdapterPropName.itemsCount, {
       get: () => buffer.getVisibleItemsCount()
@@ -288,7 +294,7 @@ export class Adapter implements IAdapter {
           relax$.set({
             success: status !== ProcessStatus.error,
             immediate: true,
-            details: status === ProcessStatus.error && payload ? payload.error : null
+            details: status === ProcessStatus.error && payload ? String(payload.error) : null
           });
         }
       });
@@ -297,53 +303,58 @@ export class Adapter implements IAdapter {
     this.initialized = true;
   }
 
-  dispose() {
+  dispose(): void {
     if (this.relax$) {
       this.relax$.dispose();
     }
     Object.values(this.source).forEach(reactive => reactive.dispose());
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   reset(options?: IDatasourceOptional): any {
     this.reloadCounter++;
-    this.logger.logAdapterMethod(`reset`, options, ` of ${this.reloadId}`);
+    this.logger.logAdapterMethod('reset', options, ` of ${this.reloadId}`);
     this.workflow.call({
       process: AdapterProcess.reset,
       status: ProcessStatus.start,
-      payload: options
+      payload: { options }
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   reload(options?: number | string): any {
     this.reloadCounter++;
-    this.logger.logAdapterMethod(`reload`, options, ` of ${this.reloadId}`);
+    this.logger.logAdapterMethod('reload', options, ` of ${this.reloadId}`);
     this.workflow.call({
       process: AdapterProcess.reload,
       status: ProcessStatus.start,
-      payload: options
+      payload: { options }
     });
   }
 
-  append(options: AdapterAppendOptions | any, eof?: boolean): any {
-    options = convertAppendArgs(false, options, eof); // support old signature
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  append(_options: AdapterAppendOptions | unknown, eof?: boolean): any {
+    const options = convertAppendArgs(false, _options, eof); // support old signature
     this.logger.logAdapterMethod('append', [options.items, options.eof]);
     this.workflow.call({
       process: AdapterProcess.append,
       status: ProcessStatus.start,
-      payload: { prepend: false, options }
+      payload: { process: AdapterProcess.append, options }
     });
   }
 
-  prepend(options: AdapterPrependOptions | any, bof?: boolean): any {
-    options = convertAppendArgs(true, options, bof); // support old signature
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  prepend(_options: AdapterPrependOptions | unknown, bof?: boolean): any {
+    const options = convertAppendArgs(true, _options, bof); // support old signature
     this.logger.logAdapterMethod('prepend', [options.items, options.bof]);
     this.workflow.call({
       process: AdapterProcess.append,
       status: ProcessStatus.start,
-      payload: { prepend: true, options }
+      payload: { options } // has no process prop
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   check(): any {
     this.logger.logAdapterMethod('check');
     this.workflow.call({
@@ -352,53 +363,58 @@ export class Adapter implements IAdapter {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   remove(options: AdapterRemoveOptions | ItemsPredicate): any {
     options = convertRemoveArgs(options); // support old signature
     this.logger.logAdapterMethod('remove', options);
     this.workflow.call({
       process: AdapterProcess.remove,
       status: ProcessStatus.start,
-      payload: options
+      payload: { options }
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   clip(options?: AdapterClipOptions): any {
     this.logger.logAdapterMethod('clip', options);
     this.workflow.call({
       process: AdapterProcess.clip,
       status: ProcessStatus.start,
-      payload: options
+      payload: { options }
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   insert(options: AdapterInsertOptions): any {
     this.logger.logAdapterMethod('insert', options);
     this.workflow.call({
       process: AdapterProcess.insert,
       status: ProcessStatus.start,
-      payload: options
+      payload: { options }
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   replace(options: AdapterReplaceOptions): any {
     this.logger.logAdapterMethod('replace', options);
     this.workflow.call({
       process: AdapterProcess.replace,
       status: ProcessStatus.start,
-      payload: options
+      payload: { options }
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fix(options: AdapterFixOptions): any {
     this.logger.logAdapterMethod('fix', options);
     this.workflow.call({
       process: AdapterProcess.fix,
       status: ProcessStatus.start,
-      payload: options
+      payload: { options }
     });
   }
 
-  async relaxUnchained(callback: Function | undefined, reloadId: string): Promise<AdapterMethodResult> {
+  async relaxUnchained(callback: (() => void) | undefined, reloadId: string): Promise<AdapterMethodResult> {
     const runCallback = () => typeof callback === 'function' && reloadId === this.reloadId && callback();
     if (!this.isLoading) {
       runCallback();
@@ -424,7 +440,7 @@ export class Adapter implements IAdapter {
     };
   }
 
-  relax(callback?: Function): Promise<AdapterMethodResult> {
+  relax(callback?: () => void): Promise<AdapterMethodResult> {
     const reloadId = this.reloadId;
     this.logger.logAdapterMethod('relax', callback, ` of ${reloadId}`);
     if (!this.initialized) {
@@ -438,7 +454,7 @@ export class Adapter implements IAdapter {
       });
   }
 
-  showLog() {
+  showLog(): void {
     this.logger.logAdapterMethod('showLog');
     this.logger.logForce();
   }

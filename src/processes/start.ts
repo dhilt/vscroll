@@ -1,9 +1,9 @@
-import { getBaseProcess, CommonProcess, ProcessStatus } from './misc/index';
+import { BaseProcessFactory, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
 
-export default class Start extends getBaseProcess(CommonProcess.start) {
+export default class Start extends BaseProcessFactory(CommonProcess.start) {
 
-  static run(scroller: Scroller) {
+  static run(scroller: Scroller): void {
     const { state } = scroller;
 
     state.startInnerLoop();

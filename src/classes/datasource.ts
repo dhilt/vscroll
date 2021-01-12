@@ -6,7 +6,6 @@ import {
   DevSettings,
   IDatasourceGeneric,
   IAdapterConfig,
-  IDatasourceClass,
   IAdapter,
 } from '../interfaces/index';
 
@@ -29,12 +28,13 @@ export class DatasourceGeneric<A> implements IDatasourceConstructedGeneric<A> {
   }
 }
 
-export const makeDatasource = <A>(getConfig?: () => IAdapterConfig): IDatasourceClass<A> =>
-  class extends DatasourceGeneric<A> {
-    constructor(datasource: IDatasourceGeneric<A>) {
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const makeDatasource = <A>(getConfig?: () => IAdapterConfig) =>
+  class <T = A> extends DatasourceGeneric<T> {
+    constructor(datasource: IDatasourceGeneric<T>) {
       const config = typeof getConfig === 'function' ? getConfig() : void 0;
       super(datasource, config);
     }
-  } as unknown as IDatasourceClass<A>;
+  };
 
 export const Datasource = makeDatasource<IAdapter>();

@@ -10,10 +10,11 @@
     "dist"
   ],
   "scripts": {
-    "build": "node build",
-    "prepare": "npm run build",
     "lint": "eslint . --ext .ts",
-    "test": "jest"
+    "jest": "jest",
+    "build": "node build",
+    "test": "npm run lint && npm run jest",
+    "prepare": "npm run test && npm run build"
   },
   "repository": {
     "type": "git",

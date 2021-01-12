@@ -32,10 +32,8 @@ const ADAPTER_PROPS_STUB = getDefaultAdapterProps();
 const _has = (obj: unknown, prop: string): boolean =>
   typeof obj === 'object' && obj !== null && Object.prototype.hasOwnProperty.call(obj, prop);
 
-const convertAppendArgs = (
-  prepend: boolean, options: unknown, eof?: boolean
-): AdapterAppendOptions & AdapterPrependOptions => {
-  let result = options as AdapterAppendOptions & AdapterPrependOptions;
+const convertAppendArgs = <Item>(prepend: boolean, options: unknown, eof?: boolean) => {
+  let result = options as AdapterAppendOptions<Item> & AdapterPrependOptions<Item>;
   if (!_has(options, 'items')) {
     const items = !Array.isArray(options) ? [options] : options;
     result = prepend ? { items, bof: eof } : { items, eof: eof };
@@ -43,9 +41,9 @@ const convertAppendArgs = (
   return result;
 };
 
-const convertRemoveArgs = (options: AdapterRemoveOptions | ItemsPredicate) => {
+const convertRemoveArgs = <Item>(options: AdapterRemoveOptions<Item> | ItemsPredicate<Item>) => {
   if (!(_has(options, 'predicate') || _has(options, 'indexes'))) {
-    const predicate = options as ItemsPredicate;
+    const predicate = options as ItemsPredicate<Item>;
     options = { predicate };
   }
   return options;
@@ -57,7 +55,7 @@ const adapterMethodPreResult: AdapterMethodResult = {
   details: 'Adapter is not initialized'
 };
 
-export class Adapter implements IAdapter {
+export class Adapter<Item = unknown> implements IAdapter<Item> {
   private logger: Logger;
   private getWorkflow: WorkflowGetter;
   private reloadCounter: number;
@@ -86,10 +84,10 @@ export class Adapter implements IAdapter {
   isLoading$: Reactive<boolean>;
   loopPending: boolean;
   loopPending$: Reactive<boolean>;
-  firstVisible: ItemAdapter;
-  firstVisible$: Reactive<ItemAdapter>;
-  lastVisible: ItemAdapter;
-  lastVisible$: Reactive<ItemAdapter>;
+  firstVisible: ItemAdapter<Item>;
+  firstVisible$: Reactive<ItemAdapter<Item>>;
+  lastVisible: ItemAdapter<Item>;
+  lastVisible$: Reactive<ItemAdapter<Item>>;
   bof: boolean;
   bof$: Reactive<boolean>;
   eof: boolean;
@@ -333,7 +331,7 @@ export class Adapter implements IAdapter {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  append(_options: AdapterAppendOptions | unknown, eof?: boolean): any {
+  append(_options: AdapterAppendOptions<Item> | unknown, eof?: boolean): any {
     const options = convertAppendArgs(false, _options, eof); // support old signature
     this.logger.logAdapterMethod('append', [options.items, options.eof]);
     this.workflow.call({
@@ -344,7 +342,7 @@ export class Adapter implements IAdapter {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  prepend(_options: AdapterPrependOptions | unknown, bof?: boolean): any {
+  prepend(_options: AdapterPrependOptions<Item> | unknown, bof?: boolean): any {
     const options = convertAppendArgs(true, _options, bof); // support old signature
     this.logger.logAdapterMethod('prepend', [options.items, options.bof]);
     this.workflow.call({
@@ -364,7 +362,7 @@ export class Adapter implements IAdapter {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  remove(options: AdapterRemoveOptions | ItemsPredicate): any {
+  remove(options: AdapterRemoveOptions<Item> | ItemsPredicate<Item>): any {
     options = convertRemoveArgs(options); // support old signature
     this.logger.logAdapterMethod('remove', options);
     this.workflow.call({
@@ -385,7 +383,7 @@ export class Adapter implements IAdapter {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  insert(options: AdapterInsertOptions): any {
+  insert(options: AdapterInsertOptions<Item>): any {
     this.logger.logAdapterMethod('insert', options);
     this.workflow.call({
       process: AdapterProcess.insert,
@@ -395,7 +393,7 @@ export class Adapter implements IAdapter {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  replace(options: AdapterReplaceOptions): any {
+  replace(options: AdapterReplaceOptions<Item>): any {
     this.logger.logAdapterMethod('replace', options);
     this.workflow.call({
       process: AdapterProcess.replace,
@@ -405,7 +403,7 @@ export class Adapter implements IAdapter {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  fix(options: AdapterFixOptions): any {
+  fix(options: AdapterFixOptions<Item>): any {
     this.logger.logAdapterMethod('fix', options);
     this.workflow.call({
       process: AdapterProcess.fix,

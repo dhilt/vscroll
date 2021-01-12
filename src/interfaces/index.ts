@@ -6,7 +6,6 @@ import {
   IDatasourceConstructedGeneric,
   IDatasource,
   IDatasourceConstructed,
-  IDatasourceClass,
 } from './datasource';
 import {
   WorkflowParams,
@@ -69,7 +68,6 @@ export {
   IDatasourceConstructedGeneric,
   IDatasource,
   IDatasourceConstructed,
-  IDatasourceClass,
   WorkflowParams,
   OnDataChanged,
   ScrollerWorkflow,

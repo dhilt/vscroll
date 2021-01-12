@@ -34,7 +34,3 @@ export interface IDatasource extends IDatasourceGeneric<IAdapter> { }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IDatasourceConstructed extends IDatasourceConstructedGeneric<IAdapter> { }
-
-export interface IDatasourceClass<A> extends IDatasourceConstructedGeneric<A> {
-  new(datasource: IDatasourceGeneric<A>): IDatasourceConstructedGeneric<A>;
-}

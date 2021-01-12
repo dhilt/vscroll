@@ -34,15 +34,15 @@ export interface IAdapterProp {
   permanent?: boolean;
 }
 
-export interface ItemAdapter {
+export interface ItemAdapter<ItemData = unknown> {
   $index: number;
-  data: unknown;
+  data: ItemData;
   element?: HTMLElement;
 }
 
-export type ItemsPredicate = (item: ItemAdapter) => boolean;
-export type ItemsLooper = (item: ItemAdapter) => void;
-export type ItemsProcessor = (items: ItemAdapter[]) => void;
+export type ItemsPredicate<T = unknown> = (item: ItemAdapter<T>) => boolean;
+export type ItemsLooper<T = unknown> = (item: ItemAdapter<T>) => void;
+export type ItemsProcessor<T = unknown> = (items: ItemAdapter<T>[]) => void;
 
 export interface IPackage {
   name: string;
@@ -63,18 +63,18 @@ export interface IBufferInfo {
   absMaxIndex: number;
 }
 
-export interface AdapterAppendOptions {
-  items: unknown[];
+export interface AdapterAppendOptions<Item = unknown> {
+  items: Item[];
   eof?: boolean;
 }
 
-export interface AdapterPrependOptions {
-  items: unknown[];
+export interface AdapterPrependOptions<Item = unknown> {
+  items: Item[];
   bof?: boolean;
 }
 
-export interface AdapterRemoveOptions {
-  predicate?: ItemsPredicate;
+export interface AdapterRemoveOptions<Item = unknown> {
+  predicate?: ItemsPredicate<Item>;
   indexes?: number[];
   increase?: boolean;
 }
@@ -84,25 +84,25 @@ export interface AdapterClipOptions {
   backwardOnly?: boolean;
 }
 
-export interface AdapterInsertOptions {
-  items: unknown[];
-  before?: ItemsPredicate;
-  after?: ItemsPredicate;
+export interface AdapterInsertOptions<Item = unknown> {
+  items: Item[];
+  before?: ItemsPredicate<Item>;
+  after?: ItemsPredicate<Item>;
   decrease?: boolean;
 }
 
-export interface AdapterReplaceOptions {
-  items: unknown[];
-  predicate: ItemsPredicate;
+export interface AdapterReplaceOptions<Item = unknown> {
+  items: Item[];
+  predicate: ItemsPredicate<Item>;
   fixRight?: boolean;
 }
 
-export interface AdapterFixOptions {
+export interface AdapterFixOptions<Item = unknown> {
   scrollPosition?: number;
   minIndex?: number;
   maxIndex?: number;
-  updater?: ItemsLooper;
-  scrollToItem?: ItemsPredicate;
+  updater?: ItemsLooper<Item>;
+  scrollToItem?: ItemsPredicate<Item>;
   scrollToItemOpt?: boolean | ScrollIntoViewOptions;
 }
 
@@ -113,7 +113,7 @@ export interface AdapterMethodResult {
 }
 type MethodResult = Promise<AdapterMethodResult>;
 
-export interface IAdapter {
+export interface IAdapter<Item = unknown> {
   readonly id: number;
   readonly mock: boolean;
   readonly version: string;
@@ -124,26 +124,27 @@ export interface IAdapter {
   readonly isLoading$: Reactive<boolean>;
   readonly loopPending: boolean;
   readonly loopPending$: Reactive<boolean>;
-  readonly firstVisible: ItemAdapter;
-  readonly firstVisible$: Reactive<ItemAdapter>;
-  readonly lastVisible: ItemAdapter;
-  readonly lastVisible$: Reactive<ItemAdapter>;
+  readonly firstVisible: ItemAdapter<Item>;
+  readonly firstVisible$: Reactive<ItemAdapter<Item>>;
+  readonly lastVisible: ItemAdapter<Item>;
+  readonly lastVisible$: Reactive<ItemAdapter<Item>>;
   readonly bof: boolean;
   readonly bof$: Reactive<boolean>;
   readonly eof: boolean;
   readonly eof$: Reactive<boolean>;
   reset(datasource?: IDatasourceOptional): MethodResult;
   reload(reloadIndex?: number | string): MethodResult;
-  append(options: AdapterAppendOptions): MethodResult;
-  append(items: unknown, eof?: boolean): MethodResult; // old signature
-  prepend(options: AdapterPrependOptions): MethodResult;
-  prepend(items: unknown, bof?: boolean): MethodResult; // old signature
+  append(options: AdapterAppendOptions<Item>): MethodResult;
+  append(items: Item | Item[], eof?: boolean): MethodResult; // old signature
+  prepend(options: AdapterPrependOptions<Item>): MethodResult;
+  prepend(items: Item | Item[], bof?: boolean): MethodResult; // old signature
   check(): MethodResult;
-  remove(args: AdapterRemoveOptions | ItemsPredicate): MethodResult; // + old signature
+  remove(args: AdapterRemoveOptions<Item>): MethodResult;
+  remove(args: ItemsPredicate<Item>): MethodResult; // old signature
   clip(options?: AdapterClipOptions): MethodResult;
-  insert(options: AdapterInsertOptions): MethodResult;
-  replace(options: AdapterReplaceOptions): MethodResult;
-  fix(options: AdapterFixOptions): MethodResult; // experimental
+  insert(options: AdapterInsertOptions<Item>): MethodResult;
+  replace(options: AdapterReplaceOptions<Item>): MethodResult;
+  fix(options: AdapterFixOptions<Item>): MethodResult; // experimental
   relax(callback?: () => void): MethodResult;
   showLog(): void;
 }

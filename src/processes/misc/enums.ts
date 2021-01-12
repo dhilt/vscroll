@@ -16,6 +16,7 @@ export enum AdapterProcess {
   reset = 'adapter.reset',
   reload = 'adapter.reload',
   append = 'adapter.append',
+  prepend = 'adapter.prepend',
   check = 'adapter.check',
   remove = 'adapter.remove',
   replace = 'adapter.replace',

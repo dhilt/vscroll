@@ -337,7 +337,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     this.workflow.call({
       process: AdapterProcess.append,
       status: ProcessStatus.start,
-      payload: { process: AdapterProcess.append, options }
+      payload: { options }
     });
   }
 
@@ -346,9 +346,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     const options = convertAppendArgs(true, _options, bof); // support old signature
     this.logger.logAdapterMethod('prepend', [options.items, options.bof]);
     this.workflow.call({
-      process: AdapterProcess.append,
+      process: AdapterProcess.prepend,
       status: ProcessStatus.start,
-      payload: { options } // has no process prop
+      payload: { options }
     });
   }
 

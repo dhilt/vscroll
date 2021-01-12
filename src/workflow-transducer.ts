@@ -74,8 +74,9 @@ export const runStateMachine = ({
       }
       break;
     case AdapterProcess.append:
+    case AdapterProcess.prepend:
       if (status === Status.start) {
-        run(Append)(options);
+        run(Append)({ process, options });
       }
       if (status === Status.next) {
         run(Init)(process);

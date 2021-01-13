@@ -77,6 +77,8 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   id: number;
   mock: boolean;
   version: string;
+  init: boolean;
+  init$: Reactive<boolean>;
   packageInfo: IPackages;
   itemsCount: number;
   bufferInfo: IBufferInfo;
@@ -93,7 +95,6 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   eof: boolean;
   eof$: Reactive<boolean>;
 
-  private initialized: boolean;
   private relax$: Reactive<AdapterMethodResult> | null;
   private relaxRun: Promise<AdapterMethodResult> | null;
 
@@ -113,7 +114,6 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   constructor(publicContext: IAdapter | null, getWorkflow: WorkflowGetter, logger: Logger) {
     this.getWorkflow = getWorkflow;
     this.logger = logger;
-    this.initialized = false;
     this.relax$ = null;
     this.relaxRun = null;
     this.reloadCounter = 0;
@@ -239,7 +239,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     delete context.reactiveConfiguredProps;
   }
 
-  init(buffer: Buffer, state: State, logger: Logger, adapterRun$?: Reactive<ProcessSubject>): void {
+  initialize(buffer: Buffer, state: State, logger: Logger, adapterRun$?: Reactive<ProcessSubject>): void {
     // buffer
     Object.defineProperty(this.demand, AdapterPropName.itemsCount, {
       get: () => buffer.getVisibleItemsCount()
@@ -298,7 +298,8 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       });
     }
 
-    this.initialized = true;
+    // init
+    this.init = true;
   }
 
   dispose(): void {
@@ -441,7 +442,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   relax(callback?: () => void): Promise<AdapterMethodResult> {
     const reloadId = this.reloadId;
     this.logger.logAdapterMethod('relax', callback, ` of ${reloadId}`);
-    if (!this.initialized) {
+    if (!this.init) {
       return Promise.resolve(adapterMethodPreResult);
     }
     return this.relaxRun = this.relaxRun

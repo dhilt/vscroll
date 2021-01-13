@@ -5,6 +5,8 @@ export enum AdapterPropName {
   id = 'id',
   mock = 'mock',
   version = 'version',
+  init = 'init',
+  init$ = 'init$',
   packageInfo = 'packageInfo',
   itemsCount = 'itemsCount',
   bufferInfo = 'bufferInfo',
@@ -89,6 +91,12 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
     name: Name.version,
     value: '',
     permanent: true
+  },
+  {
+    type: Type.Scalar,
+    name: Name.init,
+    value: false,
+    reactive: Name.init$
   },
   {
     type: Type.Scalar,
@@ -205,6 +213,11 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
     type: Type.Function,
     name: Name.showLog,
     value: noop
+  },
+  {
+    type: Type.Reactive,
+    name: Name.init$,
+    value: new Reactive<boolean>()
   },
   {
     type: Type.Reactive,

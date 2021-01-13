@@ -1,7 +1,7 @@
 import { Routines } from './domRoutines';
 import { Direction, ItemAdapter } from '../interfaces/index';
 
-export class Item {
+export class Item<Data = unknown> {
   nodeId: string;
   routines: Routines;
   size: number;
@@ -9,7 +9,7 @@ export class Item {
   toRemove: boolean;
   removeDirection: Direction;
 
-  private container: ItemAdapter;
+  private container: ItemAdapter<Data>;
 
   get $index(): number {
     return this.container.$index;
@@ -18,10 +18,10 @@ export class Item {
     this.container.$index = value;
   }
 
-  get data(): unknown {
+  get data(): Data {
     return this.container.data;
   }
-  set data(value: unknown) {
+  set data(value: Data) {
     this.container.data = value;
   }
 
@@ -32,7 +32,7 @@ export class Item {
     this.container.element = value;
   }
 
-  constructor($index: number, data: unknown, routines: Routines) {
+  constructor($index: number, data: Data, routines: Routines) {
     this.container = {
       $index,
       data

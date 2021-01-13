@@ -117,6 +117,8 @@ export interface IAdapter<Item = unknown> {
   readonly id: number;
   readonly mock: boolean;
   readonly version: string;
+  readonly init: boolean;
+  readonly init$: Reactive<boolean>;
   readonly packageInfo: IPackages;
   readonly itemsCount: number;
   readonly bufferInfo: IBufferInfo;

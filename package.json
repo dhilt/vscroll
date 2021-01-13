@@ -1,7 +1,7 @@
 {
   "name": "vscroll",
-  "version": "1.0.0-beta.5",
-  "description": "Virtual scroll",
+  "version": "1.0.0-beta.6",
+  "description": "Virtual scroll engine",
   "main": "dist/bundles/vscroll.js",
   "module": "dist/bundles/vscroll.es.js",
   "jsnext:main": "dist/bundles/vscroll.es.js",
@@ -9,6 +9,16 @@
   "files": [
     "dist"
   ],
+  "author": "Denis Hilt <dhilt.public@gmail.com>",
+  "homepage": "https://github.com/dhilt/vscroll",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dhilt/vscroll.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dhilt/vscroll/issues"
+  },
+  "license": "MIT",
   "scripts": {
     "lint": "eslint . --ext .ts",
     "jest": "jest",
@@ -16,17 +26,6 @@
     "test": "npm run lint && npm run jest",
     "prepare": "npm run test && npm run build"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/dhilt/vscroll.git"
-  },
-  "keywords": [],
-  "author": "Denis Hilt <dhilt.public@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/dhilt/vscroll/issues"
-  },
-  "homepage": "https://github.com/dhilt/vscroll",
   "devDependencies": {
     "@babel/core": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
@@ -46,5 +45,14 @@
     "rollup-plugin-typescript2": "^0.29.0",
     "shelljs": "^0.8.4",
     "typescript": "^4.1.3"
-  }
+  },
+  "keywords": [
+    "vscroll",
+    "virtual",
+    "scroll",
+    "scrolling",
+    "scroller",
+    "javascript",
+    "typescript"
+  ]
 }

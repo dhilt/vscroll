@@ -30,7 +30,11 @@ export interface IDatasourceConstructedGeneric<A> extends Omit<IDatasourceGeneri
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface IDatasource extends IDatasourceGeneric<IAdapter> { }
+export interface IDatasource<ItemData = unknown>
+  extends IDatasourceGeneric<IAdapter<ItemData>> {
+}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface IDatasourceConstructed extends IDatasourceConstructedGeneric<IAdapter> { }
+export interface IDatasourceConstructed<ItemData = unknown>
+  extends IDatasourceConstructedGeneric<IAdapter<ItemData>> {
+}

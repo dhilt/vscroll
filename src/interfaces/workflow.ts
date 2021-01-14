@@ -7,7 +7,7 @@ import { Scroller } from '../scroller';
 export type OnDataChanged<Data> = (items: Item<Data>[]) => void;
 
 export interface WorkflowParams<ItemData> {
-  datasource: IDatasource;
+  datasource: IDatasource<ItemData>;
   consumer: IPackage;
   element: HTMLElement;
   run: OnDataChanged<ItemData>;
@@ -24,7 +24,7 @@ export interface ScrollerWorkflow<ItemData = unknown> {
 }
 
 export interface ScrollerParams<ItemData> {
-  datasource: IDatasource;
+  datasource: IDatasource<ItemData>;
   consumer?: IPackage;
   element?: HTMLElement;
   workflow?: ScrollerWorkflow<ItemData>;
@@ -40,20 +40,20 @@ export interface WorkflowError {
   process: ProcessName;
 }
 
-export interface InterruptParams {
+export interface InterruptParams<ItemData> {
   process: ProcessName;
   finalize?: boolean;
-  datasource?: IDatasource;
+  datasource?: IDatasource<ItemData>;
 }
 
-export interface StateMachineMethods {
+export interface StateMachineMethods<ItemData> {
   run: (process: ProcessClass) => (...args: any[]) => void;
-  interrupt: (params: InterruptParams) => void;
+  interrupt: (params: InterruptParams<ItemData>) => void;
   done: () => void;
   onError: (process: ProcessName, payload: ProcessPayload) => void;
 }
 
-export interface StateMachineParams {
+export interface StateMachineParams<ItemData = unknown> {
   input: ProcessSubject;
-  methods: StateMachineMethods;
+  methods: StateMachineMethods<ItemData>;
 }

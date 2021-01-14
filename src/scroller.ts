@@ -18,7 +18,7 @@ export const INVALID_DATASOURCE_PREFIX = 'Invalid datasource:';
 let instanceCount = 0;
 
 export class Scroller<ItemData = unknown> {
-  public datasource: IDatasourceConstructed;
+  public datasource: IDatasourceConstructed<ItemData>;
   public workflow: ScrollerWorkflow<ItemData>;
 
   public settings: Settings;
@@ -51,9 +51,9 @@ export class Scroller<ItemData = unknown> {
     this.initDatasource(datasource, scroller);
   }
 
-  initDatasource(datasource: IDatasource, scroller?: Scroller<ItemData>): void {
+  initDatasource(datasource: IDatasource<ItemData>, scroller?: Scroller<ItemData>): void {
     if (scroller) { // scroller re-instantiating case
-      this.datasource = datasource as IDatasourceConstructed;
+      this.datasource = datasource as IDatasourceConstructed<ItemData>;
       this.adapter = scroller.adapter;
       // todo: what about (this.settings.adapter !== scroller.setting.adapter) case?
       return;
@@ -62,7 +62,7 @@ export class Scroller<ItemData = unknown> {
     const constructed = datasource instanceof DatasourceGeneric;
     const mockAdapter = !constructed && !this.settings.adapter;
     if (constructed) { // datasource is already instantiated
-      this.datasource = datasource as IDatasourceConstructed;
+      this.datasource = datasource as IDatasourceConstructed<ItemData>;
     } else { // datasource as POJO
       const DS = makeDatasource<IAdapter>(() => ({ mock: mockAdapter }));
       this.datasource = new DS(datasource);

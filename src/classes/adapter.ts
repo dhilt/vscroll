@@ -111,7 +111,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       });
   }
 
-  constructor(publicContext: IAdapter | null, getWorkflow: WorkflowGetter<Item>, logger: Logger) {
+  constructor(publicContext: IAdapter<Item> | null, getWorkflow: WorkflowGetter<Item>, logger: Logger) {
     this.getWorkflow = getWorkflow;
     this.logger = logger;
     this.relax$ = null;

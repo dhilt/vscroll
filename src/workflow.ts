@@ -25,7 +25,7 @@ export class Workflow<ItemData = unknown> {
 
   private disposeScrollEventHandler: () => void;
   readonly propagateChanges: WorkflowParams<ItemData>['run'];
-  readonly stateMachineMethods: StateMachineMethods;
+  readonly stateMachineMethods: StateMachineMethods<ItemData>;
 
   scroller: Scroller<ItemData>;
 
@@ -112,7 +112,7 @@ export class Workflow<ItemData = unknown> {
     }
     runStateMachine({
       input: data,
-      methods: this.stateMachineMethods
+      methods: this.stateMachineMethods as StateMachineMethods<unknown>
     });
   }
 
@@ -141,7 +141,7 @@ export class Workflow<ItemData = unknown> {
     this.scroller.logger.logError(message);
   }
 
-  interrupt({ process, finalize, datasource }: InterruptParams): void {
+  interrupt({ process, finalize, datasource }: InterruptParams<ItemData>): void {
     if (finalize) {
       const { workflow, logger } = this.scroller;
       // we are going to create a new reference for the scroller.workflow object
@@ -156,7 +156,7 @@ export class Workflow<ItemData = unknown> {
     if (datasource) { // Scroller re-initialization case
       this.scroller.adapter.relax(() => {
         this.scroller.logger.log('new Scroller instantiation');
-        const scroller = new Scroller({ datasource, scroller: this.scroller });
+        const scroller = new Scroller<ItemData>({ datasource, scroller: this.scroller });
         this.scroller.dispose();
         this.scroller = scroller;
         this.scroller.init();

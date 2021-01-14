@@ -8,8 +8,8 @@ import {
   IDatasourceConstructed,
 } from './datasource';
 import {
-  WorkflowParams,
   OnDataChanged,
+  WorkflowParams,
   ScrollerWorkflow,
   ScrollerParams,
   WorkflowGetter,
@@ -68,8 +68,8 @@ export {
   IDatasourceConstructedGeneric,
   IDatasource,
   IDatasourceConstructed,
-  WorkflowParams,
   OnDataChanged,
+  WorkflowParams,
   ScrollerWorkflow,
   ScrollerParams,
   WorkflowGetter,

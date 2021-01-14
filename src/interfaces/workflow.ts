@@ -4,11 +4,13 @@ import { IPackage } from './adapter';
 import { Item } from '../classes/item';
 import { Scroller } from '../scroller';
 
-export interface WorkflowParams {
+export type OnDataChanged<Data> = (items: Item<Data>[]) => void;
+
+export interface WorkflowParams<ItemData> {
   datasource: IDatasource;
   consumer: IPackage;
   element: HTMLElement;
-  run: (items: Item[]) => void;
+  run: OnDataChanged<ItemData>;
 }
 
 interface CallWorkflow {
@@ -16,22 +18,20 @@ interface CallWorkflow {
   interrupted?: boolean;
 }
 
-export type OnDataChanged = (items: Item[]) => void;
-
-export interface ScrollerWorkflow {
+export interface ScrollerWorkflow<ItemData = unknown> {
   call: CallWorkflow;
-  onDataChanged: OnDataChanged;
+  onDataChanged: OnDataChanged<ItemData>;
 }
 
-export interface ScrollerParams {
+export interface ScrollerParams<ItemData> {
   datasource: IDatasource;
   consumer?: IPackage;
   element?: HTMLElement;
-  workflow?: ScrollerWorkflow;
-  scroller?: Scroller; // for re-instantiation
+  workflow?: ScrollerWorkflow<ItemData>;
+  scroller?: Scroller<ItemData>; // for re-instantiation
 }
 
-export type WorkflowGetter = () => ScrollerWorkflow;
+export type WorkflowGetter<ItemData> = () => ScrollerWorkflow<ItemData>;
 
 export interface WorkflowError {
   loop: string;

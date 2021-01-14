@@ -63,7 +63,7 @@ export class Item<Data = unknown> {
     this.nodeId = String(index);
   }
 
-  get(): ItemAdapter {
+  get(): ItemAdapter<Data> {
     return this.container;
   }
 }

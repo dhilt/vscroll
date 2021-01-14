@@ -1,14 +1,14 @@
 import { Item } from './item';
 import { Logger } from './logger';
 
-export class ItemCache {
+export class ItemCache<Data = unknown> {
   $index: number;
   nodeId: string;
-  data: unknown;
+  data: Data | null;
   size: number;
   position: number;
 
-  constructor(item: Item, saveData: boolean) {
+  constructor(item: Item<Data>, saveData: boolean) {
     this.$index = item.$index;
     this.nodeId = item.nodeId;
     this.data = saveData ? item.data : null;
@@ -41,14 +41,14 @@ export class RecalculateAverage {
   }
 }
 
-export class Cache {
+export class Cache<Data = unknown> {
   averageSizeFloat: number;
   averageSize: number;
   minIndex: number;
   maxIndex: number;
   recalculateAverage: RecalculateAverage;
 
-  private items: Map<number, ItemCache>;
+  private items: Map<number, ItemCache<Data>>;
   readonly logger: Logger;
   readonly itemSize: number;
   readonly saveData: boolean;
@@ -58,7 +58,7 @@ export class Cache {
     this.averageSize = itemSize;
     this.itemSize = itemSize;
     this.saveData = saveData;
-    this.items = new Map<number, ItemCache>();
+    this.items = new Map<number, ItemCache<Data>>();
     this.recalculateAverage = new RecalculateAverage();
     this.reset();
     this.logger = logger;
@@ -96,7 +96,7 @@ export class Cache {
     return true;
   }
 
-  add(item: Item): ItemCache {
+  add(item: Item<Data>): ItemCache<Data> {
     let itemCache = this.get(item.$index);
     if (itemCache) {
       itemCache.data = item.data;
@@ -109,7 +109,7 @@ export class Cache {
         itemCache.size = item.size;
       }
     } else {
-      itemCache = new ItemCache(item, this.saveData);
+      itemCache = new ItemCache<Data>(item, this.saveData);
       this.items.set(item.$index, itemCache);
       if (this.averageSize !== itemCache.size) {
         this.recalculateAverage.newItems.push({ $index: item.$index, size: itemCache.size });
@@ -129,7 +129,7 @@ export class Cache {
     return item ? item.size : 0;
   }
 
-  get(index: number): ItemCache | undefined {
+  get(index: number): ItemCache<Data> | undefined {
     return this.items.get(index);
   }
 
@@ -138,9 +138,9 @@ export class Cache {
   }
 
   removeItems(toRemove: number[], immutableTop: boolean): void {
-    const items = new Map<number, ItemCache>();
+    const items = new Map<number, ItemCache<Data>>();
     let min = Infinity, max = -Infinity;
-    this.items.forEach((item: ItemCache) => {
+    this.items.forEach(item => {
       if (toRemove.some(index => index === item.$index)) {
         return;
       }
@@ -160,8 +160,8 @@ export class Cache {
   insertItems(index: number, count: number, immutableTop: boolean): void {
     // we do not insert new items here, we just shift indexes of the existed items
     // new items adding must be performed via Cache.add
-    const items = new Map<number, ItemCache>();
-    this.items.forEach((item: ItemCache) => {
+    const items = new Map<number, ItemCache<Data>>();
+    this.items.forEach(item => {
       const { $index } = item;
       if ($index < index) {
         if (!immutableTop) {

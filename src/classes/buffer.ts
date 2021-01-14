@@ -5,30 +5,30 @@ import { Logger } from './logger';
 import { Reactive } from './reactive';
 import { Direction, OnDataChanged } from '../interfaces/index';
 
-export class Buffer {
+export class Buffer<Data> {
 
-  private _items: Item[];
+  private _items: Item<Data>[];
   private _absMinIndex: number;
   private _absMaxIndex: number;
   bof: Reactive<boolean>;
   eof: Reactive<boolean>;
 
-  changeItems: OnDataChanged;
+  changeItems: OnDataChanged<Data>;
   minIndexUser: number;
   maxIndexUser: number;
   startIndexUser: number;
   startIndex: number;
 
   private pristine: boolean;
-  private cache: Cache;
+  private cache: Cache<Data>;
   readonly logger: Logger;
 
-  constructor(settings: Settings, onDataChanged: OnDataChanged, logger: Logger) {
+  constructor(settings: Settings, onDataChanged: OnDataChanged<Data>, logger: Logger) {
     this.logger = logger;
     this.changeItems = onDataChanged;
     this.bof = new Reactive<boolean>(false);
     this.eof = new Reactive<boolean>(false);
-    this.cache = new Cache(settings.itemSize, settings.cacheData, logger);
+    this.cache = new Cache<Data>(settings.itemSize, settings.cacheData, logger);
     this.startIndexUser = settings.startIndex;
     this.minIndexUser = settings.minIndex;
     this.maxIndexUser = settings.maxIndex;
@@ -75,7 +75,7 @@ export class Buffer {
     this.startIndex = index;
   }
 
-  set items(items: Item[]) {
+  set items(items: Item<Data>[]) {
     this._items = items;
     this.changeItems(items);
     if (!this.pristine) {
@@ -84,7 +84,7 @@ export class Buffer {
     }
   }
 
-  get items(): Item[] {
+  get items(): Item<Data>[] {
     return this._items;
   }
 
@@ -170,11 +170,11 @@ export class Buffer {
     return isFinite(this.absMaxIndex) ? this.absMaxIndex : this.maxIndex;
   }
 
-  get($index: number): Item | undefined {
-    return this.items.find((item: Item) => item.$index === $index);
+  get($index: number): Item<Data> | undefined {
+    return this.items.find(item => item.$index === $index);
   }
 
-  setItems(items: Item[]): boolean {
+  setItems(items: Item<Data>[]): boolean {
     if (!this.items.length) {
       this.items = [...items];
     } else if (this.items[0].$index > items[items.length - 1].$index) {
@@ -187,16 +187,16 @@ export class Buffer {
     return true;
   }
 
-  append(items: Item[]): void {
+  append(items: Item<Data>[]): void {
     this.items = [...this.items, ...items];
   }
 
-  prepend(items: Item[]): void {
+  prepend(items: Item<Data>[]): void {
     this.items = [...items, ...this.items];
   }
 
   removeItems(indexes: number[], immutableTop: boolean, virtual = false): void {
-    const result: Item[] = [];
+    const result: Item<Data>[] = [];
     const toRemove: number[] = virtual ? indexes : [];
     const length = this.items.length;
     for (
@@ -234,15 +234,15 @@ export class Buffer {
     this.cache.removeItems(toRemove, immutableTop);
   }
 
-  insertItems(items: Item[], from: Item, addition: number, immutableTop: boolean): void {
+  insertItems(items: Item<Data>[], from: Item<Data>, addition: number, immutableTop: boolean): void {
     const count = items.length;
     const index = this.items.indexOf(from) + addition;
     const itemsBefore = this.items.slice(0, index);
     const itemsAfter = this.items.slice(index);
     if (immutableTop) {
-      itemsAfter.forEach((item: Item) => item.updateIndex(item.$index + count));
+      itemsAfter.forEach(item => item.updateIndex(item.$index + count));
     } else {
-      itemsBefore.forEach((item: Item) => item.updateIndex(item.$index - count));
+      itemsBefore.forEach(item => item.updateIndex(item.$index - count));
     }
     const result = [
       ...itemsBefore,
@@ -259,7 +259,7 @@ export class Buffer {
     this.cache.insertItems(from.$index + addition, count, immutableTop);
   }
 
-  cacheItem(item: Item): void {
+  cacheItem(item: Item<Data>): void {
     this.cache.add(item);
   }
 
@@ -282,27 +282,27 @@ export class Buffer {
     return -1;
   }
 
-  getFirstVisibleItem(): Item | undefined {
+  getFirstVisibleItem(): Item<Data> | undefined {
     const index = this.getFirstVisibleItemIndex();
     if (index >= 0) {
       return this.items[index];
     }
   }
 
-  getLastVisibleItem(): Item | undefined {
+  getLastVisibleItem(): Item<Data> | undefined {
     const index = this.getLastVisibleItemIndex();
     if (index >= 0) {
       return this.items[index];
     }
   }
 
-  getEdgeVisibleItem(direction: Direction, opposite?: boolean): Item | undefined {
+  getEdgeVisibleItem(direction: Direction, opposite?: boolean): Item<Data> | undefined {
     return direction === (!opposite ? Direction.forward : Direction.backward) ?
       this.getLastVisibleItem() : this.getFirstVisibleItem();
   }
 
   getVisibleItemsCount(): number {
-    return this.items.reduce((acc: number, item: Item) => acc + (item.invisible ? 0 : 1), 0);
+    return this.items.reduce((acc: number, item) => acc + (item.invisible ? 0 : 1), 0);
   }
 
   getSizeByIndex(index: number): number {

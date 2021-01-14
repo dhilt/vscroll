@@ -17,19 +17,19 @@ export const INVALID_DATASOURCE_PREFIX = 'Invalid datasource:';
 
 let instanceCount = 0;
 
-export class Scroller {
+export class Scroller<ItemData = unknown> {
   public datasource: IDatasourceConstructed;
-  public workflow: ScrollerWorkflow;
+  public workflow: ScrollerWorkflow<ItemData>;
 
   public settings: Settings;
   public logger: Logger;
   public routines: Routines;
   public viewport: Viewport;
-  public buffer: Buffer;
+  public buffer: Buffer<ItemData>;
   public state: State;
-  public adapter: Adapter;
+  public adapter: Adapter<ItemData>;
 
-  constructor({ datasource, consumer, element, workflow, scroller }: ScrollerParams) {
+  constructor({ datasource, consumer, element, workflow, scroller }: ScrollerParams<ItemData>) {
     const { params: { get } } = validate(datasource, DATASOURCE);
     if (!get.isValid) {
       throw new Error(`${INVALID_DATASOURCE_PREFIX} ${get.errors[0]}`);
@@ -37,21 +37,21 @@ export class Scroller {
 
     const packageInfo = scroller ? scroller.state.packageInfo : ({ consumer, core } as IPackages);
     element = scroller ? scroller.viewport.element : (element as HTMLElement);
-    workflow = scroller ? scroller.workflow : (workflow as ScrollerWorkflow);
+    workflow = scroller ? scroller.workflow : (workflow as ScrollerWorkflow<ItemData>);
 
     this.workflow = workflow;
     this.settings = new Settings(datasource.settings, datasource.devSettings, ++instanceCount);
-    this.logger = new Logger(this, packageInfo);
+    this.logger = new Logger(this as Scroller, packageInfo);
     this.routines = new Routines(this.settings);
     this.state = new State(packageInfo, this.settings, scroller ? scroller.state : void 0);
-    this.buffer = new Buffer(this.settings, workflow.onDataChanged, this.logger);
+    this.buffer = new Buffer<ItemData>(this.settings, workflow.onDataChanged, this.logger);
     this.viewport = new Viewport(element, this.settings, this.routines, this.state, this.logger);
     this.logger.object('uiScroll settings object', this.settings, true);
 
     this.initDatasource(datasource, scroller);
   }
 
-  initDatasource(datasource: IDatasource, scroller?: Scroller): void {
+  initDatasource(datasource: IDatasource, scroller?: Scroller<ItemData>): void {
     if (scroller) { // scroller re-instantiating case
       this.datasource = datasource as IDatasourceConstructed;
       this.adapter = scroller.adapter;
@@ -71,7 +71,7 @@ export class Scroller {
       }
     }
     const publicContext = !mockAdapter ? this.datasource.adapter : null;
-    this.adapter = new Adapter(publicContext, () => this.workflow, this.logger);
+    this.adapter = new Adapter<ItemData>(publicContext, () => this.workflow, this.logger);
   }
 
   init(adapterRun$?: Reactive<ProcessSubject>): void {

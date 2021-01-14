@@ -57,14 +57,14 @@ const adapterMethodPreResult: AdapterMethodResult = {
 
 export class Adapter<Item = unknown> implements IAdapter<Item> {
   private logger: Logger;
-  private getWorkflow: WorkflowGetter;
+  private getWorkflow: WorkflowGetter<Item>;
   private reloadCounter: number;
   private source: { [key: string]: Reactive<unknown> } = {}; // for Reactive props
   private box: { [key: string]: unknown } = {}; // for Scalars over Reactive props
   private demand: { [key: string]: unknown } = {}; // for Scalars on demand
   public wanted: { [key: string]: boolean } = {};
 
-  get workflow(): ScrollerWorkflow {
+  get workflow(): ScrollerWorkflow<Item> {
     return this.getWorkflow();
   }
   get reloadCount(): number {
@@ -111,7 +111,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       });
   }
 
-  constructor(publicContext: IAdapter | null, getWorkflow: WorkflowGetter, logger: Logger) {
+  constructor(publicContext: IAdapter | null, getWorkflow: WorkflowGetter<Item>, logger: Logger) {
     this.getWorkflow = getWorkflow;
     this.logger = logger;
     this.relax$ = null;
@@ -239,7 +239,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     delete context.reactiveConfiguredProps;
   }
 
-  initialize(buffer: Buffer, state: State, logger: Logger, adapterRun$?: Reactive<ProcessSubject>): void {
+  initialize(buffer: Buffer<Item>, state: State, logger: Logger, adapterRun$?: Reactive<ProcessSubject>): void {
     // buffer
     Object.defineProperty(this.demand, AdapterPropName.itemsCount, {
       get: () => buffer.getVisibleItemsCount()

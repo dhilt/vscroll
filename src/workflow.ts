@@ -15,7 +15,7 @@ import {
   ScrollerWorkflow,
 } from './interfaces/index';
 
-export class Workflow {
+export class Workflow<ItemData = unknown> {
 
   isInitialized: boolean;
   adapterRun$: Reactive<ProcessSubject>;
@@ -24,12 +24,12 @@ export class Workflow {
   errors: WorkflowError[];
 
   private disposeScrollEventHandler: () => void;
-  readonly propagateChanges: WorkflowParams['run'];
+  readonly propagateChanges: WorkflowParams<ItemData>['run'];
   readonly stateMachineMethods: StateMachineMethods;
 
-  scroller: Scroller;
+  scroller: Scroller<ItemData>;
 
-  constructor({ element, datasource, consumer, run }: WorkflowParams) {
+  constructor({ element, datasource, consumer, run }: WorkflowParams<ItemData>) {
     this.isInitialized = false;
     this.adapterRun$ = new Reactive();
     this.cyclesDone = 0;
@@ -44,7 +44,7 @@ export class Workflow {
       onError: this.onError.bind(this)
     };
 
-    this.scroller = new Scroller({ element, datasource, consumer, workflow: this.getUpdater() });
+    this.scroller = new Scroller<ItemData>({ element, datasource, consumer, workflow: this.getUpdater() });
 
     if (this.scroller.settings.initializeDelay) {
       setTimeout(() => this.init(), this.scroller.settings.initializeDelay);
@@ -76,7 +76,7 @@ export class Workflow {
       scrollEventReceiver.removeEventListener('scroll', onScrollHandler);
   }
 
-  changeItems(items: Item[]): void {
+  changeItems(items: Item<ItemData>[]): void {
     this.propagateChanges(items);
   }
 
@@ -90,7 +90,7 @@ export class Workflow {
     this.process(processSubject);
   }
 
-  getUpdater(): ScrollerWorkflow {
+  getUpdater(): ScrollerWorkflow<ItemData> {
     return {
       call: this.callWorkflow.bind(this),
       onDataChanged: this.changeItems.bind(this),
@@ -125,7 +125,7 @@ export class Workflow {
             process || name, ...args
           ]);
         }
-        run(this.scroller, ...args);
+        run(this.scroller as Scroller, ...args);
       };
   }
 

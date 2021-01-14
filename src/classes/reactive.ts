@@ -9,7 +9,6 @@ interface Subscription<T> {
 interface Options {
   emitOnSubscribe?: boolean; // if set, emit right on subscribe (like rxjs BehaviorSubject)
   emitEqual?: boolean; // if set, emit when new value is equal to the old one
-  emitChanged?: boolean; // if set, emit when value changed during subscriptions run
 }
 
 export class Reactive<T> {
@@ -33,9 +32,12 @@ export class Reactive<T> {
       return;
     }
     this.value = value;
-    for (const [, sub] of this.subscriptions) {
+    const length = this.subscriptions.size;
+    const iterator = this.subscriptions.entries();
+    for (let i = 0; i < length; i++) {
+      const sub = iterator.next().value[1];
       sub.emit(value);
-      if (this.value !== value && !this.options.emitChanged) {
+      if (this.value !== value) {
         break;
       }
     }

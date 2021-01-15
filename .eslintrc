@@ -18,6 +18,17 @@
   },
   "overrides": [
     {
+      "files": [
+        "**/*.spec.ts"
+      ],
+      "env": {
+        "jest": true
+      },
+      "rules": {
+        "@typescript-eslint/no-unused-vars": ["error", { "args": "none" }]
+      }
+    },
+    {
       "files": ["*.js"],
       "env": {
         "node": true

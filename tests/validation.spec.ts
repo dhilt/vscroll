@@ -48,7 +48,7 @@ describe('Input Params Validation', () => {
     const intProp = { validators: [INTEGER] };
     const intUnlimitedProp = { validators: [INTEGER_UNLIMITED] };
 
-    it('should pass limited integer', (done: Function) => {
+    it('should pass limited integer', done => {
       integerPassInputs.forEach(input => {
         const parsed = validateOne(input, 'value', intProp);
         expect(parsed.value).toEqual(input.parsed);
@@ -57,7 +57,7 @@ describe('Input Params Validation', () => {
       done();
     });
 
-    it('should block non limited integer', (done: Function) => {
+    it('should block non limited integer', done => {
       const inputs = [
         ...integerBlockInputs,
         { value: Infinity, parsed: NaN },
@@ -77,7 +77,7 @@ describe('Input Params Validation', () => {
       done();
     });
 
-    it('should pass unlimited integer', (done: Function) => {
+    it('should pass unlimited integer', done => {
       const inputs = [
         ...integerPassInputs,
         { value: Infinity, parsed: Infinity },
@@ -93,7 +93,7 @@ describe('Input Params Validation', () => {
       done();
     });
 
-    it('should block non unlimited integer', (done: Function) => {
+    it('should block non unlimited integer', done => {
       integerBlockInputs.forEach(input => {
         const parsed = validateOne(input, 'value', intUnlimitedProp);
         expect(parsed).toEqual({
@@ -108,8 +108,8 @@ describe('Input Params Validation', () => {
   });
 
   describe('[Iterator callback]', () => {
-    it('should pass only one-argument function', (done: Function) => {
-      const badInputs = [1, true, {}, 'test', () => null, (a: any, b: any) => null];
+    it('should pass only one-argument function', done => {
+      const badInputs = [1, true, {}, 'test', () => null, (_a: never, _b: never) => null];
       const funcProp = { validators: [FUNC_WITH_X_ARGUMENTS(1)] };
       badInputs.forEach(input =>
         expect(
@@ -117,7 +117,7 @@ describe('Input Params Validation', () => {
         ).toEqual(false)
       );
       expect(
-        validateOne({ value: (item: any) => null }, 'value', funcProp).isValid
+        validateOne({ value: (_item: never) => null }, 'value', funcProp).isValid
       ).toEqual(true);
       done();
     });
@@ -129,7 +129,7 @@ describe('Input Params Validation', () => {
     const add = 3;
     const getProp = (list: string[]) => ({ validators: [ONE_OF_CAN(list)] });
 
-    it('should pass only one of twos', (done: Function) => {
+    it('should pass only one of twos', done => {
       expect(validateOne({ value }, 'value', getProp(['value'])).isValid).toEqual(false);
       expect(validateOne({ value }, 'value', getProp(['test'])).isValid).toEqual(true);
       expect(validateOne({ value }, 'test', getProp(['value'])).isValid).toEqual(true);
@@ -142,7 +142,7 @@ describe('Input Params Validation', () => {
       done();
     });
 
-    it('should pass only one of many', (done: Function) => {
+    it('should pass only one of mnever', done => {
       expect(validateOne({ value, test, add }, 'value', getProp(['test', 'add'])).isValid).toEqual(false);
       expect(validateOne({ value, test, add }, 'value', getProp(['value', 'add'])).isValid).toEqual(false);
       expect(validateOne({ value, test, add }, 'value', getProp(['test', 'value'])).isValid).toEqual(false);
@@ -161,7 +161,7 @@ describe('Input Params Validation', () => {
 describe('Validation', () => {
 
   const token = 'test';
-  const run = (context: any, validators: IValidator[], mandatory: boolean = false) =>
+  const run = (context: unknown, validators: IValidator[], mandatory = false) =>
     validate(context, {
       [token]: { validators, mandatory }
     }).isValid;
@@ -302,9 +302,9 @@ describe('Validation', () => {
       expect(run({ [token]: 1 }, validators)).toBe(false);
       expect(run({ [token]: {} }, validators)).toBe(false);
       expect(run({ [token]: () => null }, validators)).toBe(false);
-      expect(run({ [token]: (x: any) => null }, validators)).toBe(false);
-      expect(run({ [token]: (x: any, y: any) => null }, validators)).toBe(true);
-      expect(run({ [token]: (x: any, y: any, z: any) => null }, validators)).toBe(true);
+      expect(run({ [token]: (_x: never) => null }, validators)).toBe(false);
+      expect(run({ [token]: (_x: never, _y: never) => null }, validators)).toBe(true);
+      expect(run({ [token]: (_x: never, _y: never, _z: never) => null }, validators)).toBe(true);
     });
   });
 

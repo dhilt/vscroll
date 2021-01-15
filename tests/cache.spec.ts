@@ -1,7 +1,9 @@
 import { Item } from '../src/classes/item';
 import { Cache } from '../src/classes/cache';
 
-export const generateItems = (length: number, lastIndex: number) =>
+import { Item as MyItem } from './misc/types';
+
+export const generateItems = (length: number, lastIndex: number): MyItem[] =>
   Array.from({ length }).map((j, i) => ({
     id: lastIndex + i + 1,
     text: 'item #' + (lastIndex + i + 1)
@@ -14,10 +16,10 @@ describe('Cache Spec', () => {
     const routinesMock = {};
     const MIN = 1, COUNT = 5;
     const items = generateItems(COUNT, MIN - 1).map((item, index) =>
-      new Item(index + MIN, item, routinesMock as any)
+      new Item(index + MIN, item, routinesMock as never)
     );
 
-    let cache: Cache;
+    let cache: Cache<MyItem>;
 
     const check = (idList: (number | null)[]) =>
       idList.forEach((id, index) => {
@@ -27,7 +29,7 @@ describe('Cache Spec', () => {
       });
 
     beforeEach(() => {
-      cache = new Cache(NaN, true, loggerMock as any);
+      cache = new Cache(NaN, true, loggerMock as never);
       items.forEach(item => cache.add(item));
     });
 

@@ -413,30 +413,29 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     });
   }
 
-  async relaxUnchained(callback: (() => void) | undefined, reloadId: string): Promise<AdapterMethodResult> {
+  relaxUnchained(callback: (() => void) | undefined, reloadId: string): Promise<AdapterMethodResult> {
     const runCallback = () => typeof callback === 'function' && reloadId === this.reloadId && callback();
     if (!this.isLoading) {
       runCallback();
     }
-    const immediate: boolean = await (
-      new Promise(resolve => {
-        if (!this.isLoading) {
-          resolve(true);
-          return;
-        }
-        this.isLoading$.once(() => {
-          runCallback();
-          resolve(false);
-        });
-      })
-    );
-    const success = reloadId === this.reloadId;
-    this.logger.log(() => !success ? `relax promise cancelled due to ${reloadId} != ${this.reloadId}` : void 0);
-    return {
-      immediate,
-      success,
-      details: !success ? 'Interrupted by reload or reset' : null
-    };
+    return new Promise<boolean>(resolve => {
+      if (!this.isLoading) {
+        resolve(true);
+        return;
+      }
+      this.isLoading$.once(() => {
+        runCallback();
+        resolve(false);
+      });
+    }).then(immediate => {
+      const success = reloadId === this.reloadId;
+      this.logger.log(() => !success ? `relax promise cancelled due to ${reloadId} != ${this.reloadId}` : void 0);
+      return {
+        immediate,
+        success,
+        details: !success ? 'Interrupted by reload or reset' : null
+      };
+    });
   }
 
   relax(callback?: () => void): Promise<AdapterMethodResult> {

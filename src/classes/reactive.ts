@@ -32,10 +32,7 @@ export class Reactive<T> {
       return;
     }
     this.value = value;
-    const length = this.subscriptions.size;
-    const iterator = this.subscriptions.entries();
-    for (let i = 0; i < length; i++) {
-      const sub = iterator.next().value[1];
+    for (const [, sub] of this.subscriptions) {
       sub.emit(value);
       if (this.value !== value) {
         break;

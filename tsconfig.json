@@ -1,17 +1,18 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
     "strict": true,
     "strictPropertyInitialization": false,
     "module": "es2015",
     "moduleResolution": "node",
-    "rootDir": "./src",
+    "target": "es5",
     "sourceMap": true,
     "inlineSources": true,
-    "target": "es5",
-    "outDir": "dist/esm",
+    "importHelpers": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
     "downlevelIteration": true,
     "skipLibCheck": true,
     "declaration": false,
@@ -36,5 +37,5 @@
   ],
   "files": [
     "./src/index.ts"
-  ],
+  ]
 }

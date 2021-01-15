@@ -18,7 +18,7 @@
   },
   "overrides": [
     {
-      "files": ["build.js", "babel.config.js"],
+      "files": ["*.js"],
       "env": {
         "node": true
       },

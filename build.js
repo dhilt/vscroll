@@ -42,11 +42,11 @@ if (shell.exec(`tsc -p ${CONF_DIR}/tsconfig-esm6.json`).code !== 0) {
   shell.exit(1);
 }
 
-shell.echo('Run TS -> CommonJS conversion');
-if (shell.exec(`tsc -p ${CONF_DIR}/tsconfig-cjs.json`).code !== 0) {
-  shell.echo(chalk.red('Error: tsc conversion failed'));
-  shell.exit(1);
-}
+// shell.echo('Run TS -> CommonJS conversion');
+// if (shell.exec(`tsc -p ${CONF_DIR}/tsconfig-cjs.json`).code !== 0) {
+//   shell.echo(chalk.red('Error: tsc conversion failed'));
+//   shell.exit(1);
+// }
 
 shell.echo('Indenting 4 -> 2');
 shell.ls(`${DIST_DIR}/**/*.js`, `${DIST_DIR}/**/*.d.ts`).forEach(file => {

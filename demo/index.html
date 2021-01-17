@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+  <head>
+    <title>vscroll demo</title>
+    <meta charset="utf-8">
+    <style>
+      #viewport {
+        height: 300px;
+        overflow-y: scroll;
+      }
+      #viewport .item span {
+        font-size: small;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/vscroll@1.0.0-rc.2/dist/bundles/vscroll.umd.js"></script>
+  </head>
+  <body>
+    
+    <h3>VScroll Demo (CDN)</h3>
+    
+    <div id="viewport">
+      <div id="vscroll">
+        <div data-padding-backward></div>
+        <div data-padding-forward></div>
+      </div>
+    </div>
+    
+    <script>
+(() => {
+const element = document.getElementById('vscroll');
+const forwardPadding = element.querySelector('[data-padding-forward]');
+const consumer = { name: 'VScroll Demo (CDN)', version: 'not published' };
+const datasource = {
+  get: (index, count, success) => {
+    const data = [];
+    for (let i = index; i <= index + count - 1; i++) {
+      data.push({ id: i, text: 'item #' + i });
+    }
+    success(data);
+  },
+  devSettings: {
+    debug: false
+  }
+};
+const rowTemplate = (index, { text }) =>
+  `<div class="item"><span>${index}</span>) ${text}</div>`;
+
+const storage = { items: [] };
+
+const vscrollWorkflow = new VScroll.Workflow({
+  consumer,
+  element,
+  datasource,
+  run: (items) => {
+    if (!items.length && !storage.items.length) {
+      return;
+    }
+    onItemsChanged(items);
+    storage.items = items;
+  }
+});
+
+const onItemsChanged = items => {
+  // remove elements not present
+  storage.items
+    .filter(item => !items.includes(item))
+    .forEach(item => item.element.remove());
+  // create and insert new elements
+  const elements = [];
+  let beforeElement = forwardPadding;
+  for (let i = items.length - 1; i >= 0; i--) {
+    if (storage.items.includes(items[i])) {
+      if (!elements.length) {
+        beforeElement = items[i].element;
+        continue;
+      } else {
+        break;
+      }
+    }
+    elements.unshift(createItemElement(items[i]));
+  }
+  elements.forEach(elt => beforeElement.insertAdjacentElement('beforebegin', elt));
+};
+
+const createItemElement = item => {
+  const element = document.createElement('div');
+  element.setAttribute('data-sid', item.nodeId);
+  if (item.invisible) {
+    element.style.position = 'fixed';
+    element.style.left = '-99999px';
+  }
+  element.innerHTML = rowTemplate(item.$index, item.data);
+  return element;
+}
+
+})();
+    </script>
+    
+  </body>
+</html>

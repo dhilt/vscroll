@@ -9,3 +9,11 @@ install:
 cache:
   directories:
   - "node_modules"
+
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $github_token
+  local_dir: demo
+  on:
+    branch: main

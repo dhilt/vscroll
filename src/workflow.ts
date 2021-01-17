@@ -18,6 +18,7 @@ import {
 export class Workflow<ItemData = unknown> {
 
   isInitialized: boolean;
+  initTimer: ReturnType<typeof setTimeout> | null;
   adapterRun$: Reactive<ProcessSubject>;
   cyclesDone: number;
   interruptionCount: number;
@@ -31,6 +32,7 @@ export class Workflow<ItemData = unknown> {
 
   constructor({ element, datasource, consumer, run }: WorkflowParams<ItemData>) {
     this.isInitialized = false;
+    this.initTimer = null;
     this.adapterRun$ = new Reactive();
     this.cyclesDone = 0;
     this.interruptionCount = 0;
@@ -47,7 +49,10 @@ export class Workflow<ItemData = unknown> {
     this.scroller = new Scroller<ItemData>({ element, datasource, consumer, workflow: this.getUpdater() });
 
     if (this.scroller.settings.initializeDelay) {
-      setTimeout(() => this.init(), this.scroller.settings.initializeDelay);
+      this.initTimer = setTimeout(() => {
+        this.initTimer = null;
+        this.init();
+      }, this.scroller.settings.initializeDelay);
     } else {
       this.init();
     }
@@ -173,6 +178,9 @@ export class Workflow<ItemData = unknown> {
   }
 
   dispose(): void {
+    if (this.initTimer) {
+      clearTimeout(this.initTimer);
+    }
     this.disposeScrollEventHandler();
     this.adapterRun$.dispose();
     this.scroller.dispose(true);

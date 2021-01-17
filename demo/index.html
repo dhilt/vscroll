@@ -87,7 +87,7 @@ const createItemElement = item => {
   element.setAttribute('data-sid', item.nodeId);
   if (item.invisible) {
     element.style.position = 'fixed';
-    element.style.left = '-99999px';
+    element.style.top = '-99px';
   }
   element.innerHTML = rowTemplate(item.$index, item.data);
   return element;

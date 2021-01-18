@@ -7,19 +7,19 @@ export default {
     {
       file: 'dist/bundles/' + pkg.name + '.esm6.js',
       format: 'es',
-      sourcemap: true
+      sourcemap: true,
+      plugins: [plugins.license('FESM2015')]
     },
     {
       file: 'dist/bundles/' + pkg.name + '.esm6.min.js',
       format: 'es',
       exports: 'named',
       sourcemap: true,
-      plugins: [plugins.terser()]
+      plugins: [plugins.terser(), plugins.license('FESM2015', true)]
     }
   ],
   plugins: [
-    plugins.sourcemaps(),
-    plugins.license('FESM2015')
+    plugins.sourcemaps()
   ],
   external: ['tslib']
 };

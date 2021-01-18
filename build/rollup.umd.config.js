@@ -10,7 +10,8 @@ export default {
       name: 'VScroll',
       exports: 'named',
       amd: { id: 'vscroll' },
-      sourcemap: true
+      sourcemap: true,
+      plugins: [plugins.license('UMD')]
     },
     {
       file: 'dist/bundles/' + pkg.name + '.umd.min.js',
@@ -19,12 +20,11 @@ export default {
       exports: 'named',
       amd: { id: 'vscroll' },
       sourcemap: true,
-      plugins: plugins.terser()
+      plugins: [plugins.terser(), plugins.license('UMD', true)]
     }
   ],
   plugins: [
     plugins.resolve(),
-    plugins.sourcemaps(),
-    plugins.license('UMD')
+    plugins.sourcemaps()
   ]
 };

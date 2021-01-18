@@ -138,8 +138,9 @@ This is the most complex and environment-specific part of the `vscroll` API. Its
 
 There are some requirements on how new items should be processed by `run` callback:
  - as the result of the `run` callback invocation, there must be `items.length` elements in the DOM between backward and forward padding elements;
- - the intersection of new and old items should not be removed and recreated at the DOM level, as it may lead to an unwanted shift of the scroll position;
- - the new items elements should have "data-sid" attribute, which value should be taken from `items[].nodeId`;
+ - old items that are not in the list should be removed from DOM; use reference to DOM element for this purpose: `currentItems[].element`;
+ - old items that are in the list should  not be removed and recreated, as it may lead to an unwanted shift of the scroll position; just don't touch them;
+ - new items elements should have "data-sid" attribute, which value should be taken from `items[].nodeId`;
  - new elements should be rendered but not visible, and this should be achieved by "fixed" positioning and "left"/"top" coordinates placing the item element out of view; the Workflow will take care of visibility after calculations; an additional attribute `items[].invisible` can be used to determine if a given element should be hidden.
 
 ## Live

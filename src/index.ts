@@ -1,7 +1,7 @@
-import version from './version';
 import { Workflow } from './workflow';
-import { INVALID_DATASOURCE_PREFIX } from './scroller';
 import { makeDatasource } from './classes/datasource';
+import packageInfo from './version';
+import { INVALID_DATASOURCE_PREFIX } from './scroller';
 import { Item } from './classes/item';
 import { AdapterPropName, EMPTY_ITEM, getDefaultAdapterProps } from './classes/adapter/props';
 
@@ -17,10 +17,10 @@ import {
 
 // export entities
 export {
-  version,
   Workflow,
-  INVALID_DATASOURCE_PREFIX,
   makeDatasource,
+  packageInfo,
+  INVALID_DATASOURCE_PREFIX,
   Item,
   AdapterPropName,
   EMPTY_ITEM,

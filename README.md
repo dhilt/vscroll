@@ -12,12 +12,12 @@ VScroll is a JavaScript library providing virtual scroll engine. Can be seen as 
 
 Basically, the consumer layer can be omitted and the end Application developers can use VScroll directly. Currently there exist two consumer implementations built on top of VScroll:
 
-  - [ngx-ui-scroll](https://www.npmjs.com/package/ngx-ui-scroll), Angular virtual scroll directive
-  - [vscroll-native](https://www.npmjs.com/package/vscroll-native), virtual scroll module for native JavaScript applications
+  - [ngx-ui-scroll](https://github.com/dhilt/ngx-ui-scroll), Angular virtual scroll directive
+  - [vscroll-native](https://github.com/dhilt/vscroll-native), virtual scroll module for native JavaScript applications
 
 ## Getting started
 
-### from CDN
+### CDN
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/vscroll"></script>
@@ -26,7 +26,7 @@ Basically, the consumer layer can be omitted and the end Application developers 
 </script>
 ```
 
-### via NPM
+### NPM
 
 ```
 npm install vscroll
@@ -53,9 +53,9 @@ interface WorkflowParams<ItemData> {
 
 This is a TypeScript definition, but speaking of JavaScript, an argument object must contain 4 fields described below.
 
-### Consumer
+### 1. Consumer
 
-This is a simple data object that provides information about a consumer. It is not critical to omit this, but if the result solution is going to be published, the name and the version of the result package should be passed as follows:
+This is a simple data object that provides information about a consumer. It is not critical to omit this, but if the result solution is going to be published as a separate 3d-party library ("consumer"), the name and the version of the result package should be passed as follows:
 
 ```js
 consumer: {
@@ -64,7 +64,7 @@ consumer: {
 },
 ```
 
-### Element
+### 2. Element
 
 An HTML element the `Workflow` should use as a scrollable part of the viewport. It should be present in DOM before instantiating the `Workflow`.
 
@@ -90,7 +90,7 @@ It should be wrapped with another container with constrained height and overflow
 }
 ```
 
-### Datasource
+### 3. Datasource
 
 This is a special object, providing dataset items in runtime. Basically, a consumer app should expose a Datasource factory to be used by the end App, but in the simplest case it can be defined as follows:
 
@@ -106,7 +106,7 @@ datasource: {
 },
 ```
 
-The `Workflow` will request data via `get` method. This particular Datasource sample implements an unlimited synchronous stream of data generated in runtime, but depends on the end App needs it can be limited or partially limited, asynchronous, index-inverted, Promise- or even Observable-based (instead of callback-based) etc.
+The `Workflow` will request data via `get` method. This particular Datasource sample implements an unlimited synchronous stream of data generated in runtime, but depends on the end App needs it can be limited or partially limited, asynchronous, index-inverted, powered with cache, Promise- or even Observable-based (instead of Callback-based) etc.
 
 Along with the `Workflow`, VScroll exposes method `makeDatasource` which can be used for creating Datasource factory, so the end Datasource might be instantiated via operator `new`:
 
@@ -118,11 +118,11 @@ datasource: new Datasource({
 }),
 ```
 
-This option also makes the Adapter API available via `datasource.adapter` property. It provides massive functionality to assess and manipulate data at runtime the VScroll engine deals with.
+This option also makes the [Adapter API](#adapter-api) available via `datasource.adapter` property. It provides massive functionality to assess and manipulate data at runtime the VScroll engine deals with. 
 
 ### Run
 
-A callback that is being called every time the Workflow decides that the UI needs to be changed. Its argument is a list of items to be present in the UI. This is a consumer responsibility to detect changes and display them in the UI.
+A callback that is called every time the Workflow decides that the UI needs to be changed. Its argument is a list of items to be present in the UI. This is a consumer responsibility to detect changes and display them in the UI.
 
 ```js
 run: items => {
@@ -140,8 +140,10 @@ There are some requirements on how new items should be processed by `run` callba
  - as the result of the `run` callback invocation, there must be `items.length` elements in the DOM between backward and forward padding elements;
  - old items that are not in the list should be removed from DOM; use reference to DOM element for this purpose: `currentItems[].element`;
  - old items that are in the list should  not be removed and recreated, as it may lead to an unwanted shift of the scroll position; just don't touch them;
+ - new items elements should be rendered in accordance with `items[].$index` comparable to `$index` of elements that remain: `$index` must increase continuously from top to bottom;
  - new items elements should have "data-sid" attribute, which value should be taken from `items[].nodeId`;
- - new elements should be rendered but not visible, and this should be achieved by "fixed" positioning and "left"/"top" coordinates placing the item element out of view; the Workflow will take care of visibility after calculations; an additional attribute `items[].invisible` can be used to determine if a given element should be hidden.
+ - new elements should be rendered but not visible, and this should be achieved by "fixed" positioning and "left"/"top" coordinates placing the item element out of view; the Workflow will take care of visibility after calculations; an additional attribute `items[].invisible` can be used to determine if a given element should be hidden;
+ - `items[].data` contains data that the Datasource passes to Scroller via `get` API; this data should be used during new items templating.
 
 ## Live
 
@@ -153,13 +155,41 @@ The code of the [UiScrollComponent](https://github.com/dhilt/ngx-ui-scroll/blob/
 
 ## Adapter API
 
-Adapter API is the powerful feature of `vscroll` engine. Please refer to the ngx-ui-scroll [Adapter API doc](https://github.com/dhilt/ngx-ui-scroll#adapter-api) as it can be applied to `vscroll` direct usage with only one difference: all RxJs entities are replaced with tiny custom [Reactive](https://github.com/dhilt/vscroll/blob/main/src/classes/reactive.ts) ones. VScroll will receive its own Adapter API documentation later.
+Adapter API is a powerful feature of the `vscroll` engine. Please refer to the ngx-ui-scroll [Adapter API doc](https://github.com/dhilt/ngx-ui-scroll#adapter-api) as it can be applied to `vscroll` direct usage with only one important difference: all RxJs entities replace tiny custom [Reactive](https://github.com/dhilt/vscroll/blob/main/src/classes/reactive.ts) ones. It means, for example, `eof$` has no "subscribe" method, but "on":
+
+```js
+myDatasource.adapter.bof$.on(value => {
+  if (value) {
+    console.log('Begin of file has been reached');
+  }
+})
+```
+
+Adapter API becomes available as `Datasource.adapter` property after the Datasource is instantiated via operator "new". In terms of "vscroll" you need to get a Datasource class by calling `makeDatasource` method, then you can instantiate it. `makeDatasource` accepts 1 argument, which is an Adapter custom configuration. Currently this config can only be used to redefine the just mentioned Adapter reactive props. Here's an example of how simple Reactive props can be overridden with RxJs Subject and BehaviorSubject entities: [ui-scroll.datasource.ts](https://github.com/dhilt/ngx-ui-scroll/blob/v2.0.0-rc.1/src/ui-scroll.datasource.ts). 
+
+An important note is that the Adapter getting ready breaks onto 2 parts: instantiation (which is synchronous with the Datasource instantiation) and initialization (which occurs during the Workflow, which is asynchronous to the Datasource instantiating). Adapter gets all necessary props and methods during the first phase, but this starts work only when the second phase is done. Practically this means 
+ - you may arrange any Adapter reactive subscriptions in your app/consumer right after the Datasource is instantiated, 
+ - some of the initial (default) values can be unusable, like `Adapter.bufferInfo.minIndex` = NaN (because Scroller's Buffer is empty before the very first `Datasource.get` call),
+ - Adapter methods do nothing when called before phase 2, they immediately resolve some default "good" value (`{ immediately: true, success: true, ... }`).
+
+If there is some logic that could potentially run before Adapter initialization and you don't want this to happen, the following approach can be applied:
+
+```
+myDatasource = new VScroll.makeDatasource()({...});
+myDatasource.adapter.init$.once(() => {
+  console.log('The Adapter is initialized'); // 2nd output
+});
+workflow = new VScroll.Workflow({...});
+console.log('The Workflow runs'); // 1st output
+```
+
+VScroll will receive its own Adapter API documentation later, but for now please refer to [ngx-ui-scroll](https://github.com/dhilt/ngx-ui-scroll#adapter-api).
 
 ## Thanks
 
  \- to [Mike Feingold](https://github.com/mfeingold) as he started all this story in far 2013,
 
- \- to [Joshua Toenyes](https://github.com/JoshuaToenyes) as he signed over the rights to "vscroll" npm repository he owned but not used,
+ \- to [Joshua Toenyes](https://github.com/JoshuaToenyes) as he transferred ownership to the "vscroll" npm repository which he owned but did not use,
 
  \- to all contributors of related repositories ([link](https://github.com/angular-ui/ui-scroll/graphs/contributors), [link](https://github.com/dhilt/ngx-ui-scroll/graphs/contributors)).
 
@@ -167,4 +197,4 @@ Adapter API is the powerful feature of `vscroll` engine. Please refer to the ngx
 
  __________
 
-2021 &copy; [dhilt](https://github.com/dhilt), [Hill30 Inc](http://www.hill30.com/)
+2021 &copy; [Denis Hilt](https://github.com/dhilt)

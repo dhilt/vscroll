@@ -1,5 +1,5 @@
 import { Reactive } from '../reactive';
-import { IAdapterProp, IBufferInfo, ItemAdapter, IPackages } from '../../interfaces/index';
+import { IAdapterProp, IBufferInfo, ItemAdapter, IPackages, AdapterMethodResult } from '../../interfaces/index';
 
 export enum AdapterPropName {
   id = 'id',
@@ -47,6 +47,14 @@ const Name = AdapterPropName;
 const Type = AdapterPropType;
 
 const noop = () => null;
+
+export const methodPreResult: AdapterMethodResult = {
+  immediate: true,
+  success: true,
+  details: 'Adapter is not initialized'
+};
+
+const noopWF = () => Promise.resolve(methodPreResult);
 
 const emptyPackageInfo: IPackages = {
   core: {
@@ -157,52 +165,52 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
   {
     type: Type.WorkflowRunner,
     name: Name.reset,
-    value: noop
+    value: noopWF
   },
   {
     type: Type.WorkflowRunner,
     name: Name.reload,
-    value: noop
+    value: noopWF
   },
   {
     type: Type.WorkflowRunner,
     name: Name.append,
-    value: noop
+    value: noopWF
   },
   {
     type: Type.WorkflowRunner,
     name: Name.prepend,
-    value: noop
+    value: noopWF
   },
   {
     type: Type.WorkflowRunner,
     name: Name.check,
-    value: noop
+    value: noopWF
   },
   {
     type: Type.WorkflowRunner,
     name: Name.remove,
-    value: noop
+    value: noopWF
   },
   {
     type: Type.WorkflowRunner,
     name: Name.clip,
-    value: noop
+    value: noopWF
   },
   {
     type: Type.WorkflowRunner,
     name: Name.insert,
-    value: noop
+    value: noopWF
   },
   {
     type: Type.WorkflowRunner,
     name: Name.replace,
-    value: noop
+    value: noopWF
   },
   {
     type: Type.WorkflowRunner,
     name: Name.fix,
-    value: noop
+    value: noopWF
   },
   {
     type: Type.Function,

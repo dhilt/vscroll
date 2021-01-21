@@ -89,7 +89,8 @@ export class Workflow<ItemData = unknown> {
     if (!this.isInitialized) {
       return;
     }
-    if (processSubject.process && processSubject.process.startsWith('adapter')) {
+    const { process, status } = processSubject;
+    if (process && process.startsWith('adapter') && status !== Status.next) {
       this.adapterRun$.set(processSubject);
     }
     this.process(processSubject);

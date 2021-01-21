@@ -1,6 +1,6 @@
 import { ValidatorType } from '../inputs/validation';
 
-export interface IValidationContext { [key: string]: unknown }
+export interface IValidationContext { [key: string]: unknown; }
 
 type ValidatorMethod = (value: unknown, context?: IValidationContext) => ValidatedValue;
 

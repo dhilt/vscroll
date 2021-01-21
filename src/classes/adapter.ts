@@ -1,7 +1,7 @@
 import { Logger } from './logger';
 import { Buffer } from './buffer';
 import { Reactive } from './reactive';
-import { AdapterPropName, AdapterPropType, getDefaultAdapterProps } from './adapter/props';
+import { AdapterPropName, AdapterPropType, getDefaultAdapterProps, methodPreResult } from './adapter/props';
 import { AdapterContext } from './adapter/context';
 import { AdapterProcess, ProcessStatus } from '../processes/index';
 import {
@@ -27,6 +27,8 @@ import {
   ProcessSubject,
 } from '../interfaces/index';
 
+type MethodResolver = (...args: any[]) => Promise<AdapterMethodResult>;
+
 const ADAPTER_PROPS_STUB = getDefaultAdapterProps();
 
 const _has = (obj: unknown, prop: string): boolean =>
@@ -47,12 +49,6 @@ const convertRemoveArgs = <Item>(options: AdapterRemoveOptions<Item> | ItemsPred
     options = { predicate };
   }
   return options;
-};
-
-const adapterMethodPreResult: AdapterMethodResult = {
-  success: false,
-  immediate: true,
-  details: 'Adapter is not initialized'
 };
 
 export class Adapter<Item = unknown> implements IAdapter<Item> {
@@ -98,17 +94,16 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   private relax$: Reactive<AdapterMethodResult> | null;
   private relaxRun: Promise<AdapterMethodResult> | null;
 
-  private getPromisifiedMethod(method: (...args: any[]) => void) {
+  private getPromisifiedMethod(method: MethodResolver, defaultMethod: MethodResolver) {
     return (...args: any[]): Promise<AdapterMethodResult> =>
-      new Promise(resolve => {
-        if (this.relax$) {
-          this.relax$.once(value => resolve(value));
-        }
-        method.apply(this, args);
-        if (!this.relax$) {
-          resolve(adapterMethodPreResult);
-        }
-      });
+      this.relax$
+        ? new Promise(resolve => {
+          if (this.relax$) {
+            this.relax$.once(value => resolve(value));
+          }
+          method.apply(this, args);
+        })
+        : defaultMethod.apply(this, args);
   }
 
   constructor(publicContext: IAdapter<Item> | null, getWorkflow: WorkflowGetter<Item>, logger: Logger) {
@@ -218,12 +213,12 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
     // Adapter public context augmentation
     adapterProps
-      .forEach(({ name, type }: IAdapterProp) => {
+      .forEach(({ name, type, value: defaultValue }: IAdapterProp) => {
         let value = (this as IAdapter)[name];
         if (type === AdapterPropType.Function) {
           value = (value as () => void).bind(this);
         } else if (type === AdapterPropType.WorkflowRunner) {
-          value = this.getPromisifiedMethod(value as () => void);
+          value = this.getPromisifiedMethod(value as MethodResolver, defaultValue as MethodResolver);
         } else if (type === AdapterPropType.Reactive && reactivePropsStore[name]) {
           value = context[name];
         }
@@ -286,8 +281,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
               relax$.set({ success: true, immediate: false, details: null });
             }
           });
-        }
-        if (status === ProcessStatus.done || status === ProcessStatus.error) {
+        } else if (status === ProcessStatus.done || status === ProcessStatus.error) {
           unSubRelax();
           relax$.set({
             success: status !== ProcessStatus.error,
@@ -442,7 +436,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     const reloadId = this.reloadId;
     this.logger.logAdapterMethod('relax', callback, ` of ${reloadId}`);
     if (!this.init) {
-      return Promise.resolve(adapterMethodPreResult);
+      return Promise.resolve(methodPreResult);
     }
     return this.relaxRun = this.relaxRun
       ? this.relaxRun.then(() => this.relaxUnchained(callback, reloadId))

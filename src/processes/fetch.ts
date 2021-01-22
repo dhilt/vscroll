@@ -96,7 +96,11 @@ export default class Fetch extends BaseProcessFactory(CommonProcess.fetch) {
       if (typeof (getResult as PromiseLike<unknown>).then === 'function') {
         return getResult as Promise<unknown>;
       } else if (typeof (getResult as ObservableLike).subscribe === 'function') {
-        const sub = (getResult as ObservableLike).subscribe(done, fail, () => sub.unsubscribe());
+        const sub = (getResult as ObservableLike).subscribe(done, fail, () => {
+          if (sub && typeof sub === 'object' && typeof sub.unsubscribe === 'function') {
+            sub.unsubscribe();
+          }
+        });
       }
     }
 

@@ -301,6 +301,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       this.relax$.dispose();
     }
     Object.values(this.source).forEach(reactive => reactive.dispose());
+    this.init = false;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

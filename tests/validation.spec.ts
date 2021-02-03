@@ -7,8 +7,10 @@ const {
   BOOLEAN,
   OBJECT,
   ITEM_LIST,
+  FUNC,
   FUNC_WITH_X_ARGUMENTS,
   FUNC_WITH_X_AND_MORE_ARGUMENTS,
+  FUNC_WITH_X_TO_Y_ARGUMENTS,
   ONE_OF_CAN,
   ONE_OF_MUST,
   OR,
@@ -295,16 +297,47 @@ describe('Validation', () => {
   });
 
   describe('[Function with arguments]', () => {
-    it('should pass function with 2 or more arguments', () => {
-      const validators = [FUNC_WITH_X_AND_MORE_ARGUMENTS(2)];
+    type N = never;
+
+    const checkNoFunction = validators => {
       expect(run({}, validators)).toBe(true);
       expect(run({}, validators, true)).toBe(false);
       expect(run({ [token]: 1 }, validators)).toBe(false);
       expect(run({ [token]: {} }, validators)).toBe(false);
+    };
+
+    const passTwoArgumentsFunction = validators => {
+      checkNoFunction(validators);
       expect(run({ [token]: () => null }, validators)).toBe(false);
-      expect(run({ [token]: (_x: never) => null }, validators)).toBe(false);
-      expect(run({ [token]: (_x: never, _y: never) => null }, validators)).toBe(true);
-      expect(run({ [token]: (_x: never, _y: never, _z: never) => null }, validators)).toBe(true);
+      expect(run({ [token]: (_x: N) => null }, validators)).toBe(false);
+      expect(run({ [token]: (_x: N, _y: N) => null }, validators)).toBe(true);
+    };
+
+    it('should pass function', () => {
+      const validators = [FUNC];
+      checkNoFunction(validators);
+      expect(run({ [token]: () => null }, validators)).toBe(true);
+      expect(run({ [token]: (_x: N) => null }, validators)).toBe(true);
+    });
+
+    it('should pass function with 2 arguments', () => {
+      const validators = [FUNC_WITH_X_ARGUMENTS(2)];
+      passTwoArgumentsFunction(validators);
+      expect(run({ [token]: (_x: N, _y: N, _z: N) => null }, validators)).toBe(false);
+    });
+
+    it('should pass function with 2 or more arguments', () => {
+      const validators = [FUNC_WITH_X_AND_MORE_ARGUMENTS(2)];
+      passTwoArgumentsFunction(validators);
+      expect(run({ [token]: (_x: N, _y: N, _z: N) => null }, validators)).toBe(true);
+    });
+
+    it('should pass function 2 to 4 arguments', () => {
+      const validators = [FUNC_WITH_X_TO_Y_ARGUMENTS(2, 4)];
+      passTwoArgumentsFunction(validators);
+      expect(run({ [token]: (_x: N, _y: N, _z: N) => null }, validators)).toBe(true);
+      expect(run({ [token]: (_x: N, _y: N, _z: N, _a: N) => null }, validators)).toBe(true);
+      expect(run({ [token]: (_x: N, _y: N, _z: N, _a: N, _b: N) => null }, validators)).toBe(false);
     });
   });
 

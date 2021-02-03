@@ -20,13 +20,14 @@ export enum ValidatorType {
   function = 'must be a function',
   funcOfxArguments = 'must have {arg1} argument(s)',
   funcOfxAndMoreArguments = 'must have at least {arg1} argument(s)',
+  funcOfXToYArguments = 'must have {arg1} to {arg2} arguments',
   oneOfCan = 'can be present as only one item of {arg1} list',
   oneOfMust = 'must be present as only one item of {arg1} list',
   or = 'must satisfy at least 1 validator from {arg1} list',
 }
 
-const getError = (msg: ValidatorType, arg?: string) =>
-  msg.replace('{arg1}', arg || '');
+const getError = (msg: ValidatorType, args?: string[]) =>
+  (args || ['']).reduce((acc, arg, index) => acc.replace(`{arg${index + 1}}`, arg), msg);
 
 
 const getNumber = (value: unknown): number =>
@@ -77,7 +78,7 @@ const onMoreOrEqual = (limit: number, fallback?: boolean) => (value: unknown): V
   const errors = [];
   if (parsedValue < limit) {
     if (!fallback) {
-      errors.push(getError(ValidatorType.moreOrEqual, String(limit)));
+      errors.push(getError(ValidatorType.moreOrEqual, [String(limit)]));
     } else {
       parsedValue = limit;
     }
@@ -122,11 +123,11 @@ const onItemList = (value: unknown): ValidatedValue => {
     errors.push(ValidatorType.itemList);
     parsedValue = [];
   } else if (!value.length) {
-    errors.push(getError(ValidatorType.itemList, 'with at least 1 item'));
+    errors.push(getError(ValidatorType.itemList, ['with at least 1 item']));
   } else if (value.length > 1) {
     const type = typeof value[0];
     if (value.some((v: unknown) => typeof v !== type)) {
-      errors.push(getError(ValidatorType.itemList, 'of items of the same type'));
+      errors.push(getError(ValidatorType.itemList, ['of items of the same type']));
     }
   }
   return { value: parsedValue as unknown[], isSet: true, isValid: !errors.length, errors };
@@ -150,7 +151,7 @@ const onFunctionWithXArguments = (argsCount: number) => (value: unknown) => {
   value = result.value;
   const errors = [];
   if ((value as Func).length !== argsCount) {
-    errors.push(getError(ValidatorType.funcOfxArguments, String(argsCount)));
+    errors.push(getError(ValidatorType.funcOfxArguments, [String(argsCount)]));
   }
   return { value: value as Func, isSet: true, isValid: !errors.length, errors };
 };
@@ -163,7 +164,20 @@ const onFunctionWithXAndMoreArguments = (argsCount: number) => (value: unknown):
   value = result.value;
   const errors = [];
   if ((value as Func).length < argsCount) {
-    errors.push(getError(ValidatorType.funcOfxArguments, String(argsCount)));
+    errors.push(getError(ValidatorType.funcOfxArguments, [String(argsCount)]));
+  }
+  return { value: value as Func, isSet: true, isValid: !errors.length, errors };
+};
+
+const onFunctionWithXToYArguments = (from: number, to: number) => (value: unknown): ValidatedValue => {
+  const result = onFunction(value);
+  if (!result.isValid) {
+    return result;
+  }
+  value = result.value;
+  const errors = [];
+  if ((value as Func).length < from || (value as Func).length > to) {
+    errors.push(getError(ValidatorType.funcOfXToYArguments, [String(from), String(to)]));
   }
   return { value: value as Func, isSet: true, isValid: !errors.length, errors };
 };
@@ -174,17 +188,17 @@ const onOneOf = (tokens: string[], must: boolean) => (value: unknown, context?: 
   let noOneIsPresent = !isSet;
   const err = must ? ValidatorType.oneOfMust : ValidatorType.oneOfCan;
   if (!Array.isArray(tokens) || !tokens.length) {
-    errors.push(getError(err, 'undefined'));
+    errors.push(getError(err, ['undefined']));
   } else {
     for (let i = tokens.length - 1; i >= 0; i--) {
       const token = tokens[i];
       if (typeof token !== 'string') {
-        errors.push(getError(err, tokens.join('", "')) + ' (non-string token)');
+        errors.push(getError(err, [tokens.join('", "')]) + ' (non-string token)');
         break;
       }
       const isAnotherPresent = context && Object.prototype.hasOwnProperty.call(context, token);
       if (isSet && isAnotherPresent) {
-        errors.push(getError(err, tokens.join('", "')) + ` (${token} is present)`);
+        errors.push(getError(err, [tokens.join('", "')]) + ` (${token} is present)`);
         break;
       }
       if (noOneIsPresent && isAnotherPresent) {
@@ -192,7 +206,7 @@ const onOneOf = (tokens: string[], must: boolean) => (value: unknown, context?: 
       }
     }
     if (must && noOneIsPresent) {
-      errors.push(getError(err, tokens.join('", "')));
+      errors.push(getError(err, [tokens.join('", "')]));
     }
   }
   return { value, isSet, isValid: !errors.length, errors };
@@ -250,6 +264,10 @@ export const VALIDATORS = {
   FUNC_WITH_X_AND_MORE_ARGUMENTS: (count: number): IValidator => ({
     type: ValidatorType.funcOfxAndMoreArguments,
     method: onFunctionWithXAndMoreArguments(count)
+  }),
+  FUNC_WITH_X_TO_Y_ARGUMENTS: (from: number, to: number): IValidator => ({
+    type: ValidatorType.funcOfXToYArguments,
+    method: onFunctionWithXToYArguments(from, to)
   }),
   ONE_OF_CAN: (list: string[]): IValidator => ({
     type: ValidatorType.oneOfCan,

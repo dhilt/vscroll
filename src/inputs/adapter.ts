@@ -11,6 +11,7 @@ const {
   ITEM_LIST,
   FUNC_WITH_X_ARGUMENTS,
   FUNC_WITH_X_AND_MORE_ARGUMENTS,
+  FUNC_WITH_X_TO_Y_ARGUMENTS,
   ONE_OF_MUST,
   ONE_OF_CAN,
   OR,
@@ -160,7 +161,7 @@ const FIX_METHOD_PARAMS: ICommonProps<AdapterFixParams> = {
     validators: [INTEGER_UNLIMITED]
   },
   [AdapterFixParams.updater]: {
-    validators: [FUNC_WITH_X_ARGUMENTS(1)]
+    validators: [FUNC_WITH_X_TO_Y_ARGUMENTS(1, 2)]
   },
   [AdapterFixParams.scrollToItem]: {
     validators: [FUNC_WITH_X_ARGUMENTS(1)]

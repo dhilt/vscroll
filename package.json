@@ -1,6 +1,6 @@
 {
   "name": "vscroll",
-  "version": "1.0.0-rc.5",
+  "version": "1.0.0-rc.6",
   "description": "Virtual scroll engine",
   "main": "dist/bundles/vscroll.umd.js",
   "module": "dist/bundles/vscroll.esm5.js",
@@ -54,6 +54,8 @@
   "keywords": [
     "vscroll",
     "virtual",
+    "virtualizing",
+    "virtualization",
     "scroll",
     "scrolling",
     "scroller",

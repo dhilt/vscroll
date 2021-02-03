@@ -3,7 +3,7 @@ import { AdapterMethods } from '../../inputs/index';
 import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
 import {
   ItemsPredicate,
-  ItemsLooper,
+  ItemsUpdater,
   AdapterFixOptions,
   IValidatedData,
 } from '../../interfaces/index';
@@ -41,7 +41,7 @@ export default class Fix extends BaseAdapterProcessFactory(AdapterProcess.fix) {
       case FixParams.maxIndex:
         return Fix.setMaxIndex(scroller, value as number);
       case FixParams.updater:
-        return Fix.updateItems(scroller, value as ItemsLooper);
+        return Fix.updateItems(scroller, value as ItemsUpdater);
       case FixParams.scrollToItem:
         if (methodData.params) {
           const scrollToItemOpt = methodData.params[FixParams.scrollToItemOpt];
@@ -74,8 +74,14 @@ export default class Fix extends BaseAdapterProcessFactory(AdapterProcess.fix) {
     buffer.absMaxIndex = value;
   }
 
-  static updateItems({ buffer }: Scroller, value: ItemsLooper): void {
-    buffer.items.forEach(item => value(item.get()));
+  static updateItems({ buffer }: Scroller, value: ItemsUpdater): void {
+    let updateReference = false;
+    const updater = () => updateReference = true;
+    buffer.items.forEach(item => value(item.get(), updater));
+    if (updateReference) {
+      buffer.logger.log(() => 'update Buffer.items reference');
+      buffer.items = [...buffer.items];
+    }
   }
 
   static scrollToItem(scroller: Scroller, value: ItemsPredicate, options?: boolean | ScrollIntoViewOptions): void {

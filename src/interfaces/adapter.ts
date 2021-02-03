@@ -41,7 +41,7 @@ export interface ItemAdapter<ItemData = unknown> {
 }
 
 export type ItemsPredicate<T = unknown> = (item: ItemAdapter<T>) => boolean;
-export type ItemsLooper<T = unknown> = (item: ItemAdapter<T>) => void;
+export type ItemsUpdater<T = unknown> = (item: ItemAdapter<T>, update: () => void) => void;
 export type ItemsProcessor<T = unknown> = (items: ItemAdapter<T>[]) => void;
 
 export interface IPackage {
@@ -101,7 +101,7 @@ export interface AdapterFixOptions<Item = unknown> {
   scrollPosition?: number;
   minIndex?: number;
   maxIndex?: number;
-  updater?: ItemsLooper<Item>;
+  updater?: ItemsUpdater<Item>;
   scrollToItem?: ItemsPredicate<Item>;
   scrollToItemOpt?: boolean | ScrollIntoViewOptions;
 }

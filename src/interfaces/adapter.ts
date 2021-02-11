@@ -1,6 +1,7 @@
 import { AdapterPropName, AdapterPropType } from '../classes/adapter/props';
 import { Reactive } from '../classes/reactive';
 import { IDatasourceOptional } from './datasource';
+import { IValidatedData } from './validation';
 
 export interface IReactivePropConfig {
   source: unknown;
@@ -61,6 +62,11 @@ export interface IBufferInfo {
   maxIndex: number;
   absMinIndex: number;
   absMaxIndex: number;
+}
+
+export interface IAdapterInput<T> {
+  data: IValidatedData;
+  params?: T;
 }
 
 export interface AdapterAppendOptions<Item = unknown> {

@@ -1,6 +1,6 @@
 import { Scroller } from '../../scroller';
 import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
-import { Direction } from '../../interfaces/index';
+import { Direction } from '../../inputs/index';
 
 export default class Check extends BaseAdapterProcessFactory(AdapterProcess.check) {
 

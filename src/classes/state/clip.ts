@@ -1,4 +1,4 @@
-import { Direction } from '../../interfaces/index';
+import { Direction } from '../../inputs/index';
 
 class VirtualClip {
   [Direction.backward]: number[];

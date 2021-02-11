@@ -1,5 +1,5 @@
 import { Item } from '../item';
-import { Direction } from '../../interfaces/index';
+import { Direction } from '../../inputs/index';
 
 class Positions {
   startDelta: number;

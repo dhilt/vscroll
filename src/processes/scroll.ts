@@ -1,6 +1,7 @@
 import { BaseProcessFactory, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
-import { Direction, ScrollEventData, ScrollerWorkflow } from '../interfaces/index';
+import { Direction } from '../inputs/index';
+import { ScrollEventData, ScrollerWorkflow } from '../interfaces/index';
 
 export default class Scroll extends BaseProcessFactory(CommonProcess.scroll) {
 

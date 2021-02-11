@@ -1,5 +1,6 @@
 import { Routines } from './domRoutines';
-import { Direction, ItemAdapter } from '../interfaces/index';
+import { Direction } from '../inputs/index';
+import { ItemAdapter } from '../interfaces/index';
 
 export class Item<Data = unknown> {
   nodeId: string;

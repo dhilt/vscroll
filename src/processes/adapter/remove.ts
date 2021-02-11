@@ -1,6 +1,7 @@
 import { Scroller } from '../../scroller';
 import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
-import { Direction, AdapterRemoveOptions, ItemsPredicate } from '../../interfaces/index';
+import { Direction } from '../../inputs/index';
+import { AdapterRemoveOptions, ItemsPredicate } from '../../interfaces/index';
 
 export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.remove) {
 

@@ -4,7 +4,7 @@ import { Routines } from './domRoutines';
 import { Item } from './item';
 import { State } from './state';
 import { Logger } from './logger';
-import { Direction } from '../interfaces/index';
+import { Direction } from '../inputs/index';
 
 export class Viewport {
 

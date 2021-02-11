@@ -1,6 +1,7 @@
 import { Scroller } from '../scroller';
 import { CommonProcess, AdapterProcess, ProcessStatus } from '../processes/index';
 import { IDatasourceConstructed } from './datasource';
+import { IAdapterInput } from './adapter';
 
 export type ProcessName = CommonProcess | AdapterProcess;
 
@@ -29,3 +30,12 @@ export interface ProcessSubject {
 export type AdapterProcessMap<T> = {
   [key in AdapterProcess]: T;
 };
+
+export interface IBaseProcess {
+  new(): any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  process: ProcessName;
+}
+
+export interface IBaseAdapterProcess extends IBaseProcess {
+  parseInput: <T>(scroller: Scroller, options: T, ignoreErrors?: boolean) => IAdapterInput<T>;
+}

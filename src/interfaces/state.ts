@@ -1,8 +1,9 @@
-import { Direction, IPackages } from './index';
+import { Direction } from '../inputs/index';
 import { WorkflowCycleModel } from '../classes/state/cycle';
 import { FetchModel } from '../classes/state/fetch';
 import { ClipModel } from '../classes/state/clip';
 import { RenderModel } from '../classes/state/render';
+import { IPackages } from './adapter';
 
 export interface ScrollEventData {
   time: number;

@@ -1,6 +1,6 @@
 import { BaseProcessFactory, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
-import { Direction } from '../interfaces/index';
+import { Direction } from '../inputs/index';
 
 export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
 

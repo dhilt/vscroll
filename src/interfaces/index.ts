@@ -31,6 +31,7 @@ import {
   IPackage,
   IPackages,
   IBufferInfo,
+  IAdapterInput,
   AdapterAppendOptions,
   AdapterPrependOptions,
   AdapterRemoveOptions,
@@ -42,7 +43,6 @@ import {
   IAdapter,
 } from './adapter';
 import { Settings, DevSettings } from './settings';
-import { Direction } from './direction';
 import { ScrollEventData, ScrollState, State } from './state';
 import {
   ProcessName,
@@ -50,6 +50,8 @@ import {
   ProcessPayload,
   ProcessSubject,
   AdapterProcessMap,
+  IBaseProcess,
+  IBaseAdapterProcess,
 } from './process';
 import {
   ValidatedValue,
@@ -91,6 +93,7 @@ export {
   IPackage,
   IPackages,
   IBufferInfo,
+  IAdapterInput,
   AdapterAppendOptions,
   AdapterPrependOptions,
   AdapterRemoveOptions,
@@ -100,7 +103,6 @@ export {
   AdapterFixOptions,
   Settings,
   DevSettings,
-  Direction,
   ScrollEventData,
   ScrollState,
   State,
@@ -109,6 +111,8 @@ export {
   ProcessPayload,
   ProcessSubject,
   AdapterProcessMap,
+  IBaseProcess,
+  IBaseAdapterProcess,
   ValidatedValue,
   IValidator,
   ICommonProp,

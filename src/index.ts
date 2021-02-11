@@ -4,11 +4,11 @@ import packageInfo from './version';
 import { INVALID_DATASOURCE_PREFIX } from './scroller';
 import { Item } from './classes/item';
 import { AdapterPropName, EMPTY_ITEM, getDefaultAdapterProps } from './classes/adapter/props';
+import { Direction } from './inputs/index';
 
 import {
   IDatasourceGeneric,
   IDatasource,
-  Direction,
   IReactivePropConfig,
   IAdapterConfig,
   ItemAdapter,

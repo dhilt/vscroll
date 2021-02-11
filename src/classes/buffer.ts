@@ -3,7 +3,8 @@ import { Item } from './item';
 import { Settings } from './settings';
 import { Logger } from './logger';
 import { Reactive } from './reactive';
-import { Direction, OnDataChanged } from '../interfaces/index';
+import { Direction } from '../inputs/index';
+import { OnDataChanged } from '../interfaces/index';
 
 export class Buffer<Data> {
 

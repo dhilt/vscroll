@@ -25,6 +25,7 @@
   "scripts": {
     "lint": "eslint . --ext .ts",
     "jest": "jest",
+    "watch": "jest --watch",
     "build": "node build",
     "test": "npm run lint && npm run jest",
     "prepare": "npm run test && npm run build"

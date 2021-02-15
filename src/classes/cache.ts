@@ -183,4 +183,38 @@ export class Cache<Data = unknown> {
     });
     this.items = items;
   }
+
+  updateSubset(before: Item<Data>[], after: Item<Data>[], fixRight?: boolean): void {
+    if (!this.size || !before.length) {
+      return;
+    }
+    const minB = before[0].$index, maxB = before[before.length - 1].$index;
+    let minDiff: number, maxDiff: number;
+    if (after.length) {
+      const minA = after[0].$index, maxA = after[after.length - 1].$index;
+      minDiff = minA - minB;
+      maxDiff = maxA - maxB;
+    } else {
+      minDiff = fixRight ? maxB - minB + 1 : 0;
+      maxDiff = fixRight ? 0 : minB - maxB - 1;
+    }
+    const items = new Map<number, ItemCache<Data>>();
+    this.items.forEach(item => {
+      if (item.$index < minB) { // items before subset
+        item.changeIndex(item.$index + minDiff);
+        items.set(item.$index, item);
+        return;
+      } else if (item.$index > maxB) { // items after subset
+        item.changeIndex(item.$index + maxDiff);
+        items.set(item.$index, item);
+        return;
+      }
+    });
+    after.forEach(item => // subset items
+      items.set(item.$index, new ItemCache<Data>(item, this.saveData))
+    );
+    this.items = items;
+    // todo: set min/max indexes
+    // todo: calculate average size from scratch
+  }
 }

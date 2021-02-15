@@ -4,7 +4,7 @@ import { Settings } from './settings';
 import { Logger } from './logger';
 import { Reactive } from './reactive';
 import { Direction } from '../inputs/index';
-import { OnDataChanged } from '../interfaces/index';
+import { OnDataChanged, BufferUpdater } from '../interfaces/index';
 
 export class Buffer<Data> {
 
@@ -188,6 +188,10 @@ export class Buffer<Data> {
     return true;
   }
 
+  clip(): void {
+    this.items = this.items.filter(({ toRemove }) => !toRemove);
+  }
+
   append(items: Item<Data>[]): void {
     this.items = [...this.items, ...items];
   }
@@ -258,6 +262,49 @@ export class Buffer<Data> {
     }
     this.items = result;
     this.cache.insertItems(from.$index + addition, count, immutableTop);
+  }
+
+  updateItems(
+    predicate: BufferUpdater<Data>, generator: (index: number, data: Data) => Item<Data>, fixRight?: boolean
+  ): void {
+    if (!this.size || isNaN(this.firstIndex)) {
+      return;
+    }
+    let index = fixRight ? this.lastIndex : this.firstIndex;
+    const items: Item<Data>[] = [];
+    const diff = fixRight ? -1 : 1;
+    const original = [...this.items];
+    (fixRight ? this.items.reverse() : this.items).forEach(item => {
+      const result = predicate(item);
+      // falsy or empty array -> delete
+      if (!result || (Array.isArray(result) && !result.length)) {
+        item.toRemove = true;
+        return;
+      }
+      // truthy but not array -> pass
+      if (!Array.isArray(result)) {
+        item.updateIndex(index);
+        items.push(item);
+        index += diff;
+        return;
+      }
+      // non-empty array -> insert
+      (fixRight ? result.reverse() : result).forEach((data, i) => {
+        let newItem: Item<Data>;
+        if (item.data === data) {
+          item.updateIndex(index + i * diff);
+          newItem = item;
+        } else {
+          item.toRemove = true;
+          newItem = generator(index + i * diff, data);
+        }
+        items.push(newItem);
+      });
+      index += diff * result.length;
+    });
+    const result = fixRight ? items.reverse() : items;
+    this.items = result;
+    this.cache.updateSubset(original, result, fixRight);
   }
 
   cacheItem(item: Item<Data>): void {

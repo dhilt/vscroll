@@ -59,7 +59,7 @@ export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
     if (removeViaAdapter) {
       buffer.removeItems(indexesToRemove, !clip.increase, false);
     } else { // common clip case
-      buffer.items = buffer.items.filter(({ toRemove }) => !toRemove);
+      buffer.clip();
     }
 
     logger.log(() => indexesToRemove.length

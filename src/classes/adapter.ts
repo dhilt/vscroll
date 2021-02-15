@@ -18,6 +18,7 @@ import {
   AdapterClipOptions,
   AdapterInsertOptions,
   AdapterReplaceOptions,
+  AdapterUpdateOptions,
   AdapterFixOptions,
   ScrollerWorkflow,
   IDatasourceOptional,
@@ -393,6 +394,16 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     this.logger.logAdapterMethod('replace', options);
     this.workflow.call({
       process: AdapterProcess.replace,
+      status: ProcessStatus.start,
+      payload: { options }
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  update(options: AdapterUpdateOptions<Item>): any {
+    this.logger.logAdapterMethod('update', options);
+    this.workflow.call({
+      process: AdapterProcess.update,
       status: ProcessStatus.start,
       payload: { options }
     });

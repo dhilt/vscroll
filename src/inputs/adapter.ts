@@ -141,6 +141,22 @@ const REPLACE_METHOD_PARAMS: ICommonProps<AdapterReplaceParams> = {
   }
 };
 
+enum AdapterUpdateParams {
+  predicate = 'predicate',
+  fixRight = 'fixRight',
+}
+
+const UPDATE_METHOD_PARAMS: ICommonProps<AdapterUpdateParams> = {
+  [AdapterUpdateParams.predicate]: {
+    validators: [FUNC_WITH_X_ARGUMENTS(1)],
+    mandatory: true
+  },
+  [AdapterUpdateParams.fixRight]: {
+    validators: [BOOLEAN],
+    defaultValue: false
+  },
+};
+
 enum AdapterFixParams {
   scrollPosition = 'scrollPosition',
   minIndex = 'minIndex',
@@ -181,6 +197,7 @@ export const AdapterMethods: AdapterProcessMap<{ [key: string]: string }> = {
   [Process.clip]: AdapterClipParams,
   [Process.insert]: AdapterInsertParams,
   [Process.replace]: AdapterReplaceParams,
+  [Process.update]: AdapterUpdateParams,
   [Process.fix]: AdapterFixParams,
 };
 
@@ -194,5 +211,6 @@ export const ADAPTER_METHODS: AdapterProcessMap<ICommonProps<PropertyKey>> = {
   [Process.clip]: CLIP_METHOD_PARAMS,
   [Process.insert]: INSERT_METHOD_PARAMS,
   [Process.replace]: REPLACE_METHOD_PARAMS,
+  [Process.update]: UPDATE_METHOD_PARAMS,
   [Process.fix]: FIX_METHOD_PARAMS,
 };

@@ -6,7 +6,6 @@ import { AdapterRemoveOptions, ItemsPredicate } from '../../interfaces/index';
 export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.remove) {
 
   static run(scroller: Scroller, options: AdapterRemoveOptions): void {
-
     const { params } = Remove.parseInput(scroller, options);
     if (!params) {
       return;

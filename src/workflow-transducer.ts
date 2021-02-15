@@ -12,6 +12,7 @@ import {
   UserClip,
   Insert,
   Replace,
+  Update,
   Fix,
   Start,
   PreFetch,
@@ -117,6 +118,14 @@ export const runStateMachine = ({
     case AdapterProcess.replace:
       if (status === Status.start) {
         run(Replace)(options);
+      }
+      if (status === Status.next) {
+        run(Init)(process);
+      }
+      break;
+    case AdapterProcess.update:
+      if (status === Status.start) {
+        run(Update)(options);
       }
       if (status === Status.next) {
         run(Init)(process);

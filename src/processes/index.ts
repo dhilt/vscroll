@@ -8,6 +8,7 @@ import Remove from './adapter/remove';
 import UserClip from './adapter/clip';
 import Insert from './adapter/insert';
 import Replace from './adapter/replace';
+import Update from './adapter/update';
 import Fix from './adapter/fix';
 import Start from './start';
 import PreFetch from './preFetch';
@@ -23,7 +24,7 @@ import { CommonProcess, AdapterProcess, ProcessStatus } from './misc/enums';
 
 export {
   Init, Scroll,
-  Reset, Reload, Append, Check, Remove, UserClip, Insert, Replace, Fix,
+  Reset, Reload, Append, Check, Remove, UserClip, Insert, Replace, Update, Fix,
   Start, PreFetch, Fetch, PostFetch, Render, PreClip, Clip, Adjust, End,
   CommonProcess, AdapterProcess, ProcessStatus,
 };

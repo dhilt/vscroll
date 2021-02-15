@@ -44,6 +44,7 @@ export interface ItemAdapter<ItemData = unknown> {
 export type ItemsPredicate<T = unknown> = (item: ItemAdapter<T>) => boolean;
 export type ItemsUpdater<T = unknown> = (item: ItemAdapter<T>, update: () => void) => void;
 export type ItemsProcessor<T = unknown> = (items: ItemAdapter<T>[]) => void;
+export type BufferUpdater<T = unknown> = (item: ItemAdapter<T>) => unknown;
 
 export interface IPackage {
   name: string;
@@ -103,6 +104,11 @@ export interface AdapterReplaceOptions<Item = unknown> {
   fixRight?: boolean;
 }
 
+export interface AdapterUpdateOptions<Item = unknown> {
+  predicate: BufferUpdater<Item>;
+  fixRight?: boolean;
+}
+
 export interface AdapterFixOptions<Item = unknown> {
   scrollPosition?: number;
   minIndex?: number;
@@ -152,6 +158,7 @@ export interface IAdapter<Item = unknown> {
   clip(options?: AdapterClipOptions): MethodResult;
   insert(options: AdapterInsertOptions<Item>): MethodResult;
   replace(options: AdapterReplaceOptions<Item>): MethodResult;
+  update(options: AdapterUpdateOptions<Item>): MethodResult;
   fix(options: AdapterFixOptions<Item>): MethodResult; // experimental
   relax(callback?: () => void): MethodResult;
   showLog(): void;

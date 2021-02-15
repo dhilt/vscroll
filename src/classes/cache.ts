@@ -137,14 +137,22 @@ export class Cache<Data = unknown> {
     return this.items.size;
   }
 
-  removeItems(toRemove: number[], immutableTop: boolean): void {
+  /**
+   * Removes items from Set, shifts indexes of items that remain.
+   *
+   * @param {number[]} toRemove List of indexes to be removed.
+   * @param {boolean} fixLeft Defines indexes shifting strategy.
+   * If true, indexes that are greater than the removed ones will be decreased.
+   * If false, indexes that are less than than the removed ones will be increased.
+   */
+  removeItems(toRemove: number[], fixLeft: boolean): void {
     const items = new Map<number, ItemCache<Data>>();
     let min = Infinity, max = -Infinity;
     this.items.forEach(item => {
       if (toRemove.some(index => index === item.$index)) {
         return;
       }
-      const diff = immutableTop
+      const diff = fixLeft
         ? toRemove.reduce((acc, index) => acc - (item.$index > index ? 1 : 0), 0)
         : toRemove.reduce((acc, index) => acc + (item.$index < index ? 1 : 0), 0);
       item.changeIndex(item.$index + diff);
@@ -157,33 +165,50 @@ export class Cache<Data = unknown> {
     this.maxIndex = max;
   }
 
-  insertItems(index: number, count: number, immutableTop: boolean): void {
-    // we do not insert new items here, we just shift indexes of the existed items
-    // new items adding must be performed via Cache.add
+  /**
+   * Prepares Set for inserting new items.
+   * Does not provide the actual insertion, but shifts the indexes of existed items.
+   * Insertion must be performed by Cache.add call.
+   *
+   * @param {number} index Index of insertion.
+   * @param {number} after How many items will be inserted after the "index".
+   * @param {boolean} fixLeft Defines indexes shifting strategy.
+   * If true, indexes that are greater than "index" will be increased.
+   * If false, indexes that are less than "index" will be decreased.
+   */
+  insertItems(index: number, count: number, fixLeft: boolean): void {
     const items = new Map<number, ItemCache<Data>>();
+    let min = Infinity, max = -Infinity;
     this.items.forEach(item => {
       const { $index } = item;
       if ($index < index) {
-        if (!immutableTop) {
+        if (!fixLeft) {
           item.changeIndex($index - count);
         }
         items.set(item.$index, item);
       } else {
-        if (immutableTop) {
+        if (fixLeft) {
           item.changeIndex($index + count);
         }
         items.set(item.$index, item);
       }
-      if (item.$index < this.minIndex) {
-        this.minIndex = item.$index;
-      }
-      if (item.$index > this.maxIndex) {
-        this.maxIndex = item.$index;
-      }
+      min = item.$index < min ? item.$index : min;
+      max = item.$index > max ? item.$index : max;
     });
     this.items = items;
+    this.minIndex = min;
+    this.maxIndex = max;
   }
 
+  /**
+   * Destructively updates Set (this.items) based on subset (before-after) changes.
+   *
+   * @param {Item<Data>[]} before Initial subset to be replaced by "after". Must be be $index-incremental.
+   * @param {Item<Data>[]} after Transformed subset that replaces "before". Must be be $index-incremental.
+   * Must contain at least 1 $index from "before" or be empty.
+   * @param {boolean} fixRight This is to fix right indexes during subset collapsing.
+   * Acts only if "after" is empty.
+   */
   updateSubset(before: Item<Data>[], after: Item<Data>[], fixRight?: boolean): void {
     if (!this.size || !before.length) {
       return;

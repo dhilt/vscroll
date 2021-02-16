@@ -200,6 +200,15 @@ export class Buffer<Data> {
     this.items = [...items, ...this.items];
   }
 
+  private shiftExtremum(amount: number, fixLeft: boolean) {
+    if (fixLeft) {
+      this.absMaxIndex += amount;
+    } else {
+      this.absMinIndex -= amount;
+      this.startIndex -= amount;
+    }
+  }
+
   removeItems(indexes: number[], immutableTop: boolean, virtual = false): void {
     const result: Item<Data>[] = [];
     const toRemove: number[] = virtual ? indexes : [];
@@ -227,12 +236,7 @@ export class Buffer<Data> {
         }
       }
     }
-    if (immutableTop) {
-      this.absMaxIndex -= toRemove.length;
-    } else {
-      this.absMinIndex += toRemove.length;
-      this.startIndex += toRemove.length;
-    }
+    this.shiftExtremum(-toRemove.length, immutableTop);
     if (!virtual) {
       this.items = result;
     }
@@ -254,12 +258,7 @@ export class Buffer<Data> {
       ...items,
       ...itemsAfter
     ];
-    if (immutableTop) {
-      this.absMaxIndex += count;
-    } else {
-      this.absMinIndex -= count;
-      this.startIndex -= count;
-    }
+    this.shiftExtremum(count, immutableTop);
     this.items = result;
     this.cache.insertItems(from.$index + addition, count, immutableTop);
   }
@@ -279,6 +278,7 @@ export class Buffer<Data> {
       // falsy or empty array -> delete
       if (!result || (Array.isArray(result) && !result.length)) {
         item.toRemove = true;
+        this.shiftExtremum(-1, !fixRight);
         return;
       }
       // truthy but not array -> pass
@@ -301,10 +301,13 @@ export class Buffer<Data> {
         items.push(newItem);
       });
       index += diff * result.length;
+      if (result.length > 1) {
+        this.shiftExtremum(result.length - 1, !fixRight);
+      }
     });
-    const result = fixRight ? items.reverse() : items;
-    this.items = result;
-    this.cache.updateSubset(original, result, fixRight);
+    const after = fixRight ? items.reverse() : items;
+    this.items = after;
+    this.cache.updateSubset(original, after, fixRight);
   }
 
   cacheItem(item: Item<Data>): void {

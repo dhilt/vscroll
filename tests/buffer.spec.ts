@@ -9,7 +9,7 @@ const makeBuffer = ({ min, max, start }: BufferParams): Buffer<Data> => {
   const buffer = new Buffer<Data>({
     itemSize: NaN,
     cacheData: false,
-    startIndex: start,
+    startIndex: Number.isInteger(start) ? start : 1,
     minIndex: min,
     maxIndex: max,
   } as never, () => null, loggerMock as never);
@@ -28,9 +28,11 @@ describe('Buffer Spec', () => {
         const $index = Number(Object.keys(current)[0]);
         if (index === 0) {
           expect(buffer.firstIndex).toEqual($index);
+          expect(buffer.absMinIndex).toEqual($index);
         }
         if (index === list.length - 1) {
           expect(buffer.lastIndex).toEqual($index);
+          expect(buffer.absMaxIndex).toEqual($index);
         }
         const id = current[$index];
         const item = buffer.items[index];
@@ -40,13 +42,13 @@ describe('Buffer Spec', () => {
     };
 
     it('should pass all (simple)', () => {
-      const buffer = makeBuffer({ min: 1, max: 3, start: 1 });
+      const buffer = makeBuffer({ min: 1, max: 3 });
       buffer.updateItems(() => true, cb);
       check(buffer, [{ 1: 1 }, { 2: 2 }, { 3: 3 }]);
     });
 
     it('should pass all (truthy)', () => {
-      const buffer = makeBuffer({ min: 1, max: 10, start: 1 });
+      const buffer = makeBuffer({ min: 1, max: 10 });
       buffer.updateItems(({ $index }) => {
         switch ($index) {
           case 1: return 1;
@@ -65,19 +67,19 @@ describe('Buffer Spec', () => {
     });
 
     it('should remove all (simple)', () => {
-      const buffer = makeBuffer({ min: 1, max: 3, start: 1 });
+      const buffer = makeBuffer({ min: 1, max: 3 });
       buffer.updateItems(() => false, cb);
       check(buffer, []);
     });
 
     it('should remove all (empty array)', () => {
-      const buffer = makeBuffer({ min: 1, max: 10, start: 1 });
+      const buffer = makeBuffer({ min: 1, max: 10 });
       buffer.updateItems(() => [], cb);
       check(buffer, []);
     });
 
     it('should remove all (falsy)', () => {
-      const buffer = makeBuffer({ min: 1, max: 10, start: 1 });
+      const buffer = makeBuffer({ min: 1, max: 10 });
       buffer.updateItems(({ $index }) => {
         switch ($index) {
           case 1: return 0;
@@ -95,7 +97,7 @@ describe('Buffer Spec', () => {
       const token = fixRight ? ' (fixRight)' : '';
 
       it('should remove left item' + token, () => {
-        const buffer = makeBuffer({ min: 1, max: 3, start: 1 });
+        const buffer = makeBuffer({ min: 1, max: 3 });
         buffer.updateItems(({ $index }) => $index !== 1, cb, fixRight);
         check(buffer, fixRight
           ? [{ 2: 2 }, { 3: 3 }]
@@ -104,7 +106,7 @@ describe('Buffer Spec', () => {
       });
 
       it('should remove right item' + token, () => {
-        const buffer = makeBuffer({ min: 1, max: 3, start: 1 });
+        const buffer = makeBuffer({ min: 1, max: 3 });
         buffer.updateItems(({ $index }) => $index !== 3, cb, fixRight);
         check(buffer, fixRight
           ? [{ 2: 1 }, { 3: 2 }]
@@ -113,7 +115,7 @@ describe('Buffer Spec', () => {
       });
 
       it('should remove some middle items' + token, () => {
-        const buffer = makeBuffer({ min: 1, max: 5, start: 1 });
+        const buffer = makeBuffer({ min: 1, max: 5 });
         buffer.updateItems(({ $index }) => $index !== 2 && $index !== 4, cb, fixRight);
         check(buffer, fixRight
           ? [{ 3: 1 }, { 4: 3 }, { 5: 5 }]
@@ -122,7 +124,7 @@ describe('Buffer Spec', () => {
       });
 
       it('should prepend' + token, () => {
-        const buffer = makeBuffer({ min: 1, max: 2, start: 1 });
+        const buffer = makeBuffer({ min: 1, max: 2 });
         buffer.updateItems(({ $index, data }) => $index === 1 ? [
           generateItem(0), data
         ] : true, cb, fixRight);
@@ -133,7 +135,7 @@ describe('Buffer Spec', () => {
       });
 
       it('should append' + token, () => {
-        const buffer = makeBuffer({ min: 1, max: 2, start: 1 });
+        const buffer = makeBuffer({ min: 1, max: 2 });
         buffer.updateItems(({ $index, data }) => $index === 2 ? [
           data, generateItem(3)
         ] : true, cb, fixRight);
@@ -144,7 +146,7 @@ describe('Buffer Spec', () => {
       });
 
       it('should insert in left-center' + token, () => {
-        const buffer = makeBuffer({ min: 1, max: 3, start: 1 });
+        const buffer = makeBuffer({ min: 1, max: 3 });
         buffer.updateItems(({ $index, data }) => $index === 2 ? [
           generateItem(99), data
         ] : true, cb, fixRight);
@@ -155,7 +157,7 @@ describe('Buffer Spec', () => {
       });
 
       it('should insert in right-center' + token, () => {
-        const buffer = makeBuffer({ min: 1, max: 3, start: 1 });
+        const buffer = makeBuffer({ min: 1, max: 3 });
         buffer.updateItems(({ $index, data }) => $index === 2 ? [
           data, generateItem(99)
         ] : true, cb, fixRight);
@@ -166,7 +168,7 @@ describe('Buffer Spec', () => {
       });
 
       it('should replace middle item' + token, () => {
-        const buffer = makeBuffer({ min: 1, max: 3, start: 1 });
+        const buffer = makeBuffer({ min: 1, max: 3 });
         buffer.updateItems(({ $index }) => $index === 2 ? [
           generateItem(99)
         ] : true, cb, fixRight);
@@ -174,7 +176,7 @@ describe('Buffer Spec', () => {
       });
 
       it('should replace left item' + token, () => {
-        const buffer = makeBuffer({ min: 1, max: 3, start: 1 });
+        const buffer = makeBuffer({ min: 1, max: 3 });
         buffer.updateItems(({ $index }) => $index === 1 ? [
           generateItem(99)
         ] : true, cb, fixRight);
@@ -182,7 +184,7 @@ describe('Buffer Spec', () => {
       });
 
       it('should replace and insert' + token, () => {
-        const buffer = makeBuffer({ min: 1, max: 3, start: 1 });
+        const buffer = makeBuffer({ min: 1, max: 3 });
         buffer.updateItems(({ $index }) => $index === 2 ? [
           generateItem(97), generateItem(98), generateItem(99)
         ] : true, cb, fixRight);
@@ -193,7 +195,7 @@ describe('Buffer Spec', () => {
       });
 
       it('should perform complex update' + token, () => {
-        const buffer = makeBuffer({ min: 1, max: 5, start: 1 });
+        const buffer = makeBuffer({ min: 1, max: 5 });
         buffer.updateItems(({ $index, data }) => {
           switch ($index) {
             case 1: return [generateItem(0), data];

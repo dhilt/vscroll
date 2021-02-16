@@ -112,12 +112,12 @@ describe('Cache Spec', () => {
       expect(cache.size).toEqual(list.length);
       list.forEach((current, index) => {
         const $index = Number(Object.keys(current)[0]);
-        // if (index === 0) {
-        //   expect(cache.minIndex).toEqual($index);
-        // }
-        // if (index === list.length - 1) {
-        //   expect(cache.maxIndex).toEqual($index);
-        // }
+        if (index === 0) {
+          expect(cache.minIndex).toEqual($index);
+        }
+        if (index === list.length - 1) {
+          expect(cache.maxIndex).toEqual($index);
+        }
         const id = current[$index];
         const item = cache.get($index);
         expect(item.$index).toEqual($index);

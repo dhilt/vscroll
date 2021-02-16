@@ -99,13 +99,17 @@ export class Cache<Data = unknown> {
   add(item: Item<Data>): ItemCache<Data> {
     let itemCache = this.get(item.$index);
     if (itemCache) {
-      itemCache.data = item.data;
+      if (this.saveData) {
+        itemCache.data = item.data;
+      }
       if (itemCache.size !== item.size) {
-        this.recalculateAverage.oldItems.push({
-          $index: item.$index,
-          size: itemCache.size,
-          newSize: item.size
-        });
+        if (itemCache.size !== void 0) {
+          this.recalculateAverage.oldItems.push({
+            $index: item.$index,
+            size: itemCache.size,
+            newSize: item.size
+          });
+        }
         itemCache.size = item.size;
       }
     } else {
@@ -206,31 +210,30 @@ export class Cache<Data = unknown> {
    * @param {Item<Data>[]} before Initial subset to be replaced by "after". Must be be $index-incremental.
    * @param {Item<Data>[]} after Transformed subset that replaces "before". Must be be $index-incremental.
    * Must contain at least 1 $index from "before" or be empty.
-   * @param {boolean} fixRight This is to fix right indexes during subset collapsing.
-   * Acts only if "after" is empty.
+   * @param {boolean} fixRight This is to fix right indexes during subset collapsing. Acts only if "after" is empty.
    */
   updateSubset(before: Item<Data>[], after: Item<Data>[], fixRight?: boolean): void {
     if (!this.size || !before.length) {
       return;
     }
     const minB = before[0].$index, maxB = before[before.length - 1].$index;
-    let minDiff: number, maxDiff: number;
+    let leftDiff: number, rightDiff: number;
     if (after.length) {
       const minA = after[0].$index, maxA = after[after.length - 1].$index;
-      minDiff = minA - minB;
-      maxDiff = maxA - maxB;
+      leftDiff = minA - minB;
+      rightDiff = maxA - maxB;
     } else {
-      minDiff = fixRight ? maxB - minB + 1 : 0;
-      maxDiff = fixRight ? 0 : minB - maxB - 1;
+      leftDiff = fixRight ? maxB - minB + 1 : 0;
+      rightDiff = fixRight ? 0 : minB - maxB - 1;
     }
     const items = new Map<number, ItemCache<Data>>();
     this.items.forEach(item => {
       if (item.$index < minB) { // items before subset
-        item.changeIndex(item.$index + minDiff);
+        item.changeIndex(item.$index + leftDiff);
         items.set(item.$index, item);
         return;
       } else if (item.$index > maxB) { // items after subset
-        item.changeIndex(item.$index + maxDiff);
+        item.changeIndex(item.$index + rightDiff);
         items.set(item.$index, item);
         return;
       }
@@ -238,8 +241,9 @@ export class Cache<Data = unknown> {
     after.forEach(item => // subset items
       items.set(item.$index, new ItemCache<Data>(item, this.saveData))
     );
+    this.minIndex += leftDiff;
+    this.maxIndex += rightDiff;
     this.items = items;
-    // todo: set min/max indexes
-    // todo: calculate average size from scratch
+    // todo: calculate average size
   }
 }

@@ -4,7 +4,7 @@ export interface Data {
 }
 
 export interface BufferParams {
-  start: number;
+  start?: number;
   min: number;
   max: number;
 }

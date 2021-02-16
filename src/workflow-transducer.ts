@@ -145,6 +145,7 @@ export const runStateMachine = ({
         case AdapterProcess.check:
         case AdapterProcess.insert:
         case AdapterProcess.replace:
+        case AdapterProcess.update:
           run(Render)();
           break;
         case AdapterProcess.remove:
@@ -186,6 +187,7 @@ export const runStateMachine = ({
           case AdapterProcess.check:
           case AdapterProcess.insert:
           case AdapterProcess.remove:
+          case AdapterProcess.update:
             run(Adjust)();
             break;
           case AdapterProcess.replace:

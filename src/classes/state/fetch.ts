@@ -161,4 +161,9 @@ export class FetchModel {
     this.last.index = items[0].$index;
     this.first.index = items[items.length - 1].$index;
   }
+
+  update(items: Item[]): void {
+    this.startSimulate(items);
+
+  }
 }

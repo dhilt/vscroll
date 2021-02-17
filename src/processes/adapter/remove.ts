@@ -20,21 +20,14 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
   }
 
   static doRemove(scroller: Scroller, params: AdapterRemoveOptions, sequenceOnly = false): boolean {
-    const shouldRemove = Remove.removeBufferedItems(scroller, params);
+    const shouldRemoveBuffered = Remove.removeBufferedItems(scroller, params);
     const shouldRemoveVirtual = Remove.removeVirtualItems(scroller, params, sequenceOnly);
 
-    if (shouldRemove || shouldRemoveVirtual) {
-      const { clip } = scroller.state;
-      clip.simulate = true;
-      clip.increase = !!params.increase;
-      if (shouldRemove) {
-        clip.doClip = true;
-      } else {
-        clip.virtual.only = true;
-      }
+    if (shouldRemoveBuffered || shouldRemoveVirtual) {
+      scroller.state.clip.remove(!shouldRemoveBuffered, !!params.increase);
     }
 
-    return shouldRemove || shouldRemoveVirtual;
+    return shouldRemoveBuffered || shouldRemoveVirtual;
   }
 
   static removeBufferedItems(scroller: Scroller, options: AdapterRemoveOptions): boolean {

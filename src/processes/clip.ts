@@ -1,4 +1,4 @@
-import { BaseProcessFactory, CommonProcess, ProcessStatus } from './misc/index';
+import { BaseProcessFactory, CommonProcess, ProcessStatus, AdapterProcess } from './misc/index';
 import { Scroller } from '../scroller';
 import { Direction } from '../inputs/index';
 
@@ -36,7 +36,7 @@ export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
   static onBuffered(scroller: Scroller): void {
     const { buffer, viewport: { paddings }, logger, state: { clip } } = scroller;
     const size = { backward: 0, forward: 0 };
-    const removeViaAdapter = clip.simulate && !clip.force;
+    const removeViaAdapter = clip.simulate && clip.initiator === AdapterProcess.remove;
 
     const itemsToRemove = buffer.items.filter(item => {
       if (!item.toRemove) {
@@ -44,7 +44,7 @@ export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
       }
       item.hide();
       size[item.removeDirection] += item.size;
-      if (!removeViaAdapter) { // do not adjust paddings in case of Adapter remove
+      if (!removeViaAdapter) { // Adapter.remove doesn't virtualize
         const padding = paddings.byDirection(item.removeDirection);
         padding.size += item.size;
       }

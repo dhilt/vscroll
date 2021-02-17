@@ -1,3 +1,5 @@
+import { ProcessName } from '../../interfaces/index';
+import { AdapterProcess } from '../../processes/index';
 import { Direction } from '../../inputs/index';
 
 class VirtualClip {
@@ -25,7 +27,6 @@ class VirtualClip {
 }
 
 export class ClipModel {
-  noClip: boolean;
   doClip: boolean;
   simulate: boolean;
   increase: boolean;
@@ -33,16 +34,13 @@ export class ClipModel {
   forceForward: boolean;
   forceBackward: boolean;
   virtual: VirtualClip;
+  initiator: ProcessName;
 
   get force(): boolean {
     return this.forceForward || this.forceBackward;
   }
 
-  private infinite: boolean;
-
   constructor() {
-    this.infinite = false;
-    this.noClip = this.infinite;
     this.callCount = 0;
     this.virtual = new VirtualClip();
     this.reset();
@@ -53,15 +51,37 @@ export class ClipModel {
     if (!isForce) {
       this.forceReset();
     } else {
-      this.simulate = false;
+      this.stopSimulate();
     }
-    this.increase = false;
     this.virtual.reset();
   }
 
   forceReset(): void {
-    this.simulate = false;
+    this.stopSimulate();
     this.forceForward = false;
     this.forceBackward = false;
+  }
+
+  startSimulate(): void {
+    this.simulate = true;
+  }
+
+  stopSimulate(): void {
+    this.simulate = false;
+    this.increase = false;
+  }
+
+  remove(virtualOnly: boolean, increase: boolean): void {
+    this.startSimulate();
+    this.initiator = AdapterProcess.remove;
+    if (virtualOnly) {
+      this.virtual.only = true;
+    }
+    this.increase = increase;
+  }
+
+  update(): void {
+    this.startSimulate();
+    this.initiator = AdapterProcess.update;
   }
 }

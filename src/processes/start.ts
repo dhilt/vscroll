@@ -11,7 +11,12 @@ export default class Start extends BaseProcessFactory(CommonProcess.start) {
     scroller.workflow.call({
       process: Start.process,
       status: ProcessStatus.next,
-      payload: { ...(state.cycle.innerLoop.first ? { process: state.cycle.initiator } : {}) }
+      payload: {
+        ...(state.cycle.innerLoop.first ? {
+          process: state.cycle.initiator,
+          doRender: state.fetch.simulate,
+        } : {})
+      }
     });
   }
 

@@ -5,7 +5,7 @@ import { Item } from '../classes/item';
 export default class Render extends BaseProcessFactory(CommonProcess.render) {
 
   static run(scroller: Scroller): void {
-    const { workflow, state: { cycle, render, scrollState }, viewport } = scroller;
+    const { workflow, state: { cycle, render, scrollState, clip }, viewport } = scroller;
     scroller.logger.stat('before new items render');
     if (scrollState.positionBeforeAsync === null) {
       scrollState.positionBeforeAsync = viewport.scrollPosition;
@@ -16,7 +16,10 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
         workflow.call({
           process: Render.process,
           status: render.noSize ? ProcessStatus.done : ProcessStatus.next,
-          payload: { process: cycle.initiator }
+          payload: {
+            process: cycle.initiator,
+            doClip: clip.simulate
+          }
         });
       } else {
         workflow.call({
@@ -31,7 +34,7 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
   static processElements(scroller: Scroller): boolean {
     const { state: { fetch, render }, viewport, buffer, logger } = scroller;
     render.positionBefore = viewport.scrollPosition;
-    if (!fetch.isReplace) {
+    if (!fetch.isCheck) {
       render.sizeBefore = viewport.getScrollableSize();
       if (
         fetch.items.map(item => Render.processElement(scroller, item)).some(x => !x)

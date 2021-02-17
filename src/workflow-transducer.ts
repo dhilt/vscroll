@@ -145,11 +145,17 @@ export const runStateMachine = ({
         case AdapterProcess.check:
         case AdapterProcess.insert:
         case AdapterProcess.replace:
-        case AdapterProcess.update:
           run(Render)();
           break;
         case AdapterProcess.remove:
           run(Clip)();
+          break;
+        case AdapterProcess.update:
+          if (payload.doRender) {
+            run(Render)();
+          } else {
+            run(End)();
+          }
           break;
         default:
           run(PreFetch)();

@@ -289,17 +289,19 @@ export class Buffer<Data> {
         return;
       }
       // non-empty array -> insert
+      let toRemove = true;
       (fixRight ? result.reverse() : result).forEach((data, i) => {
         let newItem: Item<Data>;
         if (item.data === data) {
           item.updateIndex(index + i * diff);
           newItem = item;
+          toRemove = false;
         } else {
-          item.toRemove = true;
           newItem = generator(index + i * diff, data);
         }
         items.push(newItem);
       });
+      item.toRemove = toRemove;
       index += diff * result.length;
       if (result.length > 1) {
         this.shiftExtremum(result.length - 1, !fixRight);

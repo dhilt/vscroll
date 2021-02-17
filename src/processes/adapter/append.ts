@@ -60,7 +60,7 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
   }
 
   static simulateFetch(scroller: Scroller, items: unknown[], eof: boolean, prepend: boolean): boolean {
-    const { buffer, state, state: { fetch } } = scroller;
+    const { buffer, state: { fetch } } = scroller;
     const bufferToken = prepend ? 'absMinIndex' : 'absMaxIndex';
     let indexToAdd = buffer.getIndexToAdd(eof, prepend);
     let bufferLimit = buffer[bufferToken];
@@ -89,7 +89,6 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     fetch.first.indexBuffer = !isNaN(buffer.firstIndex) ? buffer.firstIndex : indexToAdd;
     fetch.last.indexBuffer = !isNaN(buffer.lastIndex) ? buffer.lastIndex : indexToAdd;
 
-    state.clip.noClip = true;
     return true;
   }
 

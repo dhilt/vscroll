@@ -33,7 +33,7 @@ export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.ins
   static simulateFetch(
     scroller: Scroller, from: Item, items: unknown[], before: boolean, decrement: boolean
   ): boolean {
-    const { buffer, routines, state: { fetch, clip } } = scroller;
+    const { buffer, routines, state: { fetch } } = scroller;
     const bufferLimit = decrement ? buffer.absMinIndex : buffer.absMaxIndex;
     const addition = before ? 0 : 1;
     const count = items.length;
@@ -52,7 +52,6 @@ export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.ins
     fetch.insert(itemsToInsert);
     fetch.first.indexBuffer = buffer.firstIndex;
     fetch.last.indexBuffer = buffer.lastIndex;
-    clip.noClip = true;
     return true;
   }
 

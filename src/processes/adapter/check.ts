@@ -19,7 +19,6 @@ export default class Check extends BaseAdapterProcessFactory(AdapterProcess.chec
     });
 
     if (Number.isFinite(min)) {
-      scroller.state.clip.noClip = true;
       fetch.first.indexBuffer = buffer.firstIndex;
       fetch.last.indexBuffer = buffer.lastIndex;
       const { item: first, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
@@ -27,7 +26,7 @@ export default class Check extends BaseAdapterProcessFactory(AdapterProcess.chec
       if (!isNaN(fetch.firstVisibleIndex)) {
         fetch.firstVisibleItemDelta = - buffer.getSizeByIndex(fetch.firstVisibleIndex) + diff;
       }
-      fetch.replace(
+      fetch.check(
         buffer.items.filter(item => item.$index >= min && item.$index <= max)
       );
     }

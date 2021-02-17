@@ -55,7 +55,6 @@ export default class End extends BaseProcessFactory(CommonProcess.end) {
     const next = !!cycle.interrupter || (error ? false : End.getNext(scroller));
     cycle.innerLoop.isInitial = false;
     fetch.stopSimulate();
-    clip.noClip = scroller.settings.infinite || (next && clip.simulate);
     clip.forceReset();
     state.endInnerLoop();
     return next;
@@ -63,18 +62,14 @@ export default class End extends BaseProcessFactory(CommonProcess.end) {
 
   static getNext(scroller: Scroller): boolean {
     const { state: { clip, fetch, render } } = scroller;
-    if (clip.simulate) { // Adapter.remove
+    if (clip.simulate) { // Adapter.remove/update
       return true;
     }
-    if (fetch.simulate && fetch.isReplace) { // Adapter.check (todo: combine with following)
-      return true;
-    }
-    if (fetch.simulate && !render.noSize) { // Adapter.append/prepend/insert affected viewport size
+    if (fetch.simulate && fetch.isCheck && !render.noSize) { // Adapter.check
       return true;
     }
     if ( // common inner loop (App start, Scroll, Adapter.clip) accompanied by fetch
-      !fetch.simulate &&
-      ((fetch.hasNewItems && !render.noSize) || fetch.hasAnotherPack)
+      !fetch.simulate && ((fetch.hasNewItems && !render.noSize) || fetch.hasAnotherPack)
     ) {
       return true;
     }

@@ -20,7 +20,7 @@ export default class Update extends BaseAdapterProcessFactory(AdapterProcess.upd
   }
 
   static doUpdate(scroller: Scroller, params: AdapterUpdateOptions): boolean {
-    const { buffer, state: { fetch }, routines, logger } = scroller;
+    const { buffer, state: { fetch, clip }, routines, logger } = scroller;
     if (!buffer.items) {
       return false;
     }
@@ -33,14 +33,19 @@ export default class Update extends BaseAdapterProcessFactory(AdapterProcess.upd
     );
 
     const itemsToRemove = before.filter(({ toRemove }) => toRemove);
-    itemsToRemove.forEach(item => item.hide());
+    if (itemsToRemove) {
+      clip.update();
+      itemsToRemove.forEach(item => item.hide());
+    }
     logger.log(() => itemsToRemove.length
       ? 'items to remove: [' + itemsToRemove.map(({ $index }) => $index).join(',') + ']'
       : 'no items to remove'
     );
 
     const itemsToRender = buffer.items.filter(({ element }) => !element);
-    fetch.update(itemsToRender);
+    if (itemsToRender.length) {
+      fetch.update(itemsToRender);
+    }
     logger.log(() => itemsToRender.length
       ? 'items to render: [' + itemsToRender.map(({ $index }) => $index).join(',') + ']'
       : 'no items to render'

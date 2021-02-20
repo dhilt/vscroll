@@ -28,6 +28,7 @@ enum DevSettings {
   initDelay = 'initDelay',
   initWindowDelay = 'initWindowDelay',
   cacheData = 'cacheData',
+  cacheOnReload = 'cacheOnReload',
   changeOverflow = 'changeOverflow',
   dismissOverflowAnchor = 'dismissOverflowAnchor',
 }
@@ -126,6 +127,10 @@ export const DEV_SETTINGS: ICommonProps<DevSettings> = {
     defaultValue: 40
   },
   [DevSettings.cacheData]: {
+    validators: [BOOLEAN],
+    defaultValue: false
+  },
+  [DevSettings.cacheOnReload]: {
     validators: [BOOLEAN],
     defaultValue: false
   },

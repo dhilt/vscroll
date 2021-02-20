@@ -8,7 +8,7 @@ import { OnDataChanged, BufferUpdater } from '../interfaces/index';
 
 export class Buffer<Data> {
 
-  private _items: Item<Data>[];
+  private _items: Item<Data>[] = [];
   private _absMinIndex: number;
   private _absMaxIndex: number;
   bof: Reactive<boolean>;
@@ -29,11 +29,11 @@ export class Buffer<Data> {
     this.changeItems = onDataChanged;
     this.bof = new Reactive<boolean>(false);
     this.eof = new Reactive<boolean>(false);
-    this.cache = new Cache<Data>(settings.itemSize, settings.cacheData, logger);
+    this.cache = new Cache<Data>(settings.itemSize, settings.cacheData, settings.cacheOnReload, logger);
     this.startIndexUser = settings.startIndex;
     this.minIndexUser = settings.minIndex;
     this.maxIndexUser = settings.maxIndex;
-    this.reset();
+    this.reset(true);
   }
 
   dispose(): void {
@@ -41,13 +41,11 @@ export class Buffer<Data> {
     this.eof.dispose();
   }
 
-  reset(reload?: boolean, startIndex?: number): void {
-    if (reload) {
-      this.items.forEach(item => item.hide());
-    }
+  reset(force: boolean, startIndex?: number): void {
+    this.items.forEach(item => item.hide());
     this.pristine = true;
     this.items = [];
-    this.cache.reset();
+    this.cache.reset(force);
     this.absMinIndex = this.minIndexUser;
     this.absMaxIndex = this.maxIndexUser;
     this.setCurrentStartIndex(startIndex);

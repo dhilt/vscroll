@@ -52,24 +52,28 @@ export class Cache<Data = unknown> {
   readonly logger: Logger;
   readonly itemSize: number;
   readonly saveData: boolean;
+  readonly cacheOnReload: boolean;
 
-  constructor(itemSize: number, saveData: boolean, logger: Logger) {
+  constructor(itemSize: number, saveData: boolean, cacheOnReload: boolean, logger: Logger) {
     this.averageSizeFloat = itemSize;
     this.averageSize = itemSize;
     this.itemSize = itemSize;
     this.saveData = saveData;
+    this.cacheOnReload = cacheOnReload;
     this.items = new Map<number, ItemCache<Data>>();
     this.recalculateAverage = new RecalculateAverage();
-    this.reset();
     this.logger = logger;
+    this.reset(true);
   }
 
-  reset(): void {
-    this.minIndex = +Infinity;
-    this.maxIndex = -Infinity;
-    this.items.clear();
-    this.averageSizeFloat = this.itemSize;
-    this.averageSize = this.itemSize;
+  reset(force: boolean): void {
+    if (force || !this.cacheOnReload) {
+      this.minIndex = +Infinity;
+      this.maxIndex = -Infinity;
+      this.items.clear();
+      this.averageSizeFloat = this.itemSize;
+      this.averageSize = this.itemSize;
+    }
     this.recalculateAverage.reset();
   }
 

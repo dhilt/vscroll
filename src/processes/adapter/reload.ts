@@ -9,7 +9,7 @@ export default class Reload extends BaseAdapterProcessFactory(AdapterProcess.rel
 
     const { params } = Reload.parseInput(scroller, { reloadIndex }, true);
 
-    buffer.reset(true, params ? params.reloadIndex : void 0);
+    buffer.reset(false, params ? params.reloadIndex : void 0);
     viewport.reset(buffer.startIndex);
 
     const payload: ProcessPayload = {};

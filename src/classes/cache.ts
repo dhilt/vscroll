@@ -22,7 +22,6 @@ export class ItemCache<Data = unknown> {
 }
 
 interface ItemSize {
-  $index: number;
   size: number;
   newSize?: number;
 }
@@ -30,6 +29,7 @@ interface ItemSize {
 export class RecalculateAverage {
   newItems: ItemSize[];
   oldItems: ItemSize[];
+  removed: ItemSize[];
 
   constructor() {
     this.reset();
@@ -38,6 +38,7 @@ export class RecalculateAverage {
   reset(): void {
     this.newItems = [];
     this.oldItems = [];
+    this.removed = [];
   }
 }
 
@@ -78,21 +79,26 @@ export class Cache<Data = unknown> {
   }
 
   recalculateAverageSize(): boolean {
-    const { oldItems: { length: oldItemsLength }, newItems: { length: newItemsLength } } = this.recalculateAverage;
-    if (!oldItemsLength && !newItemsLength) {
+    const { oldItems, newItems, removed } = this.recalculateAverage;
+    if (!oldItems.length && !newItems.length && !removed.length) {
       return false;
     }
-    if (oldItemsLength) {
-      const oldItemsSize = this.recalculateAverage.oldItems.reduce((acc, item) => acc + item.size, 0);
-      const newItemsSize = this.recalculateAverage.oldItems.reduce((acc, item) => acc + (item.newSize as number), 0);
+    const length = this.items.size;
+    if (oldItems.length) {
+      const oldSize = this.recalculateAverage.oldItems.reduce((acc, item) => acc + item.size, 0);
+      const newSize = this.recalculateAverage.oldItems.reduce((acc, item) => acc + (item.newSize as number), 0);
       const averageSize = this.averageSizeFloat || 0;
-      this.averageSizeFloat = averageSize - (oldItemsSize - newItemsSize) / (this.items.size - newItemsLength);
+      this.averageSizeFloat = averageSize - (oldSize - newSize) / (length - newItems.length);
     }
-    if (newItemsLength) {
-      const newItemsSize = this.recalculateAverage.newItems.reduce((acc, item) => acc + item.size, 0);
+    if (newItems.length) {
+      const newSize = this.recalculateAverage.newItems.reduce((acc, item) => acc + item.size, 0);
       const averageSize = this.averageSizeFloat || 0;
-      const averageSizeLength = this.items.size - newItemsLength;
-      this.averageSizeFloat = (averageSizeLength * averageSize + newItemsSize) / this.items.size;
+      this.averageSizeFloat = ((length - newItems.length) * averageSize + newSize) / length;
+    }
+    if (removed.length) {
+      const removedSize = this.recalculateAverage.removed.reduce((acc, item) => acc + item.size, 0);
+      const averageSize = this.averageSizeFloat || 0;
+      this.averageSizeFloat = ((length + removed.length) * averageSize - removedSize) / length;
     }
     this.averageSize = Math.round(this.averageSizeFloat);
     this.recalculateAverage.reset();
@@ -109,7 +115,6 @@ export class Cache<Data = unknown> {
       if (itemCache.size !== item.size) {
         if (itemCache.size !== void 0) {
           this.recalculateAverage.oldItems.push({
-            $index: item.$index,
             size: itemCache.size,
             newSize: item.size
           });
@@ -120,7 +125,7 @@ export class Cache<Data = unknown> {
       itemCache = new ItemCache<Data>(item, this.saveData);
       this.items.set(item.$index, itemCache);
       if (this.averageSize !== itemCache.size) {
-        this.recalculateAverage.newItems.push({ $index: item.$index, size: itemCache.size });
+        this.recalculateAverage.newItems.push({ size: itemCache.size });
       }
     }
     if (item.$index < this.minIndex) {
@@ -158,6 +163,9 @@ export class Cache<Data = unknown> {
     let min = Infinity, max = -Infinity;
     this.items.forEach(item => {
       if (toRemove.some(index => index === item.$index)) {
+        if (this.averageSize !== item.size && item.size !== void 0) {
+          this.recalculateAverage.removed.push({ size: item.size });
+        }
         return;
       }
       const diff = fixLeft

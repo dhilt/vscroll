@@ -211,6 +211,7 @@ export class Buffer<Data> {
     const result: Item<Data>[] = [];
     const toRemove: number[] = virtual ? indexes : [];
     const length = this.items.length;
+    let shifted = false;
     for (
       let i = immutableTop ? 0 : length - 1;
       immutableTop ? i < length : i >= 0;
@@ -225,6 +226,7 @@ export class Buffer<Data> {
         ? (item.$index > index ? -1 : 0)
         : (item.$index < index ? 1 : 0)
       ), 0);
+      shifted = shifted || !!diff;
       item.updateIndex(item.$index + diff);
       if (!virtual) {
         if (immutableTop) {
@@ -237,6 +239,8 @@ export class Buffer<Data> {
     this.shiftExtremum(-toRemove.length, immutableTop);
     if (!virtual) {
       this.items = result;
+    } else if (shifted) {
+      this.items = [...this.items];
     }
     this.cache.removeItems(toRemove, immutableTop);
   }

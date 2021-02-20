@@ -4,13 +4,13 @@ import { Item } from '../src/classes/item';
 import { Data } from './misc/types';
 import { generateBufferItem, generateBufferItems, generateItem } from './misc/items';
 
+const loggerMock = { log: () => null };
+
 describe('Cache Spec', () => {
 
   describe('Remove', () => {
-    const loggerMock = { log: () => null };
     const MIN = 1, COUNT = 5;
     const items = generateBufferItems(MIN, COUNT);
-
     let cache: Cache<Data>;
 
     const check = (idList: (number | null)[]) =>
@@ -21,74 +21,63 @@ describe('Cache Spec', () => {
       });
 
     beforeEach(() => {
-      cache = new Cache(NaN, true, loggerMock as never);
+      cache = new Cache(NaN, true, true, loggerMock as never);
       items.forEach(item => cache.add(item));
     });
 
-    it('should not remove when out of the right border & immutableTop = true', (done) => {
+    it('should not remove when out of the right border & immutableTop = true', () => {
       cache.removeItems([99], true);
       check([1, 2, 3, 4, 5]);
-      done();
     });
 
-    it('should increase all indexes when out of the right border & immutableTop = false', (done) => {
+    it('should increase all indexes when out of the right border & immutableTop = false', () => {
       cache.removeItems([99], false);
       check([null, 1, 2, 3, 4, 5]);
-      done();
     });
 
-    it('should not remove when out of the left border & immutableTop = false', (done) => {
+    it('should not remove when out of the left border & immutableTop = false', () => {
       cache.removeItems([-99], false);
       check([1, 2, 3, 4, 5]);
-      done();
     });
 
-    it('should decrease all indexes when out of the left border & immutableTop = true', (done) => {
+    it('should decrease all indexes when out of the left border & immutableTop = true', () => {
       cache.removeItems([-99], true);
       check([2, 3, 4, 5]);
-      done();
     });
 
-    it('should decrease bottom indexes when removing from top & immutableTop = true', (done) => {
+    it('should decrease bottom indexes when removing from top & immutableTop = true', () => {
       cache.removeItems([1, 2], true);
       check([3, 4, 5, null, null]);
-      done();
     });
 
-    it('should not shift indexes when removing from top & immutableTop = false', (done) => {
+    it('should not shift indexes when removing from top & immutableTop = false', () => {
       cache.removeItems([1, 2], false);
       check([null, null, 3, 4, 5]);
-      done();
     });
 
-    it('should not shift indexes when removing from bottom & immutableTop = true', (done) => {
+    it('should not shift indexes when removing from bottom & immutableTop = true', () => {
       cache.removeItems([4, 5], true);
       check([1, 2, 3, null, null]);
-      done();
     });
 
-    it('should increase top indexes when removing from bottom & immutableTop = false', (done) => {
+    it('should increase top indexes when removing from bottom & immutableTop = false', () => {
       cache.removeItems([4, 5], false);
       check([null, null, 1, 2, 3]);
-      done();
     });
 
-    it('should decrease the below indexes when removing from center & immutableTop = true', (done) => {
+    it('should decrease the below indexes when removing from center & immutableTop = true', () => {
       cache.removeItems([3], true);
       check([1, 2, 4, 5, null]);
-      done();
     });
 
-    it('should shift increase the above indexes when removing from center & immutableTop = false', (done) => {
+    it('should shift increase the above indexes when removing from center & immutableTop = false', () => {
       cache.removeItems([3], false);
       check([null, 1, 2, 4, 5]);
-      done();
     });
 
-    it('should remove non-sequenced list', (done) => {
+    it('should remove non-sequenced list', () => {
       cache.removeItems([1, 3, 5], true);
       check([2, 4, null, null, null]);
-      done();
     });
   });
 
@@ -126,7 +115,7 @@ describe('Cache Spec', () => {
     };
 
     beforeEach(() => {
-      cache = new Cache(NaN, true, loggerMock as never);
+      cache = new Cache(NaN, true, true, loggerMock as never);
       items.forEach(item => cache.add(item));
     });
 

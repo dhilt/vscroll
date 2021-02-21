@@ -1,6 +1,6 @@
 import { Buffer } from '../src/classes/buffer';
 
-import { Data, BufferParams } from './misc/types';
+import { Data, BufferParams, CheckIndexList } from './misc/types';
 import { generateItem, generateBufferItem as cb, generateBufferItems } from './misc/items';
 
 const loggerMock = { log: () => null };
@@ -21,7 +21,7 @@ describe('Buffer Spec', () => {
 
   describe('Update', () => {
 
-    const check = (buffer: Buffer<Data>, list: { [key: string]: number }[]) => {
+    const check = (buffer: Buffer<Data>, list: CheckIndexList) => {
       // console.log(buffer.items.map(i => i.get()));
       expect(buffer.size).toEqual(list.length);
       list.forEach((current, index) => {

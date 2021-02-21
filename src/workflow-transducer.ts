@@ -148,7 +148,7 @@ export const runStateMachine = ({
           run(Render)();
           break;
         case AdapterProcess.remove:
-          run(Clip)();
+          run(Adjust)();
           break;
         case AdapterProcess.update:
           if (payload.doRender) {
@@ -192,7 +192,6 @@ export const runStateMachine = ({
           case AdapterProcess.append:
           case AdapterProcess.check:
           case AdapterProcess.insert:
-          case AdapterProcess.remove:
           case AdapterProcess.update:
             run(Adjust)();
             break;
@@ -215,13 +214,7 @@ export const runStateMachine = ({
       }
       break;
     case CommonProcess.clip:
-      switch (payload.process) {
-        case AdapterProcess.remove:
-          run(End)();
-          break;
-        default:
-          run(Adjust)();
-      }
+      run(Adjust)();
       break;
     case CommonProcess.adjust:
       run(End)();

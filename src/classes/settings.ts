@@ -27,6 +27,7 @@ export class Settings implements ISettings, IDevSettings {
   initDelay: number; // if set, the Workflow initialization will be postponed (ms)
   initWindowDelay: number; // if set and the entire window is scrollable, the Workflow init will be postponed (ms)
   cacheData: boolean; // if true, item's data will be cached along with item's size and index
+  cacheOnReload: boolean; // if true, cache will not be flushed on reload
   changeOverflow: boolean; // if true, scroll will be disabled per each item's average size change
   dismissOverflowAnchor: boolean; // if true, the viewport will receive "overflowAnchor: none"
 

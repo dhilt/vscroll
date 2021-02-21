@@ -25,6 +25,7 @@ export interface DevSettings {
   initDelay?: number;
   initWindowDelay?: number;
   cacheData?: boolean;
+  cacheOnReload?: boolean;
   changeOverflow?: boolean;
   dismissOverflowAnchor?: boolean;
 }

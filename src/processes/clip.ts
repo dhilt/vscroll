@@ -1,5 +1,6 @@
 import { BaseProcessFactory, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
+import { Direction } from '../inputs/index';
 
 export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
 
@@ -16,7 +17,7 @@ export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
 
   static doClip(scroller: Scroller): void {
     const { buffer, viewport: { paddings }, state: { clip }, logger } = scroller;
-    const size = { backward: 0, forward: 0 };
+    const size = { [Direction.backward]: 0, [Direction.forward]: 0 };
 
     logger.stat(`before clip (${++clip.callCount})`);
 
@@ -35,17 +36,19 @@ export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
       scroller.settings.onBeforeClip(itemsToRemove.map(item => item.get()));
     }
 
-    const indexesToRemove = itemsToRemove.map(({ $index }) => $index);
     buffer.clip();
 
-    logger.log(() => indexesToRemove.length
-      ? [
-        `clipped ${indexesToRemove.length} item(s) from Buffer` +
-        (size.backward ? `, +${size.backward} fwd px` : '') +
-        (size.forward ? `, +${size.forward} bwd px` : '') +
-        `, range: [${indexesToRemove[0]}..${indexesToRemove[indexesToRemove.length - 1]}]`
-      ]
-      : 'clipped 0 items from Buffer');
+    logger.log(() => {
+      const list = itemsToRemove.map(({ $index }) => $index);
+      return list.length
+        ? [
+          `clipped ${list.length} item(s) from Buffer` +
+          (size.backward ? `, +${size.backward} fwd px` : '') +
+          (size.forward ? `, +${size.forward} bwd px` : '') +
+          `, range: [${list[0]}..${list[list.length - 1]}]`
+        ]
+        : 'clipped 0 items from Buffer';
+    });
 
     logger.stat('after clip');
   }

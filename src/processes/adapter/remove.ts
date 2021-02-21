@@ -10,7 +10,6 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     if (!params) {
       return;
     }
-
     const shouldRemove = Remove.doRemove(scroller, params);
 
     scroller.workflow.call({
@@ -61,7 +60,6 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
         break; // allow only first strict uninterrupted sequence
       }
     }
-
     if (!clipList.length) {
       return [];
     }
@@ -93,14 +91,7 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     );
     buffer.removeItems(indexListToRemove, !increase, false);
     buffer.checkAverageSize();
-
-    // shift index of item to be first visible
-    if (!isNaN(fetch.firstVisibleIndex)) {
-      const shift = indexListToRemove.reduce((acc, index) => acc + (
-        ((increase && index > fetch.firstVisibleIndex) || (!increase && index < fetch.firstVisibleIndex)) ? 1 : 0
-      ), 0);
-      fetch.firstVisibleIndex = fetch.firstVisibleIndex + (increase ? shift : -shift);
-    }
+    Remove.shiftFirstVisibleIndex(scroller, indexListToRemove, !!increase);
 
     // physical removal (hiding)
     clipList.forEach(item => item.hide());
@@ -152,16 +143,19 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     scroller.logger.log(() => `going to remove ${toRemove.length} item(s) virtually`);
     buffer.removeItems(toRemove, !increase, true);
     buffer.checkAverageSize();
-
-    // shift index of item to be first visible
-    if (!isNaN(fetch.firstVisibleIndex)) {
-      const shift = toRemove.reduce((acc, index) => acc + (
-        ((increase && index > fetch.firstVisibleIndex) || (!increase && index < fetch.firstVisibleIndex)) ? 1 : 0
-      ), 0);
-      fetch.firstVisibleIndex = fetch.firstVisibleIndex + (increase ? shift : -shift);
-    }
+    Remove.shiftFirstVisibleIndex(scroller, toRemove, !!increase);
 
     return true;
+  }
+
+  static shiftFirstVisibleIndex({ state: { fetch } }: Scroller, listToRemove: number[], increase: boolean): void {
+    if (isNaN(fetch.firstVisibleIndex)) {
+      return;
+    }
+    const shift = listToRemove.reduce((acc, index) => acc + (
+      ((increase && index > fetch.firstVisibleIndex) || (!increase && index < fetch.firstVisibleIndex)) ? 1 : 0
+    ), 0);
+    fetch.firstVisibleIndex = fetch.firstVisibleIndex + (increase ? shift : -shift);
   }
 
 }

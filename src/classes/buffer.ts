@@ -292,7 +292,7 @@ export class Buffer<Data> {
       }
       // non-empty array -> insert
       let toRemove = true;
-      (fixRight ? result.reverse() : result).forEach((data, i) => {
+      (fixRight ? [...result].reverse() : result).forEach((data, i) => {
         let newItem: Item<Data>;
         if (item.data === data) {
           item.updateIndex(index + i * diff);

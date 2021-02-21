@@ -1,7 +1,7 @@
 import { Cache } from '../src/classes/cache';
 import { Item } from '../src/classes/item';
 
-import { Data } from './misc/types';
+import { Data, CheckIndexList } from './misc/types';
 import { generateBufferItem, generateBufferItems, generateItem } from './misc/items';
 
 const loggerMock = { log: () => null };
@@ -82,21 +82,20 @@ describe('Cache Spec', () => {
   });
 
   describe('Update', () => {
-    const loggerMock = { log: () => null };
     const MIN = 1, COUNT = 7;
     const items = generateBufferItems(MIN, COUNT);
     const subset = items.slice(2, 5); // [3, 4, 5]
 
     let cache: Cache<Data>;
 
-    const make = (list: { [key: string]: number | string }[]): Item<Data>[] =>
+    const make = (list: CheckIndexList): Item<Data>[] =>
       list.map(current => {
         const index = Number(Object.keys(current)[0]);
         const id = current[index];
         return generateBufferItem(index, generateItem(id));
       });
 
-    const checkUpdate = (list: { [key: string]: number | string }[]) => {
+    const checkUpdate = (list: CheckIndexList) => {
       // console.log(Array.from((cache as unknown as { items: Map<number, Item<Data>> }).items).map(i => i[1].data));
       expect(cache.size).toEqual(list.length);
       list.forEach((current, index) => {
@@ -205,6 +204,31 @@ describe('Cache Spec', () => {
       const after = [{ 1: 'x' }, { 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'y' }];
       cache.updateSubset(subset, make(after));
       checkUpdate([{ '-1': 1 }, { 0: 2 }, { 1: 'x' }, { 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'y' }, { 6: 6 }, { 7: 7 }]);
+    });
+  });
+
+  describe('Average size', () => {
+
+    it('should maintain average size on remove', () => {
+      const length = 50;
+      const toRemove = [10, 20, 30, 40, 50];
+      const sizeBeforeRemove = Math.round(
+        Array.from({ length }).reduce((acc: number, j, i) => acc + i + 1, 0) / length
+      );
+      const sizeAfterRemove = Math.round(
+        Array.from({ length }).reduce(
+          (acc: number, j, i) => acc + (toRemove.includes(i + 1) ? 0 : (i + 1)), 0
+        ) / (length - toRemove.length));
+
+      const cache = new Cache(NaN, true, true, loggerMock as never);
+      const items = generateBufferItems(1, length);
+      items.forEach(item => cache.add(item));
+      cache.recalculateAverageSize();
+      expect(cache.averageSize).toBe(sizeBeforeRemove);
+
+      cache.removeItems(toRemove, true);
+      cache.recalculateAverageSize();
+      expect(cache.averageSize).toBe(sizeAfterRemove);
     });
   });
 

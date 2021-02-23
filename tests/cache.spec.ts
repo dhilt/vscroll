@@ -84,7 +84,7 @@ describe('Cache Spec', () => {
   describe('Update', () => {
     const MIN = 1, COUNT = 7;
     const items = generateBufferItems(MIN, COUNT);
-    const subset = items.slice(2, 5); // [3, 4, 5]
+    const subset = items.slice(2, 5).map(({ $index }) => $index); // [3, 4, 5]
 
     let cache: Cache<Data>;
 

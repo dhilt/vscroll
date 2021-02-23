@@ -1,3 +1,5 @@
+import { BufferUpdater } from '../../src/interfaces';
+
 export type Id = number | string;
 
 export interface Data {
@@ -6,10 +8,28 @@ export interface Data {
   size: number;
 }
 
+export type CheckIndexList = { [key: string]: Id }[];
+
 export interface BufferParams {
-  start?: number;
   min: number;
   max: number;
+  start?: number;
+  minCache?: number;
+  maxCache?: number;
 }
 
-export type CheckIndexList = { [key: string]: Id }[];
+export interface BufferUpdateConfig extends BufferParams {
+  title: string;
+  predicate: BufferUpdater<Data>;
+  fixRight: boolean;
+  list: CheckIndexList;
+}
+
+export interface BufferUpdateTrackConfig extends BufferParams {
+  title: string;
+  index: number;
+  predicate: BufferUpdater<Data>;
+  fixRight: boolean;
+  result: number;
+  debug?: boolean;
+}

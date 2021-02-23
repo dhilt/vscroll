@@ -223,16 +223,12 @@ export class Cache<Data = unknown> {
    * @param {Item<Data>[]} after Transformed subset that replaces "before". Must be be $index-incremental.
    * Must contain at least 1 $index from "before" or be empty.
    * @param {boolean} fixRight This is to fix right indexes during subset collapsing. Acts only if "after" is empty.
-   * 
-   * @returns {(Array.<number>|undefined)} Left and right outer borders of the subset after update: [x, y].
-   * [x, NaN] if EOF, [NaN, y] is BOF, [NaN, NaN] if cache or initial set is empty.
    */
-  updateSubset(before: number[], after: Item<Data>[], fixRight?: boolean): [number, number] {
+  updateSubset(before: number[], after: Item<Data>[], fixRight?: boolean): void {
     if (!this.size || !before.length) {
-      return [NaN, NaN];
+      return;
     }
     const minB = before[0], maxB = before[before.length - 1];
-    const leftItem = this.get(minB - 1), rightItem = this.get(maxB + 1);
     let leftDiff: number, rightDiff: number;
     if (after.length) {
       const minA = after[0].$index, maxA = after[after.length - 1].$index;
@@ -260,8 +256,6 @@ export class Cache<Data = unknown> {
     this.minIndex += leftDiff;
     this.maxIndex += rightDiff;
     this.items = items;
-
     // todo: calculate average size
-    return [leftItem ? leftItem.$index : NaN, rightItem ? rightItem.$index : NaN];
   }
 }

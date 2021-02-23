@@ -6,18 +6,20 @@ import { generateItem as makeItem, generateBufferItem as cb, generateBufferItems
 const loggerMock = { log: () => null };
 
 const makeBuffer = (params: BufferParams): Buffer<Data> => {
-  const { min, max, start, minCache, maxCache } = params;
-  const _min = Number.isInteger(minCache) ? minCache : min;
-  const _max = Number.isInteger(maxCache) ? maxCache : max;
+  const { min, max, minCache, maxCache, absMin, absMax, start } = params;
+  const _minCache = Number.isInteger(minCache) ? minCache : min;
+  const _maxCache = Number.isInteger(maxCache) ? maxCache : max;
+  const _absMin = Number.isInteger(absMin) ? absMin : _minCache;
+  const _absMax = Number.isInteger(absMax) ? absMax : _maxCache;
   const buffer = new Buffer<Data>({
     itemSize: NaN,
     cacheData: false,
     startIndex: Number.isInteger(start) ? start : 1,
-    minIndex: _min,
-    maxIndex: _max,
+    minIndex: _absMin,
+    maxIndex: _absMax,
   } as never, () => null, loggerMock as never);
   buffer.setItems(generateBufferItems(min, max - min + 1));
-  generateBufferItems(_min, _max - _min + 1).forEach(item => buffer.cacheItem(item));
+  generateBufferItems(_minCache, _maxCache - _minCache + 1).forEach(item => buffer.cacheItem(item));
   return buffer;
 };
 
@@ -44,22 +46,25 @@ const checkUpdate = ({ min, max, predicate, fixRight, list }: BufferUpdateConfig
 };
 
 const checkIndexTrackingOnUpdate = (params: BufferUpdateTrackConfig) => () => {
-  const { min, max, minCache, maxCache, index, predicate, fixRight, result, debug = false } = params;
-  const buffer = makeBuffer({ min, max, minCache, maxCache });
+  const { index, predicate, fixRight, result, debug = false } = params;
+  const buffer = makeBuffer(params);
   const item = buffer.get(index);
   const _item = debug && item ? JSON.parse(JSON.stringify(item.get())) : null;
   const dump = debug && JSON.parse(JSON.stringify(buffer.items.map(i => i.get())));
-  const minBefore = debug && buffer.absMinIndex, maxBefore = debug && buffer.absMaxIndex;
+  const absMinBefore = debug && buffer.finiteAbsMinIndex, absMaxBefore = debug && buffer.finiteAbsMaxIndex;
+  const minBefore = debug && buffer.minIndex, maxBefore = debug && buffer.maxIndex;
 
   const trackedIndex = buffer.updateItems(predicate, cb, index, fixRight);
 
   if (debug) {
     const trackedItem = buffer.get(trackedIndex);
     console.log(`item to track: ${_item.$index}~${_item.data.id}
-abs before: [${minBefore}..${maxBefore}]
+abs before: [${absMinBefore}..${absMaxBefore}]
+cache before: [${minBefore}..${maxBefore}]
 initial: ${dump.map(i => `${i.$index}~${i.data.id}`).join(' ')}
 updated: ${buffer.items.map(i => `${i.$index}~${i.data.id}`).join(' ')}
-abs after: [${buffer.absMinIndex}..${buffer.absMaxIndex}]
+cache after: [${buffer.minIndex}..${buffer.maxIndex}]
+abs after: [${buffer.finiteAbsMinIndex}..${buffer.finiteAbsMaxIndex}]
 tracked index: ${trackedIndex ? `${trackedIndex}~${trackedItem ? trackedItem.get().data.id : '?'}` : 'undefined'}`);
   }
 
@@ -254,7 +259,7 @@ describe('Buffer Spec', () => {
     }, {
       title: 'remove 3 items before',
       min: 1, max: 10, fixRight: false, index: 5, result: 2,
-      predicate: ({ $index }) => $index < 1 || $index > 3,
+      predicate: ({ $index }) => $index < 2 || $index > 4,
     }, {
       title: 'remove 3 items before (fixRight)',
       min: 1, max: 10, fixRight: true, index: 5, result: 5,
@@ -359,45 +364,80 @@ describe('Buffer Spec', () => {
       title: 'remove this and all before (fixRight)',
       min: 1, max: 10, fixRight: true, index: 5, result: 6,
       predicate: ({ $index }) => !($index <= 5),
+    }, {
+      title: 'remove all',
+      min: 1, max: 10, fixRight: false, index: 5, result: NaN,
+      predicate: () => [],
     }]
     .forEach(config => it(config.title, checkIndexTrackingOnUpdate(config)))
   );
 
-  describe('Index tracking on Update when remove all', () => [
-    {
-      title: 'remove all',
-      min: 1, max: 10, fixRight: false, index: 5, result: NaN,
-      predicate: () => [],
-    }, {
-      title: 'remove all including cache',
-      min: -9, max: 20, minCache: -9, maxCache: 20, fixRight: false, index: 5, result: NaN,
-      predicate: () => [],
-    }, {
-      title: 'remove all but cache',
-      min: 1, max: 10, minCache: -9, maxCache: 20, fixRight: false, index: 5, result: 1,
-      predicate: () => [],
-    }, {
-      title: 'remove all but cache (fixRight)',
-      min: 1, max: 10, minCache: -9, maxCache: 20, fixRight: true, index: 5, result: 11,
-      predicate: () => [],
-    }, {
-      title: 'remove all but cache when eof',
-      min: 1, max: 20, minCache: -9, maxCache: 20, fixRight: false, index: 5, result: 0,
-      predicate: () => [],
-    }, {
-      title: 'remove all but cache when eof (fixRight)',
-      min: 1, max: 20, minCache: -9, maxCache: 20, fixRight: true, index: 5, result: 20,
-      predicate: () => [],
-    }, {
-      title: 'remove all but cache when bof',
-      min: -9, max: 10, minCache: -9, maxCache: 20, fixRight: false, index: 5, result: -9,
-      predicate: () => [],
-    }, {
-      title: 'remove all but cache when bof (fixRight)',
-      min: -9, max: 10, minCache: -9, maxCache: 20, fixRight: true, index: 5, result: 11,
-      predicate: () => [],
-    }]
-    .forEach(config => it(config.title, checkIndexTrackingOnUpdate(config)))
-  );
+  describe('Index tracking on Update when flushing the Buffer', () => {
+    describe('Cache is present', () => [
+      {
+        title: 'cache matches buffer',
+        min: -9, max: 20, minCache: -9, maxCache: 20, fixRight: false, index: 5, result: NaN,
+        predicate: () => [],
+      }, {
+        title: 'simple flush',
+        min: 1, max: 10, minCache: -9, maxCache: 20, fixRight: false, index: 5, result: 1,
+        predicate: () => [],
+      }, {
+        title: 'simple flush (fixRight)',
+        min: 1, max: 10, minCache: -9, maxCache: 20, fixRight: true, index: 5, result: 11,
+        predicate: () => [],
+      }, {
+        title: 'flush when eof',
+        min: 1, max: 20, minCache: -9, maxCache: 20, fixRight: false, index: 5, result: 0,
+        predicate: () => [],
+      }, {
+        title: 'flush when eof (fixRight)',
+        min: 1, max: 20, minCache: -9, maxCache: 20, fixRight: true, index: 5, result: 20,
+        predicate: () => [],
+      }, {
+        title: 'flush when bof',
+        min: -9, max: 10, minCache: -9, maxCache: 20, fixRight: false, index: 5, result: -9,
+        predicate: () => [],
+      }, {
+        title: 'flush when bof (fixRight)',
+        min: -9, max: 10, minCache: -9, maxCache: 20, fixRight: true, index: 5, result: 11,
+        predicate: () => [],
+      }]
+      .forEach(config => it(config.title, checkIndexTrackingOnUpdate(config)))
+    );
+
+    describe('No Cache behind, but absolute borders are present', () => [
+      {
+        title: 'borders matches buffer',
+        min: -9, max: 20, absMin: -9, absMax: 20, fixRight: false, index: 5, result: NaN,
+        predicate: () => [],
+      }, {
+        title: 'simple flush',
+        min: 1, max: 10, absMin: -9, absMax: 20, fixRight: false, index: 5, result: 1,
+        predicate: () => [],
+      }, {
+        title: 'simple flush (fixRight)',
+        min: 1, max: 10, absMin: -9, absMax: 20, fixRight: true, index: 5, result: 11,
+        predicate: () => [],
+      }, {
+        title: 'no right border',
+        min: 1, max: 10, absMin: -9, absMax: 10, fixRight: false, index: 5, result: 0,
+        predicate: () => [],
+      }, {
+        title: 'no right border (fixRight)',
+        min: 1, max: 10, absMin: -9, absMax: 10, fixRight: true, index: 5, result: 10,
+        predicate: () => [],
+      }, {
+        title: 'no left border',
+        min: 1, max: 10, absMin: 1, absMax: 20, fixRight: false, index: 5, result: 1,
+        predicate: () => [],
+      }, {
+        title: 'no left border (fixRight)',
+        min: 1, max: 10, absMin: 1, absMax: 20, fixRight: true, index: 5, result: 11,
+        predicate: () => [],
+      }]
+      .forEach(config => it(config.title, checkIndexTrackingOnUpdate(config)))
+    );
+  });
 
 });

@@ -274,8 +274,7 @@ export class Buffer<Data> {
     if (!this.size || isNaN(this.firstIndex)) {
       return NaN;
     }
-    let trackedItem: Item<Data> | undefined;
-    let trackDiff = Infinity;
+    let _indexToTrack = indexToTrack;
     let index = fixRight ? this.lastIndex : this.firstIndex;
     const items: Item<Data>[] = [];
     const diff = fixRight ? -1 : 1;
@@ -285,19 +284,9 @@ export class Buffer<Data> {
       // if predicate result is falsy or empty array -> delete
       if (!result || (Array.isArray(result) && !result.length)) {
         item.toRemove = true;
+        _indexToTrack += item.$index >= indexToTrack ? (fixRight ? 1 : 0) : (fixRight ? 0 : -1);
         this.shiftExtremum(-1, !fixRight);
         return;
-      }
-      // tracking through the items that remain
-      let track = false;
-      if (!isNaN(indexToTrack)) {
-        const _trackDiff = Math.abs(indexToTrack - item.$index);
-        // always get forward next (fixRight reverses item list)
-        if (_trackDiff < trackDiff + (fixRight ? 0 : 1)) {
-          track = true;
-          trackDiff = _trackDiff;
-          trackedItem = item;
-        }
       }
       // if predicate result is truthy but not array -> leave
       if (!Array.isArray(result)) {
@@ -307,6 +296,11 @@ export class Buffer<Data> {
         return;
       }
       // if predicate result is non-empty array -> insert/replace
+      if (item.$index < indexToTrack) {
+        _indexToTrack += fixRight ? 0 : result.length - 1;
+      } else if (item.$index > indexToTrack) {
+        _indexToTrack += fixRight ? 1 - result.length : 0;
+      }
       let toRemove = true;
       const newItems: Item<Data>[] = [];
       (fixRight ? [...result].reverse() : result).forEach((data, i) => {
@@ -322,10 +316,6 @@ export class Buffer<Data> {
         newItems.push(newItem);
       });
       item.toRemove = toRemove;
-      // if current buffer item is to be replaced and should be tracked, track the rightmost of the replacement set
-      if (track && toRemove) {
-        trackedItem = newItems[newItems.length - 1];
-      }
       items.push(...newItems);
       index += diff * result.length;
       if (result.length > 1) {
@@ -333,19 +323,16 @@ export class Buffer<Data> {
       }
     });
     this.items = fixRight ? items.reverse() : items;
-    const outerBorders = this.cache.updateSubset(initialIndexList, this.items, fixRight);
+    this.cache.updateSubset(initialIndexList, this.items, fixRight);
 
-    // no need to track index
-    if (isNaN(indexToTrack)) {
-      return NaN;
+    if (this.finiteAbsMinIndex === this.finiteAbsMaxIndex) {
+      _indexToTrack = NaN;
+    } else if (_indexToTrack > this.finiteAbsMaxIndex) {
+      _indexToTrack = this.finiteAbsMaxIndex;
+    } else if (_indexToTrack < this.finiteAbsMinIndex) {
+      _indexToTrack = this.finiteAbsMinIndex;
     }
-    // tracked index is in buffer
-    if (trackedItem) {
-      return trackedItem.$index;
-    }
-    // tracked index is out of buffer
-    const [left, right] = outerBorders;
-    return !isNaN(right) ? right : (!isNaN(left) ? left : NaN);
+    return _indexToTrack;
   }
 
   cacheItem(item: Item<Data>): void {

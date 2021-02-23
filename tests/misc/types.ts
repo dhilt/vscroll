@@ -10,12 +10,15 @@ export interface Data {
 
 export type CheckIndexList = { [key: string]: Id }[];
 
+// [absMin..minCache..min..max..maxCache..absMax]
 export interface BufferParams {
-  min: number;
-  max: number;
+  min: number; // index of first item in Buffer
+  max: number; // index of last item in Buffer
+  minCache?: number; // index of first item in Cache
+  maxCache?: number; // index of last item in Cache
+  absMin?: number; // absolute left Buffer border
+  absMax?: number; // absolute right Buffer border
   start?: number;
-  minCache?: number;
-  maxCache?: number;
 }
 
 export interface BufferUpdateConfig extends BufferParams {

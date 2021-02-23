@@ -89,7 +89,7 @@ export class Buffer<Data> {
 
   set absMinIndex(value: number) {
     if (this._absMinIndex !== value) {
-      this._absMinIndex = value;
+      this._absMinIndex = value > this._absMaxIndex ? this._absMaxIndex : value;
     }
     if (!this.pristine) {
       this.checkBOF();
@@ -102,7 +102,7 @@ export class Buffer<Data> {
 
   set absMaxIndex(value: number) {
     if (this._absMaxIndex !== value) {
-      this._absMaxIndex = value;
+      this._absMaxIndex = value < this._absMinIndex ? this._absMinIndex : value;
     }
     if (!this.pristine) {
       this.checkEOF();
@@ -207,50 +207,50 @@ export class Buffer<Data> {
     }
   }
 
-  removeItems(indexes: number[], immutableTop: boolean, virtual = false): void {
+  removeItems(indexes: number[], fixLeft: boolean, virtual = false): void {
     const result: Item<Data>[] = [];
     const toRemove: number[] = virtual ? indexes : [];
     const length = this.items.length;
     let shifted = false;
     for (
-      let i = immutableTop ? 0 : length - 1;
-      immutableTop ? i < length : i >= 0;
-      immutableTop ? i++ : i--
+      let i = fixLeft ? 0 : length - 1;
+      fixLeft ? i < length : i >= 0;
+      fixLeft ? i++ : i--
     ) {
       const item = this.items[i];
       if (!virtual && indexes.indexOf(item.$index) >= 0) {
         toRemove.push(item.$index);
         continue;
       }
-      const diff = toRemove.reduce((acc, index) => acc + (immutableTop
+      const diff = toRemove.reduce((acc, index) => acc + (fixLeft
         ? (item.$index > index ? -1 : 0)
         : (item.$index < index ? 1 : 0)
       ), 0);
       shifted = shifted || !!diff;
       item.updateIndex(item.$index + diff);
       if (!virtual) {
-        if (immutableTop) {
+        if (fixLeft) {
           result.push(item);
         } else {
           result.unshift(item);
         }
       }
     }
-    this.shiftExtremum(-toRemove.length, immutableTop);
+    this.shiftExtremum(-toRemove.length, fixLeft);
     if (!virtual) {
       this.items = result;
     } else if (shifted) {
       this.items = [...this.items];
     }
-    this.cache.removeItems(toRemove, immutableTop);
+    this.cache.removeItems(toRemove, fixLeft);
   }
 
-  insertItems(items: Item<Data>[], from: Item<Data>, addition: number, immutableTop: boolean): void {
+  insertItems(items: Item<Data>[], from: Item<Data>, addition: number, fixLeft: boolean): void {
     const count = items.length;
     const index = this.items.indexOf(from) + addition;
     const itemsBefore = this.items.slice(0, index);
     const itemsAfter = this.items.slice(index);
-    if (immutableTop) {
+    if (fixLeft) {
       itemsAfter.forEach(item => item.updateIndex(item.$index + count));
     } else {
       itemsBefore.forEach(item => item.updateIndex(item.$index - count));
@@ -260,58 +260,92 @@ export class Buffer<Data> {
       ...items,
       ...itemsAfter
     ];
-    this.shiftExtremum(count, immutableTop);
+    this.shiftExtremum(count, fixLeft);
     this.items = result;
-    this.cache.insertItems(from.$index + addition, count, immutableTop);
+    this.cache.insertItems(from.$index + addition, count, fixLeft);
   }
 
   updateItems(
-    predicate: BufferUpdater<Data>, generator: (index: number, data: Data) => Item<Data>, fixRight?: boolean
-  ): void {
+    predicate: BufferUpdater<Data>,
+    generator: (index: number, data: Data) => Item<Data>,
+    indexToTrack: number,
+    fixRight: boolean
+  ): number {
     if (!this.size || isNaN(this.firstIndex)) {
-      return;
+      return NaN;
     }
+    let trackedItem: Item<Data> | undefined;
+    let trackDiff = Infinity;
     let index = fixRight ? this.lastIndex : this.firstIndex;
     const items: Item<Data>[] = [];
     const diff = fixRight ? -1 : 1;
-    const original = [...this.items];
+    const initialIndexList = this.items.map(({ $index }) => $index);
     (fixRight ? this.items.reverse() : this.items).forEach(item => {
       const result = predicate(item);
-      // falsy or empty array -> delete
+      // if predicate result is falsy or empty array -> delete
       if (!result || (Array.isArray(result) && !result.length)) {
         item.toRemove = true;
         this.shiftExtremum(-1, !fixRight);
         return;
       }
-      // truthy but not array -> pass
+      // tracking through the items that remain
+      let track = false;
+      if (!isNaN(indexToTrack)) {
+        const _trackDiff = Math.abs(indexToTrack - item.$index);
+        // always get forward next (fixRight reverses item list)
+        if (_trackDiff < trackDiff + (fixRight ? 0 : 1)) {
+          track = true;
+          trackDiff = _trackDiff;
+          trackedItem = item;
+        }
+      }
+      // if predicate result is truthy but not array -> leave
       if (!Array.isArray(result)) {
         item.updateIndex(index);
         items.push(item);
         index += diff;
         return;
       }
-      // non-empty array -> insert
+      // if predicate result is non-empty array -> insert/replace
       let toRemove = true;
+      const newItems: Item<Data>[] = [];
       (fixRight ? [...result].reverse() : result).forEach((data, i) => {
         let newItem: Item<Data>;
         if (item.data === data) {
           item.updateIndex(index + i * diff);
           newItem = item;
-          toRemove = false;
+          toRemove = false; // insert case
         } else {
           newItem = generator(index + i * diff, data);
+          newItem.toInsert = true;
         }
-        items.push(newItem);
+        newItems.push(newItem);
       });
       item.toRemove = toRemove;
+      // if current buffer item is to be replaced and should be tracked, track the rightmost of the replacement set
+      if (track && toRemove) {
+        trackedItem = newItems[newItems.length - 1];
+      }
+      items.push(...newItems);
       index += diff * result.length;
       if (result.length > 1) {
         this.shiftExtremum(result.length - 1, !fixRight);
       }
     });
-    const after = fixRight ? items.reverse() : items;
-    this.items = after;
-    this.cache.updateSubset(original, after, fixRight);
+    this.items = fixRight ? items.reverse() : items;
+    const outerBorders = this.cache.updateSubset(initialIndexList, this.items, fixRight);
+
+    // no need to track index
+    if (isNaN(indexToTrack)) {
+      return NaN;
+    }
+    // tracked index is in buffer
+    if (trackedItem) {
+      return trackedItem.$index;
+    }
+    // tracked index is out of buffer
+    const [left, right] = outerBorders;
+    return !isNaN(right) ? right : (!isNaN(left) ? left : NaN);
   }
 
   cacheItem(item: Item<Data>): void {

@@ -277,6 +277,14 @@ describe('Buffer Spec', () => {
       min: 1, max: 10, fixRight: true, index: 5, result: 8,
       predicate: ({ $index }) => $index < 7 || $index > 9,
     }, {
+      title: 'remove 1 item before and 1 item after',
+      min: 1, max: 10, fixRight: false, index: 5, result: 4,
+      predicate: ({ $index }) => !($index === 4 || $index === 6),
+    }, {
+      title: 'remove 1 item before and 1 item after (fixRight)',
+      min: 1, max: 10, fixRight: true, index: 5, result: 6,
+      predicate: ({ $index }) => !($index === 4 || $index === 6),
+    }, {
       title: 'insert 1 item before',
       min: 1, max: 10, fixRight: false, index: 5, result: 6,
       predicate: ({ $index, data }) => $index === 2 ? [data, makeItem('x')] : true,
@@ -300,6 +308,14 @@ describe('Buffer Spec', () => {
       title: 'insert 2 items after (fixRight)',
       min: 1, max: 10, fixRight: true, index: 5, result: 3,
       predicate: ({ $index, data }) => $index === 7 ? [data, makeItem('x'), makeItem('y')] : true,
+    }, {
+      title: 'insert 1 item before and 1 item after',
+      min: 1, max: 10, fixRight: false, index: 5, result: 6,
+      predicate: ({ $index, data }) => $index === 5 ? [makeItem('x'), data, makeItem('y')] : true,
+    }, {
+      title: 'insert 1 item before and 1 item after (fixRight)',
+      min: 1, max: 10, fixRight: true, index: 5, result: 4,
+      predicate: ({ $index, data }) => $index === 5 ? [makeItem('x'), data, makeItem('y')] : true,
     }, {
       title: 'replace this item',
       min: 1, max: 10, fixRight: false, index: 5, result: 5,

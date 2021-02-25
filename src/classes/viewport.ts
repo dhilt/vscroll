@@ -118,7 +118,7 @@ export class Viewport {
     }
   }
 
-  getEdgeVisibleItem(items: Item[], direction: Direction): { item?: Item, diff: number } {
+  getEdgeVisibleItem(items: Item[], direction: Direction): { item?: Item, index: number, diff: number } {
     const bwd = direction === Direction.backward;
     const opposite = bwd ? Direction.forward : Direction.backward;
     const viewportEdge = this.getEdge(direction);
@@ -135,7 +135,7 @@ export class Viewport {
         break;
       }
     }
-    return { item, diff };
+    return { item, index: item ? item.$index : NaN, diff };
   }
 
 }

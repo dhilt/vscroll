@@ -67,7 +67,7 @@ export class FetchModel {
   simulate: boolean;
   isPrepend: boolean;
   isCheck: boolean;
-  isUpdate: boolean;
+  doRemove: boolean;
 
   constructor() {
     this.callCount = 0;
@@ -92,7 +92,7 @@ export class FetchModel {
     this.simulate = false;
     this.isPrepend = false;
     this.isCheck = false;
-    this.isUpdate = false;
+    this.doRemove = false;
   }
 
   get newItemsData(): unknown[] | null {
@@ -134,7 +134,7 @@ export class FetchModel {
     this.simulate = false;
     this.isPrepend = false;
     this.isCheck = false;
-    this.isUpdate = false;
+    this.doRemove = false;
   }
 
   append(items: Item[]): void {
@@ -165,8 +165,16 @@ export class FetchModel {
     this.first.index = items[items.length - 1].$index;
   }
 
-  update(items: Item[]): void {
+  remove(): void {
+    this.startSimulate([]);
+    this.doRemove = true;
+    // firstVisibleIndex & delta should be set inside process
+  }
+
+  update(index: number, delta: number, items: Item[], itemsToRemove: Item[]): void {
     this.startSimulate(items);
-    this.isUpdate = true;
+    this.firstVisibleIndex = index;
+    this.firstVisibleItemDelta = delta;
+    this.doRemove = itemsToRemove.length > 0;
   }
 }

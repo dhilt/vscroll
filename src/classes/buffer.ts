@@ -205,6 +205,11 @@ export class Buffer<Data> {
       this.absMinIndex -= amount;
       this.startIndex -= amount;
     }
+    if (this.startIndex > this.absMaxIndex) {
+      this.startIndex = this.absMaxIndex;
+    } else if (this.startIndex < this.absMinIndex) {
+      this.startIndex = this.absMinIndex;
+    }
   }
 
   removeItems(indexes: number[], fixLeft: boolean, virtual = false): void {
@@ -306,6 +311,9 @@ export class Buffer<Data> {
       (fixRight ? [...result].reverse() : result).forEach((data, i) => {
         let newItem: Item<Data>;
         if (item.data === data) {
+          if (indexToTrack === item.$index) {
+            _indexToTrack = index + i * diff;
+          }
           item.updateIndex(index + i * diff);
           newItem = item;
           toRemove = false; // insert case

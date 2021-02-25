@@ -154,7 +154,7 @@ export const runStateMachine = ({
           if (payload.doRender) {
             run(Render)();
           } else {
-            run(End)();
+            run(Adjust)();
           }
           break;
         default:

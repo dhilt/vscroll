@@ -5,7 +5,7 @@ import { Item } from '../classes/item';
 export default class Render extends BaseProcessFactory(CommonProcess.render) {
 
   static run(scroller: Scroller): void {
-    const { workflow, state: { cycle, render, scrollState, clip }, viewport } = scroller;
+    const { workflow, state: { cycle, render, scrollState }, viewport } = scroller;
     scroller.logger.stat('before new items render');
     if (scrollState.positionBeforeAsync === null) {
       scrollState.positionBeforeAsync = viewport.scrollPosition;
@@ -16,10 +16,7 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
         workflow.call({
           process: Render.process,
           status: render.noSize ? ProcessStatus.done : ProcessStatus.next,
-          payload: {
-            process: cycle.initiator,
-            doClip: clip.simulate
-          }
+          payload: { process: cycle.initiator }
         });
       } else {
         workflow.call({

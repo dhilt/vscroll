@@ -5,16 +5,9 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
 
   static run(scroller: Scroller): void {
     const { workflow, viewport, state: { scrollState } } = scroller;
-    scrollState.positionBeforeAdjust = viewport.scrollPosition;
 
-    // padding-elements adjustments
-    if (!Adjust.setPaddings(scroller)) {
-      return workflow.call({
-        process: Adjust.process,
-        status: ProcessStatus.error,
-        payload: { error: 'Can\'t get visible item' }
-      });
-    }
+    scrollState.positionBeforeAdjust = viewport.scrollPosition;
+    Adjust.setPaddings(scroller);
     scrollState.positionAfterAdjust = viewport.scrollPosition;
 
     // scroll position adjustments
@@ -29,21 +22,26 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
     );
   }
 
-  static setPaddings(scroller: Scroller): boolean {
-    const { viewport, buffer, settings: { inverse } } = scroller;
+  static setPaddings(scroller: Scroller): void {
+    const { viewport, buffer, settings: { inverse }, state: { fetch } } = scroller;
     const firstItem = buffer.getFirstVisibleItem();
     const lastItem = buffer.getLastVisibleItem();
-    if (!firstItem || !lastItem) {
-      return false;
+    let first, last;
+    if (firstItem && lastItem) {
+      first = firstItem.$index;
+      last = lastItem.$index;
+    } else {
+      first = !isNaN(fetch.firstVisibleIndex) ? fetch.firstVisibleIndex : buffer.startIndex;
+      last = first - 1;
     }
     const { forward, backward } = viewport.paddings;
     let index, bwdSize = 0, fwdSize = 0;
 
     // new backward and forward paddings size
-    for (index = buffer.finiteAbsMinIndex; index < firstItem.$index; index++) {
+    for (index = buffer.finiteAbsMinIndex; index < first; index++) {
       bwdSize += buffer.getSizeByIndex(index);
     }
-    for (index = lastItem.$index + 1; index <= buffer.finiteAbsMaxIndex; index++) {
+    for (index = last + 1; index <= buffer.finiteAbsMaxIndex; index++) {
       fwdSize += buffer.getSizeByIndex(index);
     }
 
@@ -65,7 +63,6 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
     forward.size = fwdSize;
 
     scroller.logger.stat('after paddings adjustments');
-    return true;
   }
 
   static calculatePosition(scroller: Scroller): number {

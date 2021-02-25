@@ -27,10 +27,14 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     }
     const shouldRemoveBuffered = bufferRemoveList.length > 0;
     const shouldRemoveVirtual = Remove.removeVirtualItems(scroller, params, sequenceOnly);
-    if (!isNaN(fetch.firstVisibleIndex)) {
-      fetch.simulate = true;
+    if (!shouldRemoveBuffered && !shouldRemoveVirtual) {
+      return false;
     }
-    return shouldRemoveBuffered || shouldRemoveVirtual;
+    if (!isNaN(fetch.firstVisibleIndex)) {
+      fetch.remove();
+    }
+    scroller.logger.stat('after remove');
+    return true;
   }
 
   static removeBufferedItems(scroller: Scroller, options: AdapterRemoveOptions): number[] {
@@ -64,16 +68,13 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
       return [];
     }
 
-    // determine what should be shown after remove (1-3)
+    // what item should be shown after remove (1-4)
     const firstClipIndex = clipList[0].$index, lastClipIndex = clipList[clipList.length - 1].$index;
     // 1) current first visible item will remain
-    const { item: firstVisible, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
-    if (firstVisible) {
-      const _index = firstVisible.get().$index;
-      if (_index < firstClipIndex || _index > lastClipIndex) {
-        fetch.firstVisibleIndex = _index;
-        fetch.firstVisibleItemDelta = - buffer.getSizeByIndex(_index) + diff;
-      }
+    const { index: firstIndex, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
+    if (firstIndex < firstClipIndex || firstIndex > lastClipIndex) {
+      fetch.firstVisibleIndex = firstIndex;
+      fetch.firstVisibleItemDelta = - buffer.getSizeByIndex(firstIndex) + diff;
     }
     // 2) next after the last removed item
     if (isNaN(fetch.firstVisibleIndex) && lastClipIndex < buffer.finiteAbsMaxIndex) {
@@ -82,6 +83,10 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     // 3) prev before the first removed item
     if (isNaN(fetch.firstVisibleIndex) && firstClipIndex > buffer.finiteAbsMinIndex) {
       fetch.firstVisibleIndex = firstClipIndex - 1;
+    }
+    // 4) prev before the first removed item
+    if (isNaN(fetch.firstVisibleIndex)) {
+      fetch.firstVisibleIndex = buffer.finiteAbsMinIndex;
     }
 
     // logical removal
@@ -132,10 +137,10 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
 
     // what should be shown after remove; Buffer removal has priority
     if (isNaN(fetch.firstVisibleIndex)) {
-      const { item: first, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
-      if (first) {
-        fetch.firstVisibleIndex = first.get().$index;
-        fetch.firstVisibleItemDelta = - buffer.getSizeByIndex(first.get().$index) + diff;
+      const { index: firstIndex, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
+      if (!isNaN(firstIndex)) {
+        fetch.firstVisibleIndex = firstIndex;
+        fetch.firstVisibleItemDelta = - buffer.getSizeByIndex(firstIndex) + diff;
       }
     }
 

@@ -21,10 +21,10 @@ export default class Check extends BaseAdapterProcessFactory(AdapterProcess.chec
     if (Number.isFinite(min)) {
       fetch.first.indexBuffer = buffer.firstIndex;
       fetch.last.indexBuffer = buffer.lastIndex;
-      const { item: first, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
-      fetch.firstVisibleIndex = first ? first.get().$index : NaN;
-      if (!isNaN(fetch.firstVisibleIndex)) {
-        fetch.firstVisibleItemDelta = - buffer.getSizeByIndex(fetch.firstVisibleIndex) + diff;
+      const { index: firstIndex, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
+      fetch.firstVisibleIndex = firstIndex;
+      if (!isNaN(firstIndex)) {
+        fetch.firstVisibleItemDelta = - buffer.getSizeByIndex(firstIndex) + diff;
       }
       fetch.check(
         buffer.items.filter(item => item.$index >= min && item.$index <= max)

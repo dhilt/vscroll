@@ -182,41 +182,6 @@ export class Cache<Data = unknown> {
   }
 
   /**
-   * Prepares Set for inserting new items.
-   * Does not provide the actual insertion, but shifts the indexes of existed items.
-   * Insertion must be performed by Cache.add call.
-   *
-   * @param {number} index Index of insertion.
-   * @param {number} after How many items will be inserted after the "index".
-   * @param {boolean} fixLeft Defines indexes shifting strategy.
-   * If true, indexes that are greater than "index" will be increased.
-   * If false, indexes that are less than "index" will be decreased.
-   */
-  insertItems(index: number, count: number, fixLeft: boolean): void {
-    const items = new Map<number, ItemCache<Data>>();
-    let min = Infinity, max = -Infinity;
-    this.items.forEach(item => {
-      const { $index } = item;
-      if ($index < index) {
-        if (!fixLeft) {
-          item.changeIndex($index - count);
-        }
-        items.set(item.$index, item);
-      } else {
-        if (fixLeft) {
-          item.changeIndex($index + count);
-        }
-        items.set(item.$index, item);
-      }
-      min = item.$index < min ? item.$index : min;
-      max = item.$index > max ? item.$index : max;
-    });
-    this.items = items;
-    this.minIndex = min;
-    this.maxIndex = max;
-  }
-
-  /**
    * Destructively updates cache Set (this.items) based on subset (before-after) changes.
    *
    * @param {number[]} before Initial subset of indexes to be replaced by "after". Must be incremental.

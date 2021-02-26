@@ -1,17 +1,15 @@
 import { Scroller } from '../../scroller';
-import { Item } from '../../classes/item';
+import Update from './update';
 import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
-import { AdapterInsertOptions, ItemsPredicate } from '../../interfaces/index';
+import { AdapterInsertOptions, AdapterUpdateOptions, ItemsPredicate } from '../../interfaces/index';
 
 export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.insert) {
 
   static run(scroller: Scroller, options: AdapterInsertOptions): void {
-
     const { params } = Insert.parseInput(scroller, options);
     if (!params) {
       return;
     }
-
     const shouldInsert = Insert.doInsert(scroller, params);
 
     scroller.workflow.call({
@@ -25,34 +23,22 @@ export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.ins
     const method = (before || after) as ItemsPredicate;
     const found = scroller.buffer.items.find(item => method(item.get()));
     if (!found) {
+      scroller.logger.log('no item to insert found');
       return false;
     }
-    return Insert.simulateFetch(scroller, found, items, !!before, !!decrease);
-  }
 
-  static simulateFetch(
-    scroller: Scroller, from: Item, items: unknown[], before: boolean, decrement: boolean
-  ): boolean {
-    const { buffer, routines, state: { fetch } } = scroller;
-    const bufferLimit = decrement ? buffer.absMinIndex : buffer.absMaxIndex;
-    const addition = before ? 0 : 1;
-    const count = items.length;
-    const itemsToInsert = items.map((item, i) =>
-      new Item(from.$index + i + addition - (decrement ? count : 0), item, routines)
-    );
-    buffer.insertItems(itemsToInsert, from, addition, !decrement);
-    scroller.logger.log(() => {
-      const newBufferLimit = decrement ? buffer.absMinIndex : buffer.absMaxIndex;
-      const isChange = bufferLimit !== newBufferLimit;
-      const token = decrement ? 'absMinIndex' : 'absMaxIndex';
-      return `buffer.${token} value ` + (
-        isChange ? `has been changed from ${bufferLimit} to ${newBufferLimit}` : 'has not been changed'
-      );
-    });
-    fetch.insert(itemsToInsert);
-    fetch.first.indexBuffer = buffer.firstIndex;
-    fetch.last.indexBuffer = buffer.lastIndex;
-    return true;
+    const indexToInsert = found.$index;
+    const updateOptions: AdapterUpdateOptions = {
+      predicate: ({ $index, data }) => {
+        if (indexToInsert === $index) {
+          return before ? [...items, data] : [data, ...items];
+        }
+        return true;
+      },
+      fixRight: decrease
+    };
+
+    return Update.doUpdate(scroller, updateOptions);
   }
 
 }

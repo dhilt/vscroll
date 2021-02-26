@@ -250,26 +250,6 @@ export class Buffer<Data> {
     this.cache.removeItems(toRemove, fixLeft);
   }
 
-  insertItems(items: Item<Data>[], from: Item<Data>, addition: number, fixLeft: boolean): void {
-    const count = items.length;
-    const index = this.items.indexOf(from) + addition;
-    const itemsBefore = this.items.slice(0, index);
-    const itemsAfter = this.items.slice(index);
-    if (fixLeft) {
-      itemsAfter.forEach(item => item.updateIndex(item.$index + count));
-    } else {
-      itemsBefore.forEach(item => item.updateIndex(item.$index - count));
-    }
-    const result = [
-      ...itemsBefore,
-      ...items,
-      ...itemsAfter
-    ];
-    this.shiftExtremum(count, fixLeft);
-    this.items = result;
-    this.cache.insertItems(from.$index + addition, count, fixLeft);
-  }
-
   updateItems(
     predicate: BufferUpdater<Data>,
     generator: (index: number, data: Data) => Item<Data>,

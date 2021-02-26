@@ -137,10 +137,10 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
 
     // what should be shown after remove; Buffer removal has priority
     if (isNaN(fetch.firstVisibleIndex)) {
-      const { index: firstIndex, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
-      if (!isNaN(firstIndex)) {
-        fetch.firstVisibleIndex = firstIndex;
-        fetch.firstVisibleItemDelta = - buffer.getSizeByIndex(firstIndex) + diff;
+      const { index, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
+      if (!isNaN(index)) {
+        fetch.firstVisibleIndex = index;
+        fetch.firstVisibleItemDelta = - buffer.getSizeByIndex(index) + diff;
       }
     }
 

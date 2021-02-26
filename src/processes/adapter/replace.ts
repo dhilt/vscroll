@@ -10,7 +10,6 @@ export default class Replace extends BaseAdapterProcessFactory(AdapterProcess.re
     if (!params) {
       return;
     }
-
     const shouldReplace = Replace.doReplace(scroller, params);
 
     scroller.workflow.call({
@@ -25,6 +24,7 @@ export default class Replace extends BaseAdapterProcessFactory(AdapterProcess.re
       .map(item => item.$index);
 
     if (!toRemove.length) {
+      scroller.logger.log('no items to be replaced');
       return false;
     }
 

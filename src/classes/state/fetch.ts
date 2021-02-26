@@ -159,12 +159,6 @@ export class FetchModel {
     this.isCheck = true;
   }
 
-  insert(items: Item[]): void {
-    this.startSimulate(items);
-    this.last.index = items[0].$index;
-    this.first.index = items[items.length - 1].$index;
-  }
-
   remove(): void {
     this.startSimulate([]);
     this.doRemove = true;

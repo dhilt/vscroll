@@ -6,6 +6,13 @@ import { generateBufferItem, generateBufferItems, generateItem } from './misc/it
 
 const loggerMock = { log: () => null };
 
+const make = (list: CheckIndexList): Item<Data>[] =>
+  list.map(current => {
+    const index = Number(Object.keys(current)[0]);
+    const id = current[index];
+    return generateBufferItem(index, generateItem(id));
+  });
+
 describe('Cache Spec', () => {
 
   describe('Remove', () => {
@@ -85,15 +92,7 @@ describe('Cache Spec', () => {
     const MIN = 1, COUNT = 7;
     const items = generateBufferItems(MIN, COUNT);
     const subset = items.slice(2, 5).map(({ $index }) => $index); // [3, 4, 5]
-
     let cache: Cache<Data>;
-
-    const make = (list: CheckIndexList): Item<Data>[] =>
-      list.map(current => {
-        const index = Number(Object.keys(current)[0]);
-        const id = current[index];
-        return generateBufferItem(index, generateItem(id));
-      });
 
     const checkUpdate = (list: CheckIndexList) => {
       // console.log(Array.from((cache as unknown as { items: Map<number, Item<Data>> }).items).map(i => i[1].data));
@@ -208,14 +207,11 @@ describe('Cache Spec', () => {
   });
 
   describe('Average size', () => {
-
-    it('should maintain average size on remove', () => {
-      const length = 50;
-      const toRemove = [10, 20, 30, 40, 50];
-      const sizeBeforeRemove = Math.round(
+    const prepare = ({ length, toRemove }) => {
+      const before = Math.round(
         Array.from({ length }).reduce((acc: number, j, i) => acc + i + 1, 0) / length
       );
-      const sizeAfterRemove = Math.round(
+      const after = Math.round(
         Array.from({ length }).reduce(
           (acc: number, j, i) => acc + (toRemove.includes(i + 1) ? 0 : (i + 1)), 0
         ) / (length - toRemove.length));
@@ -224,11 +220,31 @@ describe('Cache Spec', () => {
       const items = generateBufferItems(1, length);
       items.forEach(item => cache.add(item));
       cache.recalculateAverageSize();
-      expect(cache.averageSize).toBe(sizeBeforeRemove);
+      return { items, cache, average: { after, before } };
+    };
+
+    it('should maintain average size on remove', () => {
+      const toRemove = [10, 20, 30, 40, 50];
+      const { cache, average } = prepare({ length: 50, toRemove });
+
+      expect(cache.averageSize).toBe(average.before);
 
       cache.removeItems(toRemove, true);
       cache.recalculateAverageSize();
-      expect(cache.averageSize).toBe(sizeAfterRemove);
+      expect(cache.averageSize).toBe(average.after);
+    });
+
+    it('should maintain average size on remove via update', () => {
+      const toRemove = [5, 8, 10];
+      const { items, cache, average } = prepare({ length: 10, toRemove });
+      const listAfter = [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 5: 6 }, { 6: 7 }, { 7: 9 }];
+      const subset = items.slice(toRemove[0], toRemove[toRemove.length - 1] + 1).map(({ $index }) => $index);
+
+      expect(cache.averageSize).toBe(average.before);
+
+      cache.updateSubset(subset, make(listAfter));
+      cache.recalculateAverageSize();
+      expect(cache.averageSize).toBe(average.after);
     });
   });
 

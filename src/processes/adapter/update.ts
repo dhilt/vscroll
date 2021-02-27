@@ -50,7 +50,7 @@ export default class Update extends BaseAdapterProcessFactory(AdapterProcess.upd
       : 'no items to remove'
     );
 
-    const itemsToRender = buffer.items.filter(({ element }) => !element);
+    const itemsToRender = buffer.items.filter(({ toInsert }) => toInsert);
     logger.log(() => itemsToRender.length
       ? 'items to render: [' + itemsToRender.map(({ $index }) => $index).join(',') + ']'
       : 'no items to render'

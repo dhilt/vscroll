@@ -94,9 +94,9 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     scroller.logger.log(() =>
       `going to remove ${clipList.length} item(s) from Buffer: [${indexListToRemove.join(',')}]`
     );
-    buffer.removeItems(indexListToRemove, !increase, false);
+    buffer.removeItems(indexListToRemove, increase, false);
     buffer.checkAverageSize();
-    Remove.shiftFirstVisibleIndex(scroller, indexListToRemove, !!increase);
+    Remove.shiftFirstVisibleIndex(scroller, indexListToRemove, increase);
 
     // physical removal (hiding)
     clipList.forEach(item => item.hide());
@@ -146,7 +146,7 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
 
     // virtual removal
     scroller.logger.log(() => `going to remove ${toRemove.length} item(s) virtually`);
-    buffer.removeItems(toRemove, !increase, true);
+    buffer.removeItems(toRemove, !!increase, true);
     buffer.checkAverageSize();
     Remove.shiftFirstVisibleIndex(scroller, toRemove, !!increase);
 

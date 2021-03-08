@@ -89,7 +89,7 @@ export class Buffer<Data> {
 
   set absMinIndex(value: number) {
     if (this._absMinIndex !== value) {
-      this._absMinIndex = value > this._absMaxIndex ? this._absMaxIndex : value;
+      this._absMinIndex = Number.isFinite(this._absMaxIndex) && value > this._absMaxIndex ? this._absMaxIndex : value;
     }
     if (!this.pristine) {
       this.checkBOF();
@@ -102,7 +102,7 @@ export class Buffer<Data> {
 
   set absMaxIndex(value: number) {
     if (this._absMaxIndex !== value) {
-      this._absMaxIndex = value < this._absMinIndex ? this._absMinIndex : value;
+      this._absMaxIndex = Number.isFinite(this._absMinIndex) && value < this._absMinIndex ? this._absMinIndex : value;
     }
     if (!this.pristine) {
       this.checkEOF();
@@ -198,8 +198,8 @@ export class Buffer<Data> {
     this.items = [...items, ...this.items];
   }
 
-  private shiftExtremum(amount: number, fixLeft: boolean) {
-    if (fixLeft) {
+  private shiftExtremum(amount: number, fixRight: boolean) {
+    if (!fixRight) {
       this.absMaxIndex += amount;
     } else {
       this.absMinIndex -= amount;
@@ -212,42 +212,42 @@ export class Buffer<Data> {
     }
   }
 
-  removeItems(indexes: number[], fixLeft: boolean, virtual = false): void {
+  removeItems(indexes: number[], fixRight: boolean, virtual = false): void {
     const result: Item<Data>[] = [];
     const toRemove: number[] = virtual ? indexes : [];
     const length = this.items.length;
     let shifted = false;
     for (
-      let i = fixLeft ? 0 : length - 1;
-      fixLeft ? i < length : i >= 0;
-      fixLeft ? i++ : i--
+      let i = fixRight ? length - 1 : 0;
+      fixRight ? i >= 0 : i < length;
+      fixRight ? i-- : i++
     ) {
       const item = this.items[i];
       if (!virtual && indexes.indexOf(item.$index) >= 0) {
         toRemove.push(item.$index);
         continue;
       }
-      const diff = toRemove.reduce((acc, index) => acc + (fixLeft
-        ? (item.$index > index ? -1 : 0)
-        : (item.$index < index ? 1 : 0)
+      const diff = toRemove.reduce((acc, index) => acc + (fixRight
+        ? (item.$index < index ? 1 : 0)
+        : (item.$index > index ? -1 : 0)
       ), 0);
       shifted = shifted || !!diff;
       item.updateIndex(item.$index + diff);
       if (!virtual) {
-        if (fixLeft) {
-          result.push(item);
-        } else {
+        if (fixRight) {
           result.unshift(item);
+        } else {
+          result.push(item);
         }
       }
     }
-    this.shiftExtremum(-toRemove.length, fixLeft);
+    this.shiftExtremum(-toRemove.length, fixRight);
     if (!virtual) {
       this.items = result;
     } else if (shifted) {
       this.items = [...this.items];
     }
-    this.cache.removeItems(toRemove, fixLeft);
+    this.cache.removeItems(toRemove, fixRight);
   }
 
   updateItems(
@@ -270,7 +270,7 @@ export class Buffer<Data> {
       if (!result || (Array.isArray(result) && !result.length)) {
         item.toRemove = true;
         _indexToTrack += item.$index >= indexToTrack ? (fixRight ? 1 : 0) : (fixRight ? 0 : -1);
-        this.shiftExtremum(-1, !fixRight);
+        this.shiftExtremum(-1, fixRight);
         return;
       }
       // if predicate result is truthy but not array -> leave
@@ -307,7 +307,7 @@ export class Buffer<Data> {
       items.push(...newItems);
       index += diff * result.length;
       if (result.length > 1) {
-        this.shiftExtremum(result.length - 1, !fixRight);
+        this.shiftExtremum(result.length - 1, fixRight);
       }
     });
     this.items = fixRight ? items.reverse() : items;

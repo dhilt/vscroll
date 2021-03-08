@@ -32,58 +32,58 @@ describe('Cache Spec', () => {
       items.forEach(item => cache.add(item));
     });
 
-    it('should not remove when out of the right border & immutableTop = true', () => {
-      cache.removeItems([99], true);
+    it('should not remove when out of the right border & fixRight = false', () => {
+      cache.removeItems([99], false);
       check([1, 2, 3, 4, 5]);
     });
 
-    it('should increase all indexes when out of the right border & immutableTop = false', () => {
-      cache.removeItems([99], false);
+    it('should increase all indexes when out of the right border & fixRight = true', () => {
+      cache.removeItems([99], true);
       check([null, 1, 2, 3, 4, 5]);
     });
 
-    it('should not remove when out of the left border & immutableTop = false', () => {
-      cache.removeItems([-99], false);
+    it('should not remove when out of the left border & fixRight = true', () => {
+      cache.removeItems([-99], true);
       check([1, 2, 3, 4, 5]);
     });
 
-    it('should decrease all indexes when out of the left border & immutableTop = true', () => {
-      cache.removeItems([-99], true);
+    it('should decrease all indexes when out of the left border & fixRight = false', () => {
+      cache.removeItems([-99], false);
       check([2, 3, 4, 5]);
     });
 
-    it('should decrease bottom indexes when removing from top & immutableTop = true', () => {
-      cache.removeItems([1, 2], true);
+    it('should decrease bottom indexes when removing from top & fixRight = false', () => {
+      cache.removeItems([1, 2], false);
       check([3, 4, 5, null, null]);
     });
 
-    it('should not shift indexes when removing from top & immutableTop = false', () => {
-      cache.removeItems([1, 2], false);
+    it('should not shift indexes when removing from top & fixRight = true', () => {
+      cache.removeItems([1, 2], true);
       check([null, null, 3, 4, 5]);
     });
 
-    it('should not shift indexes when removing from bottom & immutableTop = true', () => {
-      cache.removeItems([4, 5], true);
+    it('should not shift indexes when removing from bottom & fixRight = false', () => {
+      cache.removeItems([4, 5], false);
       check([1, 2, 3, null, null]);
     });
 
-    it('should increase top indexes when removing from bottom & immutableTop = false', () => {
-      cache.removeItems([4, 5], false);
+    it('should increase top indexes when removing from bottom & fixRight = true', () => {
+      cache.removeItems([4, 5], true);
       check([null, null, 1, 2, 3]);
     });
 
-    it('should decrease the below indexes when removing from center & immutableTop = true', () => {
-      cache.removeItems([3], true);
+    it('should decrease the below indexes when removing from center & fixRight = false', () => {
+      cache.removeItems([3], false);
       check([1, 2, 4, 5, null]);
     });
 
-    it('should shift increase the above indexes when removing from center & immutableTop = false', () => {
-      cache.removeItems([3], false);
+    it('should shift increase the above indexes when removing from center & fixRight = true', () => {
+      cache.removeItems([3], true);
       check([null, 1, 2, 4, 5]);
     });
 
     it('should remove non-sequenced list', () => {
-      cache.removeItems([1, 3, 5], true);
+      cache.removeItems([1, 3, 5], false);
       check([2, 4, null, null, null]);
     });
   });

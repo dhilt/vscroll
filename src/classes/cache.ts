@@ -123,8 +123,7 @@ export class Cache<Data = unknown> {
    * Adds item to Set, replaces existed one if $index matches.
    * Maintains min/max indexes and average item size via recalculateAverage lists.
    *
-   * @param {Item<Data>} item A Buffer item to be cached.
-   * An array of objects with { $index, data, size } props is expected.
+   * @param {Item<Data>} item A Buffer item to be cached, an objects with { $index, data, size } props.
    */
   add(item: Item<Data>): ItemCache<Data> {
     let itemCache = this.get(item.$index);
@@ -164,11 +163,11 @@ export class Cache<Data = unknown> {
    * Maintains min/max indexes and average item size via recalculateAverage lists.
    *
    * @param {number[]} toRemove List of indexes to be removed.
-   * @param {boolean} fixLeft Defines indexes shifting strategy.
-   * If true, indexes that are greater than the removed ones will be decreased.
-   * If false, indexes that are less than than the removed ones will be increased.
+   * @param {boolean} fixRight Defines indexes shifting strategy.
+   * If false, indexes that are greater than the removed ones will be decreased.
+   * If true, indexes that are less than than the removed ones will be increased.
    */
-  removeItems(toRemove: number[], fixLeft: boolean): void {
+  removeItems(toRemove: number[], fixRight: boolean): void {
     const items = new Map<number, ItemCache<Data>>();
     let min = Infinity, max = -Infinity;
     this.items.forEach(item => {
@@ -178,9 +177,9 @@ export class Cache<Data = unknown> {
         }
         return;
       }
-      const diff = fixLeft
-        ? toRemove.reduce((acc, index) => acc - (item.$index > index ? 1 : 0), 0)
-        : toRemove.reduce((acc, index) => acc + (item.$index < index ? 1 : 0), 0);
+      const diff = fixRight
+        ? toRemove.reduce((acc, index) => acc + (item.$index < index ? 1 : 0), 0)
+        : toRemove.reduce((acc, index) => acc - (item.$index > index ? 1 : 0), 0);
       item.changeIndex(item.$index + diff);
       items.set(item.$index, item);
       min = item.$index < min ? item.$index : min;
@@ -231,7 +230,7 @@ export class Cache<Data = unknown> {
     after.forEach(item => // subset items
       items.set(item.$index, new ItemCache<Data>(item, this.saveData))
     );
-    before.forEach(index => { // push removed items to recalculateAverage
+    before.forEach(index => { // push removed items to recalculateAverage.removed
       if (!after.some(({ $index }) => index === $index) && (found = this.get(index))) {
         this.recalculateAverage.removed.push({ size: found.size });
       }

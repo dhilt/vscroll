@@ -24,7 +24,7 @@ export class Buffer<Data> {
   private cache: Cache<Data>;
   readonly logger: Logger;
 
-  constructor(settings: Settings, onDataChanged: OnDataChanged<Data>, logger: Logger) {
+  constructor(settings: Settings<Data>, onDataChanged: OnDataChanged<Data>, logger: Logger) {
     this.logger = logger;
     this.changeItems = onDataChanged;
     this.bof = new Reactive<boolean>(false);

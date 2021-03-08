@@ -2,8 +2,6 @@ import {
   ObservableLike,
   DatasourceGet,
   IDatasourceOptional,
-  IDatasourceGeneric,
-  IDatasourceConstructedGeneric,
   IDatasource,
   IDatasourceConstructed,
 } from './datasource';
@@ -68,8 +66,6 @@ export {
   ObservableLike,
   DatasourceGet,
   IDatasourceOptional,
-  IDatasourceGeneric,
-  IDatasourceConstructedGeneric,
   IDatasource,
   IDatasourceConstructed,
   OnDataChanged,

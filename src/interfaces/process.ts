@@ -17,6 +17,7 @@ export interface ProcessPayload {
   event?: Event;
   finalize?: boolean;
   doClip?: boolean;
+  doRender?: boolean;
   datasource?: IDatasourceConstructed;
   error?: unknown;
 }

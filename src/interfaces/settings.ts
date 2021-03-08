@@ -1,6 +1,6 @@
 import { ItemsProcessor } from './adapter';
 
-export interface Settings {
+export interface Settings<T = unknown> {
   adapter?: boolean;
   startIndex?: number;
   minIndex?: number;
@@ -13,7 +13,7 @@ export interface Settings {
   windowViewport?: boolean;
   viewportElement?: HTMLElement | (() => void) | null;
   inverse?: boolean;
-  onBeforeClip?: ItemsProcessor | null;
+  onBeforeClip?: ItemsProcessor<T> | null;
 }
 
 export interface DevSettings {
@@ -25,6 +25,7 @@ export interface DevSettings {
   initDelay?: number;
   initWindowDelay?: number;
   cacheData?: boolean;
+  cacheOnReload?: boolean;
   changeOverflow?: boolean;
   dismissOverflowAnchor?: boolean;
 }

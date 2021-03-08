@@ -4,11 +4,11 @@ import { Settings } from './settings';
 import { Logger } from './logger';
 import { Reactive } from './reactive';
 import { Direction } from '../inputs/index';
-import { OnDataChanged } from '../interfaces/index';
+import { OnDataChanged, BufferUpdater } from '../interfaces/index';
 
 export class Buffer<Data> {
 
-  private _items: Item<Data>[];
+  private _items: Item<Data>[] = [];
   private _absMinIndex: number;
   private _absMaxIndex: number;
   bof: Reactive<boolean>;
@@ -24,16 +24,16 @@ export class Buffer<Data> {
   private cache: Cache<Data>;
   readonly logger: Logger;
 
-  constructor(settings: Settings, onDataChanged: OnDataChanged<Data>, logger: Logger) {
+  constructor(settings: Settings<Data>, onDataChanged: OnDataChanged<Data>, logger: Logger) {
     this.logger = logger;
     this.changeItems = onDataChanged;
     this.bof = new Reactive<boolean>(false);
     this.eof = new Reactive<boolean>(false);
-    this.cache = new Cache<Data>(settings.itemSize, settings.cacheData, logger);
+    this.cache = new Cache<Data>(settings.itemSize, settings.cacheData, settings.cacheOnReload, logger);
     this.startIndexUser = settings.startIndex;
     this.minIndexUser = settings.minIndex;
     this.maxIndexUser = settings.maxIndex;
-    this.reset();
+    this.reset(true);
   }
 
   dispose(): void {
@@ -41,13 +41,11 @@ export class Buffer<Data> {
     this.eof.dispose();
   }
 
-  reset(reload?: boolean, startIndex?: number): void {
-    if (reload) {
-      this.items.forEach(item => item.hide());
-    }
+  reset(force: boolean, startIndex?: number): void {
+    this.items.forEach(item => item.hide());
     this.pristine = true;
     this.items = [];
-    this.cache.reset();
+    this.cache.reset(force);
     this.absMinIndex = this.minIndexUser;
     this.absMaxIndex = this.maxIndexUser;
     this.setCurrentStartIndex(startIndex);
@@ -91,7 +89,7 @@ export class Buffer<Data> {
 
   set absMinIndex(value: number) {
     if (this._absMinIndex !== value) {
-      this._absMinIndex = value;
+      this._absMinIndex = Number.isFinite(this._absMaxIndex) && value > this._absMaxIndex ? this._absMaxIndex : value;
     }
     if (!this.pristine) {
       this.checkBOF();
@@ -104,7 +102,7 @@ export class Buffer<Data> {
 
   set absMaxIndex(value: number) {
     if (this._absMaxIndex !== value) {
-      this._absMaxIndex = value;
+      this._absMaxIndex = Number.isFinite(this._absMinIndex) && value < this._absMinIndex ? this._absMinIndex : value;
     }
     if (!this.pristine) {
       this.checkEOF();
@@ -188,6 +186,10 @@ export class Buffer<Data> {
     return true;
   }
 
+  clip(): void {
+    this.items = this.items.filter(({ toRemove }) => !toRemove);
+  }
+
   append(items: Item<Data>[]): void {
     this.items = [...this.items, ...items];
   }
@@ -196,68 +198,129 @@ export class Buffer<Data> {
     this.items = [...items, ...this.items];
   }
 
-  removeItems(indexes: number[], immutableTop: boolean, virtual = false): void {
+  private shiftExtremum(amount: number, fixRight: boolean) {
+    if (!fixRight) {
+      this.absMaxIndex += amount;
+    } else {
+      this.absMinIndex -= amount;
+      this.startIndex -= amount;
+    }
+    if (this.startIndex > this.absMaxIndex) {
+      this.startIndex = this.absMaxIndex;
+    } else if (this.startIndex < this.absMinIndex) {
+      this.startIndex = this.absMinIndex;
+    }
+  }
+
+  removeItems(indexes: number[], fixRight: boolean, virtual = false): void {
     const result: Item<Data>[] = [];
     const toRemove: number[] = virtual ? indexes : [];
     const length = this.items.length;
+    let shifted = false;
     for (
-      let i = immutableTop ? 0 : length - 1;
-      immutableTop ? i < length : i >= 0;
-      immutableTop ? i++ : i--
+      let i = fixRight ? length - 1 : 0;
+      fixRight ? i >= 0 : i < length;
+      fixRight ? i-- : i++
     ) {
       const item = this.items[i];
       if (!virtual && indexes.indexOf(item.$index) >= 0) {
         toRemove.push(item.$index);
         continue;
       }
-      const diff = toRemove.reduce((acc, index) => acc + (immutableTop
-        ? (item.$index > index ? -1 : 0)
-        : (item.$index < index ? 1 : 0)
+      const diff = toRemove.reduce((acc, index) => acc + (fixRight
+        ? (item.$index < index ? 1 : 0)
+        : (item.$index > index ? -1 : 0)
       ), 0);
+      shifted = shifted || !!diff;
       item.updateIndex(item.$index + diff);
       if (!virtual) {
-        if (immutableTop) {
-          result.push(item);
-        } else {
+        if (fixRight) {
           result.unshift(item);
+        } else {
+          result.push(item);
         }
       }
     }
-    if (immutableTop) {
-      this.absMaxIndex -= toRemove.length;
-    } else {
-      this.absMinIndex += toRemove.length;
-      this.startIndex += toRemove.length;
-    }
+    this.shiftExtremum(-toRemove.length, fixRight);
     if (!virtual) {
       this.items = result;
+    } else if (shifted) {
+      this.items = [...this.items];
     }
-    this.cache.removeItems(toRemove, immutableTop);
+    this.cache.removeItems(toRemove, fixRight);
   }
 
-  insertItems(items: Item<Data>[], from: Item<Data>, addition: number, immutableTop: boolean): void {
-    const count = items.length;
-    const index = this.items.indexOf(from) + addition;
-    const itemsBefore = this.items.slice(0, index);
-    const itemsAfter = this.items.slice(index);
-    if (immutableTop) {
-      itemsAfter.forEach(item => item.updateIndex(item.$index + count));
-    } else {
-      itemsBefore.forEach(item => item.updateIndex(item.$index - count));
+  updateItems(
+    predicate: BufferUpdater<Data>,
+    generator: (index: number, data: Data) => Item<Data>,
+    indexToTrack: number,
+    fixRight: boolean
+  ): number {
+    if (!this.size || isNaN(this.firstIndex)) {
+      return NaN;
     }
-    const result = [
-      ...itemsBefore,
-      ...items,
-      ...itemsAfter
-    ];
-    if (immutableTop) {
-      this.absMaxIndex += count;
-    } else {
-      this.absMinIndex -= count;
-      this.startIndex -= count;
+    let _indexToTrack = indexToTrack;
+    let index = fixRight ? this.lastIndex : this.firstIndex;
+    const items: Item<Data>[] = [];
+    const diff = fixRight ? -1 : 1;
+    const initialIndexList = this.items.map(({ $index }) => $index);
+    (fixRight ? this.items.reverse() : this.items).forEach(item => {
+      const result = predicate(item);
+      // if predicate result is falsy or empty array -> delete
+      if (!result || (Array.isArray(result) && !result.length)) {
+        item.toRemove = true;
+        _indexToTrack += item.$index >= indexToTrack ? (fixRight ? 1 : 0) : (fixRight ? 0 : -1);
+        this.shiftExtremum(-1, fixRight);
+        return;
+      }
+      // if predicate result is truthy but not array -> leave
+      if (!Array.isArray(result)) {
+        item.updateIndex(index);
+        items.push(item);
+        index += diff;
+        return;
+      }
+      // if predicate result is non-empty array -> insert/replace
+      if (item.$index < indexToTrack) {
+        _indexToTrack += fixRight ? 0 : result.length - 1;
+      } else if (item.$index > indexToTrack) {
+        _indexToTrack += fixRight ? 1 - result.length : 0;
+      }
+      let toRemove = true;
+      const newItems: Item<Data>[] = [];
+      (fixRight ? [...result].reverse() : result).forEach((data, i) => {
+        let newItem: Item<Data>;
+        if (item.data === data) {
+          if (indexToTrack === item.$index) {
+            _indexToTrack = index + i * diff;
+          }
+          item.updateIndex(index + i * diff);
+          newItem = item;
+          toRemove = false; // insert case
+        } else {
+          newItem = generator(index + i * diff, data);
+          newItem.toInsert = true;
+        }
+        newItems.push(newItem);
+      });
+      item.toRemove = toRemove;
+      items.push(...newItems);
+      index += diff * result.length;
+      if (result.length > 1) {
+        this.shiftExtremum(result.length - 1, fixRight);
+      }
+    });
+    this.items = fixRight ? items.reverse() : items;
+    this.cache.updateSubset(initialIndexList, this.items, fixRight);
+
+    if (this.finiteAbsMinIndex === this.finiteAbsMaxIndex) {
+      _indexToTrack = NaN;
+    } else if (_indexToTrack > this.finiteAbsMaxIndex) {
+      _indexToTrack = this.finiteAbsMaxIndex;
+    } else if (_indexToTrack < this.finiteAbsMinIndex) {
+      _indexToTrack = this.finiteAbsMinIndex;
     }
-    this.items = result;
-    this.cache.insertItems(from.$index + addition, count, immutableTop);
+    return _indexToTrack;
   }
 
   cacheItem(item: Item<Data>): void {

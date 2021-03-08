@@ -8,6 +8,7 @@ export class Item<Data = unknown> {
   size: number;
   invisible: boolean;
   toRemove: boolean;
+  toInsert: boolean;
   removeDirection: Direction;
 
   private container: ItemAdapter<Data>;
@@ -41,6 +42,8 @@ export class Item<Data = unknown> {
     this.nodeId = String($index);
     this.routines = routines;
     this.invisible = true;
+    this.toRemove = false;
+    this.toInsert = false;
   }
 
   setSize(): void {

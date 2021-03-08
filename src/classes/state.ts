@@ -4,7 +4,7 @@ import { FetchModel } from './state/fetch';
 import { ClipModel } from './state/clip';
 import { RenderModel } from './state/render';
 import { ScrollState } from './state/scroll';
-import { State as IState, IPackages, ScrollState as IScrollState } from '../interfaces/index';
+import { State as IState, IPackages, ScrollState as IScrollState, ProcessName } from '../interfaces/index';
 
 export class State implements IState {
 
@@ -53,17 +53,24 @@ export class State implements IState {
     cycle.innerLoop.done();
   }
 
-  startInnerLoop(): void {
+  startInnerLoop(): { process?: ProcessName, doRender?: boolean } {
     const { cycle, scrollState: scroll, fetch, render, clip } = this;
+
     cycle.innerLoop.start();
     scroll.positionBeforeAsync = null;
+
     if (!fetch.simulate) {
       fetch.reset();
     }
-    if (!clip.simulate) {
-      clip.reset(clip.force);
-    }
+    clip.reset(clip.force);
     render.reset();
+
+    return {
+      ...(cycle.innerLoop.first ? {
+        process: cycle.initiator,
+        doRender: fetch.simulate && fetch.items.length > 0
+      } : {})
+    };
   }
 
   dispose(): void {

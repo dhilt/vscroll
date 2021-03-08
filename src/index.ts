@@ -7,8 +7,8 @@ import { AdapterPropName, EMPTY_ITEM, getDefaultAdapterProps } from './classes/a
 import { Direction } from './inputs/index';
 
 import {
-  IDatasourceGeneric,
   IDatasource,
+  IDatasourceConstructed,
   IReactivePropConfig,
   IAdapterConfig,
   ItemAdapter,
@@ -30,8 +30,8 @@ export {
 
 // export interfaces
 export {
-  IDatasourceGeneric,
   IDatasource,
+  IDatasourceConstructed,
   IReactivePropConfig,
   IAdapterConfig,
   ItemAdapter as IAdapterItem,

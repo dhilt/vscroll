@@ -1,40 +1,30 @@
 import { Settings, DevSettings } from './settings';
 import { IAdapter } from './adapter';
 
-type SuccessCallback = (data: unknown[]) => void;
-type ErrorCallback = (error: unknown) => void;
+type SuccessFn<T = unknown> = (data: T[]) => void;
+type ErrorFn = (error: unknown) => void;
 
-export interface ObservableLike {
-  subscribe(next: SuccessCallback, error: ErrorCallback, complete: () => void): { unsubscribe: () => void };
+export interface ObservableLike<T = unknown> {
+  subscribe(next: SuccessFn<T>, error: ErrorFn, complete: () => void): { unsubscribe: () => void };
 }
 
-type DatasourceGetCallback = (index: number, count: number, success: SuccessCallback, fail?: ErrorCallback) => void;
-type DatasourceGetObservable = (index: number, count: number) => ObservableLike;
-type DatasourceGetPromise = (index: number, count: number) => PromiseLike<unknown[]>;
+type DSGetCallback<T> = (index: number, count: number, success: SuccessFn<T>, fail?: ErrorFn) => void;
+type DSGetObservable<T> = (index: number, count: number) => ObservableLike<T[]>;
+type DSGetPromise<T> = (index: number, count: number) => PromiseLike<T[]>;
 
-export type DatasourceGet = DatasourceGetCallback | DatasourceGetObservable | DatasourceGetPromise;
+export type DatasourceGet<T> = DSGetCallback<T> | DSGetObservable<T> | DSGetPromise<T>;
 
-export interface IDatasourceOptional {
-  get?: DatasourceGet;
-  settings?: Settings;
+export interface IDatasourceOptional<T = unknown> {
+  get?: DatasourceGet<T>;
+  settings?: Settings<T>;
   devSettings?: DevSettings;
 }
 
-export interface IDatasourceGeneric<A> extends Omit<IDatasourceOptional, 'get'> {
-  get: DatasourceGet;
-  adapter?: A;
+export interface IDatasource<T = unknown> extends Omit<IDatasourceOptional<T>, 'get'> {
+  get: DatasourceGet<T>;
+  adapter?: IAdapter<T>;
 }
 
-export interface IDatasourceConstructedGeneric<A> extends Omit<IDatasourceGeneric<A>, 'adapter'> {
-  adapter: A;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface IDatasource<ItemData = unknown>
-  extends IDatasourceGeneric<IAdapter<ItemData>> {
-}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface IDatasourceConstructed<ItemData = unknown>
-  extends IDatasourceConstructedGeneric<IAdapter<ItemData>> {
+export interface IDatasourceConstructed<T = unknown> extends Omit<IDatasource<T>, 'adapter'> {
+  adapter: IAdapter<T>;
 }

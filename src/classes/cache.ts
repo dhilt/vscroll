@@ -22,7 +22,6 @@ export class ItemCache<Data = unknown> {
 }
 
 interface ItemSize {
-  $index: number;
   size: number;
   newSize?: number;
 }
@@ -30,6 +29,7 @@ interface ItemSize {
 export class RecalculateAverage {
   newItems: ItemSize[];
   oldItems: ItemSize[];
+  removed: ItemSize[];
 
   constructor() {
     this.reset();
@@ -38,6 +38,7 @@ export class RecalculateAverage {
   reset(): void {
     this.newItems = [];
     this.oldItems = [];
+    this.removed = [];
   }
 }
 
@@ -48,47 +49,69 @@ export class Cache<Data = unknown> {
   maxIndex: number;
   recalculateAverage: RecalculateAverage;
 
-  private items: Map<number, ItemCache<Data>>;
-  readonly logger: Logger;
   readonly itemSize: number;
   readonly saveData: boolean;
+  readonly cacheOnReload: boolean;
+  readonly logger: Logger;
+  private items: Map<number, ItemCache<Data>>;
 
-  constructor(itemSize: number, saveData: boolean, logger: Logger) {
-    this.averageSizeFloat = itemSize;
-    this.averageSize = itemSize;
+  constructor(itemSize: number, saveData: boolean, cacheOnReload: boolean, logger: Logger) {
     this.itemSize = itemSize;
     this.saveData = saveData;
-    this.items = new Map<number, ItemCache<Data>>();
-    this.recalculateAverage = new RecalculateAverage();
-    this.reset();
+    this.cacheOnReload = cacheOnReload;
     this.logger = logger;
+    this.averageSizeFloat = itemSize;
+    this.averageSize = itemSize;
+    this.recalculateAverage = new RecalculateAverage();
+    this.items = new Map<number, ItemCache<Data>>();
+    this.reset(true);
   }
 
-  reset(): void {
-    this.minIndex = +Infinity;
-    this.maxIndex = -Infinity;
-    this.items.clear();
-    this.averageSizeFloat = this.itemSize;
-    this.averageSize = this.itemSize;
+  reset(force: boolean): void {
+    if (force || !this.cacheOnReload) {
+      this.minIndex = +Infinity;
+      this.maxIndex = -Infinity;
+      this.items.clear();
+      this.averageSizeFloat = this.itemSize;
+      this.averageSize = this.itemSize;
+    }
     this.recalculateAverage.reset();
   }
 
+  get size(): number {
+    return this.items.size;
+  }
+
+  get(index: number): ItemCache<Data> | undefined {
+    return this.items.get(index);
+  }
+
+  getItemSize(index: number): number {
+    const item = this.get(index);
+    return item ? item.size : 0;
+  }
+
   recalculateAverageSize(): boolean {
-    const { oldItems: { length: oldItemsLength }, newItems: { length: newItemsLength } } = this.recalculateAverage;
-    if (!oldItemsLength && !newItemsLength) {
+    const { oldItems, newItems, removed } = this.recalculateAverage;
+    if (!oldItems.length && !newItems.length && !removed.length) {
       return false;
     }
-    if (oldItemsLength) {
-      const oldItemsSize = this.recalculateAverage.oldItems.reduce((acc, item) => acc + item.size, 0);
-      const newItemsSize = this.recalculateAverage.oldItems.reduce((acc, item) => acc + (item.newSize as number), 0);
+    const length = this.items.size;
+    if (oldItems.length) {
+      const oldSize = this.recalculateAverage.oldItems.reduce((acc, item) => acc + item.size, 0);
+      const newSize = this.recalculateAverage.oldItems.reduce((acc, item) => acc + (item.newSize as number), 0);
       const averageSize = this.averageSizeFloat || 0;
-      this.averageSizeFloat = averageSize - (oldItemsSize - newItemsSize) / (this.items.size - newItemsLength);
+      this.averageSizeFloat = averageSize - (oldSize - newSize) / (length - newItems.length);
     }
-    if (newItemsLength) {
-      const newItemsSize = this.recalculateAverage.newItems.reduce((acc, item) => acc + item.size, 0);
+    if (newItems.length) {
+      const newSize = this.recalculateAverage.newItems.reduce((acc, item) => acc + item.size, 0);
       const averageSize = this.averageSizeFloat || 0;
-      const averageSizeLength = this.items.size - newItemsLength;
-      this.averageSizeFloat = (averageSizeLength * averageSize + newItemsSize) / this.items.size;
+      this.averageSizeFloat = ((length - newItems.length) * averageSize + newSize) / length;
+    }
+    if (removed.length) {
+      const removedSize = this.recalculateAverage.removed.reduce((acc, item) => acc + item.size, 0);
+      const averageSize = this.averageSizeFloat || 0;
+      this.averageSizeFloat = ((length + removed.length) * averageSize - removedSize) / length;
     }
     this.averageSize = Math.round(this.averageSizeFloat);
     this.recalculateAverage.reset();
@@ -96,23 +119,34 @@ export class Cache<Data = unknown> {
     return true;
   }
 
+  /**
+   * Adds item to Set, replaces existed one if $index matches.
+   * Maintains min/max indexes and average item size via recalculateAverage lists.
+   *
+   * @param {Item<Data>} item A Buffer item to be cached, an objects with { $index, data, size } props.
+   */
   add(item: Item<Data>): ItemCache<Data> {
     let itemCache = this.get(item.$index);
     if (itemCache) {
-      itemCache.data = item.data;
+      if (this.saveData) {
+        itemCache.data = item.data;
+      }
       if (itemCache.size !== item.size) {
-        this.recalculateAverage.oldItems.push({
-          $index: item.$index,
-          size: itemCache.size,
-          newSize: item.size
-        });
+        if (itemCache.size !== void 0) {
+          this.recalculateAverage.oldItems.push({
+            size: itemCache.size,
+            newSize: item.size
+          });
+        } else {
+          this.recalculateAverage.newItems.push({ size: item.size });
+        }
         itemCache.size = item.size;
       }
     } else {
       itemCache = new ItemCache<Data>(item, this.saveData);
       this.items.set(item.$index, itemCache);
       if (this.averageSize !== itemCache.size) {
-        this.recalculateAverage.newItems.push({ $index: item.$index, size: itemCache.size });
+        this.recalculateAverage.newItems.push({ size: itemCache.size });
       }
     }
     if (item.$index < this.minIndex) {
@@ -124,29 +158,28 @@ export class Cache<Data = unknown> {
     return itemCache;
   }
 
-  getItemSize(index: number): number {
-    const item = this.get(index);
-    return item ? item.size : 0;
-  }
-
-  get(index: number): ItemCache<Data> | undefined {
-    return this.items.get(index);
-  }
-
-  get size(): number {
-    return this.items.size;
-  }
-
-  removeItems(toRemove: number[], immutableTop: boolean): void {
+  /**
+   * Removes items from Set, shifts indexes of items that remain.
+   * Maintains min/max indexes and average item size via recalculateAverage lists.
+   *
+   * @param {number[]} toRemove List of indexes to be removed.
+   * @param {boolean} fixRight Defines indexes shifting strategy.
+   * If false, indexes that are greater than the removed ones will be decreased.
+   * If true, indexes that are less than than the removed ones will be increased.
+   */
+  removeItems(toRemove: number[], fixRight: boolean): void {
     const items = new Map<number, ItemCache<Data>>();
     let min = Infinity, max = -Infinity;
     this.items.forEach(item => {
       if (toRemove.some(index => index === item.$index)) {
+        if (this.averageSize !== item.size && item.size !== void 0) {
+          this.recalculateAverage.removed.push({ size: item.size });
+        }
         return;
       }
-      const diff = immutableTop
-        ? toRemove.reduce((acc, index) => acc - (item.$index > index ? 1 : 0), 0)
-        : toRemove.reduce((acc, index) => acc + (item.$index < index ? 1 : 0), 0);
+      const diff = fixRight
+        ? toRemove.reduce((acc, index) => acc + (item.$index < index ? 1 : 0), 0)
+        : toRemove.reduce((acc, index) => acc - (item.$index > index ? 1 : 0), 0);
       item.changeIndex(item.$index + diff);
       items.set(item.$index, item);
       min = item.$index < min ? item.$index : min;
@@ -157,30 +190,53 @@ export class Cache<Data = unknown> {
     this.maxIndex = max;
   }
 
-  insertItems(index: number, count: number, immutableTop: boolean): void {
-    // we do not insert new items here, we just shift indexes of the existed items
-    // new items adding must be performed via Cache.add
+  /**
+   * Destructively updates cache items Set based on subset (before-after) changes.
+   * Maintains min/max indexes and average item size via recalculateAverage lists.
+   * Only removed items participate in recalculateAverage.
+   * Inserted and replaced items will be taken into account on Cache.set async calls.
+   *
+   * @param {number[]} before Initial subset of indexes to be replaced by "after". Must be incremental.
+   * @param {Item<Data>[]} after Transformed subset that replaces "before". Must be be $index-incremental.
+   * Must contain at least 1 $index from "before" or be empty.
+   * @param {boolean} fixRight This is to fix right indexes during subset collapsing. Acts only if "after" is empty.
+   */
+  updateSubset(before: number[], after: Item<Data>[], fixRight?: boolean): void {
+    if (!this.size || !before.length) {
+      return;
+    }
+    const minB = before[0], maxB = before[before.length - 1];
+    let leftDiff: number, rightDiff: number, found;
+    if (after.length) {
+      const minA = after[0].$index, maxA = after[after.length - 1].$index;
+      leftDiff = minA - minB;
+      rightDiff = maxA - maxB;
+    } else {
+      leftDiff = fixRight ? maxB - minB + 1 : 0;
+      rightDiff = fixRight ? 0 : minB - maxB - 1;
+    }
     const items = new Map<number, ItemCache<Data>>();
     this.items.forEach(item => {
-      const { $index } = item;
-      if ($index < index) {
-        if (!immutableTop) {
-          item.changeIndex($index - count);
-        }
+      if (item.$index < minB) { // items before subset
+        item.changeIndex(item.$index + leftDiff);
         items.set(item.$index, item);
-      } else {
-        if (immutableTop) {
-          item.changeIndex($index + count);
-        }
+        return;
+      } else if (item.$index > maxB) { // items after subset
+        item.changeIndex(item.$index + rightDiff);
         items.set(item.$index, item);
-      }
-      if (item.$index < this.minIndex) {
-        this.minIndex = item.$index;
-      }
-      if (item.$index > this.maxIndex) {
-        this.maxIndex = item.$index;
+        return;
       }
     });
+    after.forEach(item => // subset items
+      items.set(item.$index, new ItemCache<Data>(item, this.saveData))
+    );
+    before.forEach(index => { // push removed items to recalculateAverage.removed
+      if (!after.some(({ $index }) => index === $index) && (found = this.get(index))) {
+        this.recalculateAverage.removed.push({ size: found.size });
+      }
+    });
+    this.minIndex += leftDiff;
+    this.maxIndex += rightDiff;
     this.items = items;
   }
 }

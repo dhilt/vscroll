@@ -1,67 +1,24 @@
-import { Direction } from '../../inputs/index';
-
-class VirtualClip {
-  [Direction.backward]: number[];
-  [Direction.forward]: number[];
-  only: boolean;
-
-  get all(): number[] {
-    return [...this[Direction.backward], ...this[Direction.forward]];
-  }
-
-  get has(): boolean {
-    return !!this[Direction.backward].length || !!this[Direction.forward].length;
-  }
-
-  constructor() {
-    this.reset();
-  }
-
-  reset() {
-    this[Direction.backward] = [];
-    this[Direction.forward] = [];
-    this.only = false;
-  }
-}
-
 export class ClipModel {
-  noClip: boolean;
   doClip: boolean;
-  simulate: boolean;
-  increase: boolean;
   callCount: number;
   forceForward: boolean;
   forceBackward: boolean;
-  virtual: VirtualClip;
 
   get force(): boolean {
     return this.forceForward || this.forceBackward;
   }
 
-  private infinite: boolean;
-
   constructor() {
-    this.infinite = false;
-    this.noClip = this.infinite;
     this.callCount = 0;
-    this.virtual = new VirtualClip();
     this.reset();
   }
 
-  reset(isForce?: boolean): void {
+  reset(force?: boolean): void {
     this.doClip = false;
-    if (!isForce) {
-      this.forceReset();
-    } else {
-      this.simulate = false;
+    if (!force) {
+      this.forceForward = false;
+      this.forceBackward = false;
     }
-    this.increase = false;
-    this.virtual.reset();
   }
 
-  forceReset(): void {
-    this.simulate = false;
-    this.forceForward = false;
-    this.forceBackward = false;
-  }
 }

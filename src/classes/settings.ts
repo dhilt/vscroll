@@ -1,7 +1,7 @@
 import { SETTINGS, DEV_SETTINGS, validate, validateOne, VALIDATORS } from '../inputs/index';
 import { Settings as ISettings, DevSettings as IDevSettings, ICommonProps, ItemsProcessor } from '../interfaces/index';
 
-export class Settings implements ISettings, IDevSettings {
+export class Settings<Data = unknown> implements ISettings, IDevSettings {
 
   // user settings
   adapter: boolean;
@@ -27,6 +27,7 @@ export class Settings implements ISettings, IDevSettings {
   initDelay: number; // if set, the Workflow initialization will be postponed (ms)
   initWindowDelay: number; // if set and the entire window is scrollable, the Workflow init will be postponed (ms)
   cacheData: boolean; // if true, item's data will be cached along with item's size and index
+  cacheOnReload: boolean; // if true, cache will not be flushed on reload
   changeOverflow: boolean; // if true, scroll will be disabled per each item's average size change
   dismissOverflowAnchor: boolean; // if true, the viewport will receive "overflowAnchor: none"
 
@@ -36,7 +37,7 @@ export class Settings implements ISettings, IDevSettings {
   viewport: HTMLElement | null;
 
   constructor(
-    settings: ISettings | undefined, devSettings: IDevSettings | undefined, instanceIndex: number
+    settings: ISettings<Data> | undefined, devSettings: IDevSettings | undefined, instanceIndex: number
   ) {
     this.parseInput(settings, SETTINGS);
     this.parseInput(devSettings, DEV_SETTINGS);
@@ -46,7 +47,7 @@ export class Settings implements ISettings, IDevSettings {
     // todo: min/max indexes must be ignored if infinite mode is enabled ??
   }
 
-  parseInput(input: ISettings | IDevSettings | undefined, props: ICommonProps<PropertyKey>): void {
+  parseInput(input: ISettings<Data> | IDevSettings | undefined, props: ICommonProps<PropertyKey>): void {
     const result = validate(input, props);
     if (!result.isValid) {
       throw new Error('Invalid settings');

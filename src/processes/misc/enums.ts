@@ -20,6 +20,7 @@ export enum AdapterProcess {
   check = 'adapter.check',
   remove = 'adapter.remove',
   replace = 'adapter.replace',
+  update = 'adapter.update',
   clip = 'adapter.clip',
   insert = 'adapter.insert',
   fix = 'adapter.fix',

@@ -4,14 +4,12 @@ import { Scroller } from '../scroller';
 export default class Start extends BaseProcessFactory(CommonProcess.start) {
 
   static run(scroller: Scroller): void {
-    const { state } = scroller;
-
-    state.startInnerLoop();
+    const payload = scroller.state.startInnerLoop();
 
     scroller.workflow.call({
       process: Start.process,
       status: ProcessStatus.next,
-      payload: { ...(state.cycle.innerLoop.first ? { process: state.cycle.initiator } : {}) }
+      payload
     });
   }
 

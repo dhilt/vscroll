@@ -12,6 +12,7 @@ import {
   UserClip,
   Insert,
   Replace,
+  Update,
   Fix,
   Start,
   PreFetch,
@@ -122,6 +123,14 @@ export const runStateMachine = ({
         run(Init)(process);
       }
       break;
+    case AdapterProcess.update:
+      if (status === Status.start) {
+        run(Update)(options);
+      }
+      if (status === Status.next) {
+        run(Init)(process);
+      }
+      break;
     case AdapterProcess.fix:
       if (status === Status.start) {
         run(Fix)(options);
@@ -135,11 +144,18 @@ export const runStateMachine = ({
         case AdapterProcess.append:
         case AdapterProcess.check:
         case AdapterProcess.insert:
-        case AdapterProcess.replace:
           run(Render)();
           break;
         case AdapterProcess.remove:
-          run(Clip)();
+          run(Adjust)();
+          break;
+        case AdapterProcess.replace:
+        case AdapterProcess.update:
+          if (payload.doRender) {
+            run(Render)();
+          } else {
+            run(Adjust)();
+          }
           break;
         default:
           run(PreFetch)();
@@ -176,11 +192,9 @@ export const runStateMachine = ({
           case AdapterProcess.append:
           case AdapterProcess.check:
           case AdapterProcess.insert:
-          case AdapterProcess.remove:
-            run(Adjust)();
-            break;
           case AdapterProcess.replace:
-            run(Clip)();
+          case AdapterProcess.update:
+            run(Adjust)();
             break;
           default:
             run(PreClip)();
@@ -198,13 +212,7 @@ export const runStateMachine = ({
       }
       break;
     case CommonProcess.clip:
-      switch (payload.process) {
-        case AdapterProcess.remove:
-          run(End)();
-          break;
-        default:
-          run(Adjust)();
-      }
+      run(Adjust)();
       break;
     case CommonProcess.adjust:
       run(End)();

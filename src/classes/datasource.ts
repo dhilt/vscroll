@@ -1,21 +1,21 @@
 import { AdapterContext } from './adapter/context';
 import {
-  IDatasourceConstructedGeneric,
+  IDatasource,
+  IDatasourceConstructed,
   DatasourceGet,
   Settings,
   DevSettings,
-  IDatasourceGeneric,
-  IAdapterConfig,
   IAdapter,
+  IAdapterConfig,
 } from '../interfaces/index';
 
-export class DatasourceGeneric<A> implements IDatasourceConstructedGeneric<A> {
-  get: DatasourceGet;
-  settings?: Settings;
+export class DatasourceGeneric<Data> implements IDatasourceConstructed<Data> {
+  get: DatasourceGet<Data>;
+  settings?: Settings<Data>;
   devSettings?: DevSettings;
-  adapter: A;
+  adapter: IAdapter<Data>;
 
-  constructor(datasource: IDatasourceGeneric<A>, config?: IAdapterConfig) {
+  constructor(datasource: IDatasource<Data>, config?: IAdapterConfig) {
     this.get = datasource.get;
     if (datasource.settings) {
       this.settings = datasource.settings;
@@ -24,17 +24,17 @@ export class DatasourceGeneric<A> implements IDatasourceConstructedGeneric<A> {
       this.devSettings = datasource.devSettings;
     }
     const adapterContext = new AdapterContext(config || { mock: false });
-    this.adapter = adapterContext as A;
+    this.adapter = adapterContext as IAdapter<Data>;
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const makeDatasource = <A>(getConfig?: () => IAdapterConfig) =>
-  class <T = A> extends DatasourceGeneric<T> {
-    constructor(datasource: IDatasourceGeneric<T>) {
+export const makeDatasource = (getConfig?: () => IAdapterConfig) =>
+  class <Data = unknown> extends DatasourceGeneric<Data> {
+    constructor(datasource: IDatasource<Data>) {
       const config = typeof getConfig === 'function' ? getConfig() : void 0;
       super(datasource, config);
     }
   };
 
-export const Datasource = makeDatasource<IAdapter>();
+export const Datasource = makeDatasource();

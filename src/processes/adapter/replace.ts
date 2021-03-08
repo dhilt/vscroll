@@ -1,8 +1,7 @@
 import { Scroller } from '../../scroller';
-import Remove from './remove';
-import Insert from './insert';
+import Update from './update';
 import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
-import { AdapterReplaceOptions, AdapterInsertOptions, AdapterRemoveOptions } from '../../interfaces/index';
+import { AdapterReplaceOptions, AdapterUpdateOptions } from '../../interfaces/index';
 
 export default class Replace extends BaseAdapterProcessFactory(AdapterProcess.replace) {
 
@@ -11,43 +10,40 @@ export default class Replace extends BaseAdapterProcessFactory(AdapterProcess.re
     if (!params) {
       return;
     }
-
-    if (!Replace.doRemove(scroller, params)) {
-      scroller.logger.log(() => 'no items to replace (not found)');
-      return scroller.workflow.call({
-        process: Replace.process,
-        status: ProcessStatus.done
-      });
-    }
-
-    if (!Replace.doInsert(scroller, params)) {
-      return scroller.workflow.call({
-        process: Replace.process,
-        status: ProcessStatus.done
-      });
-    }
+    const shouldReplace = Replace.doReplace(scroller, params);
 
     scroller.workflow.call({
       process: Replace.process,
-      status: ProcessStatus.next
+      status: shouldReplace ? ProcessStatus.next : ProcessStatus.done,
     });
   }
 
-  static doRemove(scroller: Scroller, params: AdapterReplaceOptions): boolean {
-    const removeOptions: AdapterRemoveOptions = {
-      predicate: params.predicate,
-      increase: params.fixRight
-    };
-    return Remove.doRemove(scroller, removeOptions, true);
-  }
+  static doReplace(scroller: Scroller, params: AdapterReplaceOptions): boolean {
+    const toRemove = scroller.buffer.items
+      .filter(item => params.predicate(item))
+      .map(item => item.$index);
 
-  static doInsert(scroller: Scroller, params: AdapterReplaceOptions): boolean {
-    const insertOptions: AdapterInsertOptions = {
-      items: params.items,
-      after: params.predicate,
-      decrease: params.fixRight
+    if (!toRemove.length) {
+      scroller.logger.log('no items to be replaced');
+      return false;
+    }
+
+    let injected = false;
+    const updateOptions: AdapterUpdateOptions = {
+      predicate: ({ $index }) => {
+        if (!toRemove.includes($index)) {
+          return true;
+        }
+        if (!injected) {
+          injected = true;
+          return params.items;
+        }
+        return false;
+      },
+      fixRight: params.fixRight
     };
-    return Insert.doInsert(scroller, insertOptions);
+
+    return Update.doUpdate(scroller, updateOptions);
   }
 
 }

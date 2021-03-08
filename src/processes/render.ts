@@ -12,7 +12,7 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
     }
     render.renderTimer = setTimeout(() => {
       render.renderTimer = null;
-      if (Render.processElements(scroller)) {
+      if (Render.doRender(scroller)) {
         workflow.call({
           process: Render.process,
           status: render.noSize ? ProcessStatus.done : ProcessStatus.next,
@@ -28,10 +28,10 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
     }, 0);
   }
 
-  static processElements(scroller: Scroller): boolean {
+  static doRender(scroller: Scroller): boolean {
     const { state: { fetch, render }, viewport, buffer, logger } = scroller;
     render.positionBefore = viewport.scrollPosition;
-    if (!fetch.isReplace) {
+    if (!fetch.isCheck) {
       render.sizeBefore = viewport.getScrollableSize();
       if (
         fetch.items.map(item => Render.processElement(scroller, item)).some(x => !x)

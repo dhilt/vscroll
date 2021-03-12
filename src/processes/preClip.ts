@@ -40,7 +40,7 @@ export default class PreClip extends BaseProcessFactory(CommonProcess.preClip) {
 
   static shouldNotClip(scroller: Scroller): boolean {
     const { settings, buffer, state } = scroller;
-    if (settings.infinite) {
+    if (settings.infinite && !state.clip.force) {
       scroller.logger.log('skipping clip [infinite mode]');
       return true;
     }

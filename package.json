@@ -28,7 +28,7 @@
     "watch": "jest --watch",
     "build": "node build",
     "test": "npm run lint && npm run jest",
-    "prepare": "npm run test && npm run build"
+    "prepublishOnly": "npm run test && npm run build"
   },
   "dependencies": {
     "tslib": "^2.1.0"

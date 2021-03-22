@@ -1,8 +1,8 @@
 import { Routines } from './domRoutines';
 import { Direction } from '../inputs/index';
-import { ItemAdapter } from '../interfaces/index';
+import { Item as _Item, ItemAdapter } from '../interfaces/index';
 
-export class Item<Data = unknown> {
+export class Item<Data = unknown> implements _Item<Data> {
   nodeId: string;
   routines: Routines;
   size: number;

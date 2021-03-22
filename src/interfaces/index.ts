@@ -16,6 +16,7 @@ import {
   StateMachineMethods,
   StateMachineParams,
 } from './workflow';
+import { Item } from './item';
 import {
   IReactivePropConfig,
   IReactivePropsConfig,
@@ -77,6 +78,7 @@ export {
   InterruptParams,
   StateMachineMethods,
   StateMachineParams,
+  Item,
   IReactivePropConfig,
   IReactivePropsConfig,
   IReactivePropsStore,

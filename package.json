@@ -1,6 +1,6 @@
 {
   "name": "vscroll",
-  "version": "1.0.0-rc.8",
+  "version": "1.0.0",
   "description": "Virtual scroll engine",
   "main": "dist/bundles/vscroll.umd.js",
   "module": "dist/bundles/vscroll.esm5.js",
@@ -28,7 +28,8 @@
     "watch": "jest --watch",
     "build": "node build",
     "test": "npm run lint && npm run jest",
-    "prepublishOnly": "npm run test && npm run build"
+    "prepublishOnly": "npm run test",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "tslib": "^2.1.0"

@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/dhilt/vscroll.svg?branch=main)](https://travis-ci.com/dhilt/vscroll)
+[![build status](https://github.com/dhilt/vscroll/actions/workflows/build.yml/badge.svg)](https://github.com/dhilt/vscroll/actions/workflows/build.yml)
 [![npm version](https://badge.fury.io/js/vscroll.svg)](https://www.npmjs.com/package/vscroll)
 
 # VScroll

@@ -107,17 +107,16 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         : defaultMethod.apply(this, args);
   }
 
-  constructor(publicContext: IAdapter<Item> | null, getWorkflow: WorkflowGetter<Item>, logger: Logger) {
+  constructor(context: IAdapter<Item> | null, getWorkflow: WorkflowGetter<Item>, logger: Logger) {
     this.getWorkflow = getWorkflow;
     this.logger = logger;
     this.relax$ = null;
     this.relaxRun = null;
     this.reloadCounter = 0;
-    const context: AdapterContext | null = publicContext ? (publicContext as unknown as AdapterContext) : null;
 
     // public context stores Reactive props configuration
     const reactivePropsStore: IReactivePropsStore =
-      context && context.reactiveConfiguredProps || {};
+      context && (context as AdapterContext).reactiveConfiguredProps || {};
 
     // make array of the original values from public context if present
     const adapterProps = context
@@ -221,7 +220,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         } else if (type === AdapterPropType.WorkflowRunner) {
           value = this.getPromisifiedMethod(value as MethodResolver, defaultValue as MethodResolver);
         } else if (type === AdapterPropType.Reactive && reactivePropsStore[name]) {
-          value = context[name];
+          value = (context as IAdapter)[name];
         }
         Object.defineProperty(context, name, {
           configurable: false,
@@ -232,7 +231,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       });
 
     // public context cleanup
-    delete context.reactiveConfiguredProps;
+    delete (context as AdapterContext).reactiveConfiguredProps;
   }
 
   initialize(buffer: Buffer<Item>, state: State, logger: Logger, adapterRun$?: Reactive<ProcessSubject>): void {

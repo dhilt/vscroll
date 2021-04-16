@@ -1,5 +1,5 @@
 import { Scroller } from '../../scroller';
-import { ADAPTER_METHODS } from '../../inputs/index';
+import { DatasourceProps } from '../../inputs/index';
 import { Datasource } from '../../classes/datasource';
 import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
 import { IDatasourceOptional, ProcessPayload } from '../../interfaces/index';
@@ -15,10 +15,11 @@ export default class Reset extends BaseAdapterProcessFactory(AdapterProcess.rese
         return;
       }
       const constructed = options instanceof Datasource;
-      Object.keys(ADAPTER_METHODS[Reset.process]).forEach(key => {
+      Object.keys(DatasourceProps).forEach(key => {
         const param = data.params[key];
-        if (param.isSet || (constructed && datasource[key])) {
-          datasource[key] = param.value;
+        const ds = datasource as unknown as { [key: string]: unknown };
+        if (param.isSet || (constructed && ds[key])) {
+          ds[key] = param.value;
         }
       });
     }

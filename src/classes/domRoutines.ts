@@ -61,7 +61,7 @@ export class Routines {
   getSizeStyle(element: HTMLElement): number {
     this.checkElement(element);
     const size = element.style[this.horizontal ? 'width' : 'height'];
-    return parseInt(size as string, 10) || 0;
+    return parseFloat(size as string) || 0;
   }
 
   setSizeStyle(element: HTMLElement, value: number): void {

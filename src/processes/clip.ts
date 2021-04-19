@@ -27,13 +27,19 @@ export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
       }
       item.hide();
       size[item.removeDirection] += item.size;
-      const padding = paddings.byDirection(item.removeDirection);
-      padding.size += item.size;
       return true;
     });
 
-    if (scroller.settings.onBeforeClip && itemsToRemove.length) {
-      scroller.settings.onBeforeClip(itemsToRemove.map(item => item.get()));
+    if (itemsToRemove.length) {
+      if (size[Direction.backward]) {
+        paddings.byDirection(Direction.backward).size += size[Direction.backward];
+      }
+      if (size[Direction.forward]) {
+        paddings.byDirection(Direction.forward).size += size[Direction.forward];
+      }
+      if (scroller.settings.onBeforeClip) {
+        scroller.settings.onBeforeClip(itemsToRemove.map(item => item.get()));
+      }
     }
 
     buffer.clip();

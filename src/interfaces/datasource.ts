@@ -20,11 +20,11 @@ export interface IDatasourceOptional<T = unknown> {
   devSettings?: DevSettings;
 }
 
-export interface IDatasource<T = unknown> extends Omit<IDatasourceOptional<T>, 'get'> {
+export interface IDatasource<T = unknown> extends IDatasourceOptional<T> {
   get: DatasourceGet<T>;
   adapter?: IAdapter<T>;
 }
 
-export interface IDatasourceConstructed<T = unknown> extends Omit<IDatasource<T>, 'adapter'> {
+export interface IDatasourceConstructed<T = unknown> extends IDatasource<T> {
   adapter: IAdapter<T>;
 }

@@ -28,7 +28,7 @@ interface ItemSize {
   newSize?: number;
 }
 
-export class RecalculateAverage {
+export class SizesRecalculation {
   newItems: ItemSize[];
   oldItems: ItemSize[];
   removed: ItemSize[];
@@ -47,9 +47,11 @@ export class RecalculateAverage {
 export class Cache<Data = unknown> {
   averageSizeFloat: number;
   averageSize: number;
+  frequentSize: number;
   minIndex: number;
   maxIndex: number;
-  recalculateAverage: RecalculateAverage;
+  recalculateAverage: SizesRecalculation;
+  recalculateFrequent: SizesRecalculation;
 
   readonly itemSize: number;
   readonly saveData: boolean;
@@ -64,9 +66,8 @@ export class Cache<Data = unknown> {
     this.cacheOnReload = cacheOnReload;
     this.sizeStrategy = sizeStrategy;
     this.logger = logger;
-    this.averageSizeFloat = itemSize;
-    this.averageSize = itemSize;
-    this.recalculateAverage = new RecalculateAverage();
+    this.recalculateAverage = new SizesRecalculation();
+    this.recalculateFrequent = new SizesRecalculation();
     this.items = new Map<number, ItemCache<Data>>();
     this.reset(true);
   }
@@ -78,8 +79,10 @@ export class Cache<Data = unknown> {
       this.items.clear();
       this.averageSizeFloat = this.itemSize;
       this.averageSize = this.itemSize;
+      this.frequentSize = this.itemSize;
     }
     this.recalculateAverage.reset();
+    this.recalculateFrequent.reset();
   }
 
   get size(): number {
@@ -95,11 +98,8 @@ export class Cache<Data = unknown> {
     return item ? item.size : 0;
   }
 
-  recalculateAverageSize(): boolean {
+  recalculateAverageSize(): void {
     const { oldItems, newItems, removed } = this.recalculateAverage;
-    if (!oldItems.length && !newItems.length && !removed.length) {
-      return false;
-    }
     const length = this.items.size;
     if (oldItems.length) {
       const oldSize = this.recalculateAverage.oldItems.reduce((acc, item) => acc + item.size, 0);
@@ -118,31 +118,60 @@ export class Cache<Data = unknown> {
       this.averageSizeFloat = ((length + removed.length) * averageSize - removedSize) / length;
     }
     this.averageSize = Math.round(this.averageSizeFloat);
-    this.recalculateAverage.reset();
-    this.logger.log(() => `average size has been updated: ${this.averageSize}`);
+  }
+
+  recalculateFrequentSize(): void {
+  }
+
+  recalculateDefaultSize(): boolean {
+    const { oldItems, newItems, removed } = this.recalculateAverage;
+    if (!oldItems.length && !newItems.length && !removed.length) {
+      return false;
+    }
+    if (this.sizeStrategy === SizeStrategy.Average) {
+      this.recalculateAverageSize();
+    } else {
+      this.recalculateFrequentSize();
+    }
+    this.sizesRecalculation.reset();
+    this.logger.log(() => `default size has been updated: ${this.defaultSize}`);
     return true;
+  }
+
+  get defaultSize(): number {
+    if (this.sizeStrategy === SizeStrategy.Average) {
+      return this.averageSize;
+    }
+    return this.frequentSize;
+  }
+
+  get sizesRecalculation(): SizesRecalculation {
+    if (this.sizeStrategy === SizeStrategy.Average) {
+      return this.recalculateAverage;
+    }
+    return this.recalculateFrequent;
   }
 
   /**
    * Adds item to Set, replaces existed one if $index matches.
-   * Maintains min/max indexes and average item size via recalculateAverage lists.
+   * Maintains min/max indexes and average/frequent item size.
    *
    * @param {Item<Data>} item A Buffer item to be cached, an objects with { $index, data, size } props.
    */
   add(item: Item<Data>): ItemCache<Data> {
     let itemCache = this.get(item.$index);
-    if (itemCache) {
+    if (itemCache) { // adding item is already cached
       if (this.saveData) {
         itemCache.data = item.data;
       }
-      if (itemCache.size !== item.size) {
+      if (itemCache.size !== item.size) { // size changes
         if (itemCache.size !== void 0) {
-          this.recalculateAverage.oldItems.push({
+          this.sizesRecalculation.oldItems.push({
             size: itemCache.size,
             newSize: item.size
           });
         } else {
-          this.recalculateAverage.newItems.push({ size: item.size });
+          this.sizesRecalculation.newItems.push({ size: item.size });
         }
         itemCache.size = item.size;
       }
@@ -150,7 +179,7 @@ export class Cache<Data = unknown> {
       itemCache = new ItemCache<Data>(item, this.saveData);
       this.items.set(item.$index, itemCache);
       if (this.averageSize !== itemCache.size) {
-        this.recalculateAverage.newItems.push({ size: itemCache.size });
+        this.sizesRecalculation.newItems.push({ size: itemCache.size });
       }
     }
     if (item.$index < this.minIndex) {
@@ -164,7 +193,7 @@ export class Cache<Data = unknown> {
 
   /**
    * Removes items from Set, shifts indexes of items that remain.
-   * Maintains min/max indexes and average item size via recalculateAverage lists.
+   * Maintains min/max indexes and average/frequent item size.
    *
    * @param {number[]} toRemove List of indexes to be removed.
    * @param {boolean} fixRight Defines indexes shifting strategy.
@@ -176,8 +205,8 @@ export class Cache<Data = unknown> {
     let min = Infinity, max = -Infinity;
     this.items.forEach(item => {
       if (toRemove.some(index => index === item.$index)) {
-        if (this.averageSize !== item.size && item.size !== void 0) {
-          this.recalculateAverage.removed.push({ size: item.size });
+        if (item.size !== void 0) {
+          this.sizesRecalculation.removed.push({ size: item.size });
         }
         return;
       }
@@ -196,9 +225,8 @@ export class Cache<Data = unknown> {
 
   /**
    * Destructively updates cache items Set based on subset (before-after) changes.
-   * Maintains min/max indexes and average item size via recalculateAverage lists.
-   * Only removed items participate in recalculateAverage.
-   * Inserted and replaced items will be taken into account on Cache.set async calls.
+   * Maintains min/max indexes. Maintains average/frequent item size on remove.
+   * Inserted and replaced items will be taken into account on Cache.set async calls after render.
    *
    * @param {number[]} before Initial subset of indexes to be replaced by "after". Must be incremental.
    * @param {Item<Data>[]} after Transformed subset that replaces "before". Must be be $index-incremental.
@@ -234,9 +262,9 @@ export class Cache<Data = unknown> {
     after.forEach(item => // subset items
       items.set(item.$index, new ItemCache<Data>(item, this.saveData))
     );
-    before.forEach(index => { // push removed items to recalculateAverage.removed
+    before.forEach(index => { // removed items immediately affect average/frequent size
       if (!after.some(({ $index }) => index === $index) && (found = this.get(index))) {
-        this.recalculateAverage.removed.push({ size: found.size });
+        this.sizesRecalculation.removed.push({ size: found.size });
       }
     });
     this.minIndex += leftDiff;

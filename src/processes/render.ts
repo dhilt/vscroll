@@ -39,7 +39,7 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
         return false;
       }
     }
-    buffer.checkAverageSize();
+    buffer.checkDefaultSize();
     render.sizeAfter = viewport.getScrollableSize();
     logger.stat('after new items render');
     logger.log(() => render.noSize ? 'viewport size has not been changed' : void 0);

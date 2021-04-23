@@ -141,6 +141,10 @@ export class Buffer<Data> {
     return this.cache.averageSize;
   }
 
+  get frequentSize(): number {
+    return this.cache.frequentSize;
+  }
+
   get hasItemSize(): boolean {
     return this.averageSize > 0;
   }
@@ -374,8 +378,8 @@ export class Buffer<Data> {
     return item ? item.size : this.averageSize;
   }
 
-  checkAverageSize(): boolean {
-    return this.cache.recalculateAverageSize();
+  checkDefaultSize(): boolean {
+    return this.cache.recalculateDefaultSize();
   }
 
   getIndexToAppend(eof?: boolean): number {

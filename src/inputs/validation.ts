@@ -225,7 +225,7 @@ type TEnum = typeof AbstractEnum;
 
 const onEnum = (list: TEnum) => (value: unknown): ValidatedValue => {
   const errors = [];
-  const values = Object.keys(list).filter(k => isNaN(Number(k))).map(k => list[k]);
+  const values = Object.keys(list).filter(k => isNaN(Number(k))).map(k => list[k as unknown as number]);
   if (!values.some(item => item === value)) {
     errors.push(getError(ValidatorType.enum, ['[' + values.join(',') + ']']));
   }

@@ -1,4 +1,4 @@
-import { SETTINGS, DEV_SETTINGS, validate, validateOne, VALIDATORS } from '../inputs/index';
+import { SETTINGS, DEV_SETTINGS, validate, validateOne, VALIDATORS, SizeStrategy } from '../inputs/index';
 import { Settings as ISettings, DevSettings as IDevSettings, ICommonProps, ItemsProcessor } from '../interfaces/index';
 
 export class Settings<Data = unknown> implements ISettings, IDevSettings {
@@ -30,6 +30,7 @@ export class Settings<Data = unknown> implements ISettings, IDevSettings {
   cacheOnReload: boolean; // if true, cache will not be flushed on reload
   changeOverflow: boolean; // if true, scroll will be disabled per each item's average size change
   dismissOverflowAnchor: boolean; // if true, the viewport will receive "overflowAnchor: none"
+  sizeStrategy: SizeStrategy; // "average" | "frequent", determines behavior of unknown items
 
   // internal settings, managed by scroller itself
   instanceIndex: number;

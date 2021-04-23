@@ -59,6 +59,7 @@ export class Cache<Data = unknown> {
   readonly sizeStrategy: SizeStrategy;
   readonly logger: Logger;
   private items: Map<number, ItemCache<Data>>;
+  private sizeMap: Map<number, number>;
 
   constructor({ itemSize, cacheData, cacheOnReload, sizeStrategy }: Settings, logger: Logger) {
     this.itemSize = itemSize;
@@ -69,6 +70,7 @@ export class Cache<Data = unknown> {
     this.recalculateAverage = new SizesRecalculation();
     this.recalculateFrequent = new SizesRecalculation();
     this.items = new Map<number, ItemCache<Data>>();
+    this.sizeMap = new Map<number, number>();
     this.reset(true);
   }
 
@@ -77,6 +79,7 @@ export class Cache<Data = unknown> {
       this.minIndex = +Infinity;
       this.maxIndex = -Infinity;
       this.items.clear();
+      this.sizeMap.clear();
       this.averageSizeFloat = this.itemSize;
       this.averageSize = this.itemSize;
       this.frequentSize = this.itemSize;
@@ -121,10 +124,22 @@ export class Cache<Data = unknown> {
   }
 
   recalculateFrequentSize(): void {
+    const { oldItems, newItems, removed } = this.recalculateFrequent;
+    if (newItems.length) {
+      newItems.forEach(({ size }) => this.sizeMap.set(size, (this.sizeMap.get(size) || 0) + 1));
+    }
+    if (oldItems.length) {
+      oldItems.forEach(({ size }) => this.sizeMap.set(size, Math.max((this.sizeMap.get(size) || 0) - 1, 0)));
+      oldItems.forEach(({ newSize: s }) => this.sizeMap.set(s as number, (this.sizeMap.get(s as number) || 0) + 1));
+    }
+    if (removed.length) {
+      removed.forEach(({ size }) => this.sizeMap.set(size, Math.max((this.sizeMap.get(size) || 0) - 1, 0)));
+    }
+    this.frequentSize = [...this.sizeMap.entries()].reduce((a, e) => e[1] > a[1] ? e : a)[0];
   }
 
   recalculateDefaultSize(): boolean {
-    const { oldItems, newItems, removed } = this.recalculateAverage;
+    const { oldItems, newItems, removed } = this.sizesRecalculation;
     if (!oldItems.length && !newItems.length && !removed.length) {
       return false;
     }
@@ -178,9 +193,7 @@ export class Cache<Data = unknown> {
     } else {
       itemCache = new ItemCache<Data>(item, this.saveData);
       this.items.set(item.$index, itemCache);
-      if (this.averageSize !== itemCache.size) {
-        this.sizesRecalculation.newItems.push({ size: itemCache.size });
-      }
+      this.sizesRecalculation.newItems.push({ size: itemCache.size });
     }
     if (item.$index < this.minIndex) {
       this.minIndex = item.$index;

@@ -3,6 +3,7 @@ import { Item } from '../src/classes/item';
 
 import { Data, CheckIndexList } from './misc/types';
 import { generateBufferItem, generateBufferItems, generateItem } from './misc/items';
+import { SizeStrategy } from '../src/inputs';
 
 const loggerMock = { log: () => null };
 
@@ -14,6 +15,13 @@ const make = (list: CheckIndexList): Item<Data>[] =>
   });
 
 describe('Cache Spec', () => {
+
+  const settings = {
+    itemSize: NaN,
+    cacheData: true,
+    cacheOnReload: true,
+    sizeStrategy: SizeStrategy.Average
+  };
 
   describe('Remove', () => {
     const MIN = 1, COUNT = 5;
@@ -28,7 +36,7 @@ describe('Cache Spec', () => {
       });
 
     beforeEach(() => {
-      cache = new Cache(NaN, true, true, loggerMock as never);
+      cache = new Cache(settings as never, loggerMock as never);
       items.forEach(item => cache.add(item));
     });
 
@@ -113,7 +121,7 @@ describe('Cache Spec', () => {
     };
 
     beforeEach(() => {
-      cache = new Cache(NaN, true, true, loggerMock as never);
+      cache = new Cache(settings as never, loggerMock as never);
       items.forEach(item => cache.add(item));
     });
 
@@ -216,7 +224,7 @@ describe('Cache Spec', () => {
           (acc: number, j, i) => acc + (toRemove.includes(i + 1) ? 0 : (i + 1)), 0
         ) / (length - toRemove.length));
 
-      const cache = new Cache(NaN, true, true, loggerMock as never);
+      const cache = new Cache(settings as never, loggerMock as never);
       const items = generateBufferItems(1, length);
       items.forEach(item => cache.add(item));
       cache.recalculateAverageSize();

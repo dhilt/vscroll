@@ -1,5 +1,7 @@
 import { Item } from './item';
+import { Settings } from './settings';
 import { Logger } from './logger';
+import { SizeStrategy } from '../inputs/index';
 
 export class ItemCache<Data = unknown> {
   $index: number;
@@ -52,13 +54,15 @@ export class Cache<Data = unknown> {
   readonly itemSize: number;
   readonly saveData: boolean;
   readonly cacheOnReload: boolean;
+  readonly sizeStrategy: SizeStrategy;
   readonly logger: Logger;
   private items: Map<number, ItemCache<Data>>;
 
-  constructor(itemSize: number, saveData: boolean, cacheOnReload: boolean, logger: Logger) {
+  constructor({ itemSize, cacheData, cacheOnReload, sizeStrategy }: Settings, logger: Logger) {
     this.itemSize = itemSize;
-    this.saveData = saveData;
+    this.saveData = cacheData;
     this.cacheOnReload = cacheOnReload;
+    this.sizeStrategy = sizeStrategy;
     this.logger = logger;
     this.averageSizeFloat = itemSize;
     this.averageSize = itemSize;

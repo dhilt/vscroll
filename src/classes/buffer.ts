@@ -29,7 +29,7 @@ export class Buffer<Data> {
     this.changeItems = onDataChanged;
     this.bof = new Reactive<boolean>(false);
     this.eof = new Reactive<boolean>(false);
-    this.cache = new Cache<Data>(settings.itemSize, settings.cacheData, settings.cacheOnReload, logger);
+    this.cache = new Cache<Data>(settings, logger);
     this.startIndexUser = settings.startIndex;
     this.minIndexUser = settings.minIndex;
     this.maxIndexUser = settings.maxIndex;
@@ -256,7 +256,7 @@ export class Buffer<Data> {
     indexToTrack: number,
     fixRight: boolean
   ): number {
-    if (!this.size || isNaN(this.firstIndex)) {
+    if (!this.size || Number.isNaN(this.firstIndex)) {
       return NaN;
     }
     let _indexToTrack = indexToTrack;

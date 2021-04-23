@@ -1,7 +1,8 @@
 import { VALIDATORS } from './validation';
 import { ICommonProps } from '../interfaces/index';
+import { SizeStrategy } from './direction';
 
-const { NUMBER, INTEGER, INTEGER_UNLIMITED, MORE_OR_EQUAL, BOOLEAN, ELEMENT, FUNC, OR } = VALIDATORS;
+const { NUMBER, INTEGER, INTEGER_UNLIMITED, MORE_OR_EQUAL, BOOLEAN, ELEMENT, FUNC, OR, ENUM } = VALIDATORS;
 
 enum Settings {
   adapter = 'adapter',
@@ -31,6 +32,7 @@ enum DevSettings {
   cacheOnReload = 'cacheOnReload',
   changeOverflow = 'changeOverflow',
   dismissOverflowAnchor = 'dismissOverflowAnchor',
+  sizeStrategy = 'sizeStrategy',
 }
 
 export const MIN = {
@@ -141,5 +143,9 @@ export const DEV_SETTINGS: ICommonProps<DevSettings> = {
   [DevSettings.dismissOverflowAnchor]: {
     validators: [BOOLEAN],
     defaultValue: true
+  },
+  [DevSettings.sizeStrategy]: {
+    validators: [ENUM(SizeStrategy)],
+    defaultValue: SizeStrategy.Average
   },
 };

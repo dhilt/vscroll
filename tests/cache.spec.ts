@@ -318,71 +318,102 @@ describe('Cache Spec', () => {
       sizeStrategy: SizeStrategy.Frequent
     };
 
-    const prepareFrequent = (
-      { length, toRemove, toAdd }: { length: number, toRemove?: Id[], toAdd?: IndexSizeList }
+    const checkFrequent = (
+      setItemSize: (item: Item) => unknown, updateCache: (cache: Cache) => void, before: number, after?: number
     ) => {
-      const before = frequentSizeSettings.itemSize;
-      let after;
-      if (toRemove) {
-        //
-      } else if (toAdd) {
-        let count = 0, size = 0;
-        toAdd.forEach(r => {
-          const key = Number(Object.keys(r)[0]);
-          size = r[key];
-          if (key <= length) {
-            count++;
-          }
-        });
-        after = length - count < toAdd.length ? size : before;
-      }
+      const cacheSize = 10;
       const cache = new Cache(frequentSizeSettings as never, loggerMock as never);
-      const items = generateBufferItems(1, length);
-      items.forEach(item => (item.size = 10) && cache.add(item));
+      const items = generateBufferItems(1, cacheSize);
+      items.forEach(item => setItemSize(item) && cache.add(item));
       cache.recalculateDefaultSize();
-      return { items, cache, default: { after, before } };
+
+      expect(cache.defaultSize).toBe(before);
+      updateCache(cache);
+      cache.recalculateDefaultSize();
+      expect(cache.defaultSize).toBe(after === void 0 ? before : after);
     };
 
-    const checkFrequent = (toAdd: IndexSizeList, shouldChange?: boolean) => {
-      const { cache, default: { before, after } } = prepareFrequent({ length: 10, toAdd });
-      expect(cache.defaultSize).toBe(before);
+    const checkFrequentOnAdd = (toAdd: IndexSizeList, newSize?: number) => {
+      checkFrequent(
+        item => item.size = 10,
+        cache => toAdd.forEach(r => {
+          const key = Number(Object.keys(r)[0]);
+          cache.add({ $index: key, size: r[key], data: {} } as Item);
+        }),
+        frequentSizeSettings.itemSize,
+        newSize
+      );
+    };
 
-      toAdd.forEach(r => {
-        const key = Number(Object.keys(r)[0]);
-        cache.add({ $index: key, size: r[key], data: {} } as Item);
-      });
-      cache.recalculateDefaultSize();
-      expect(cache.defaultSize).toBe(after);
-      if (shouldChange) {
-        expect(before).not.toBe(after);
-      } else {
-        expect(before).toBe(after);
-      }
+    const checkFrequentOnRemove = (toRemove: number[], newSize?: number) => {
+      checkFrequent(
+        item => item.size = item.$index % 2 === 0 ? 5 : 10, // 1 - 10, 2 - 5, ...
+        cache => cache.removeItems(toRemove, false),
+        10,
+        newSize
+      );
     };
 
     describe('On add', () => {
       it('should increase frequent size on add (existed)', () =>
-        checkFrequent([{ 1: 20 }, { 2: 20 }, { 3: 20 }, { 4: 20 }, { 5: 20 }, { 6: 20 }], true)
+        checkFrequentOnAdd([{ 1: 20 }, { 2: 20 }, { 3: 20 }, { 4: 20 }, { 5: 20 }, { 6: 20 }], 20)
       );
 
       it('should decrease frequent size on add (existed)', () =>
-        checkFrequent([{ 1: 5 }, { 2: 5 }, { 3: 5 }, { 4: 5 }, { 5: 5 }, { 6: 5 }], true)
+        checkFrequentOnAdd([{ 1: 5 }, { 2: 5 }, { 3: 5 }, { 4: 5 }, { 5: 5 }, { 6: 5 }], 5)
       );
 
       it('should not change frequent size on add (existed, smaller)', () =>
-        checkFrequent([{ 1: 5 }, { 2: 5 }, { 3: 5 }, { 4: 5 }])
+        checkFrequentOnAdd([{ 1: 5 }, { 2: 5 }, { 3: 5 }, { 4: 5 }])
       );
 
       it('should not change frequent size on add (existed, bigger)', () =>
-        checkFrequent([{ 1: 25 }, { 2: 25 }, { 3: 25 }, { 4: 25 }])
+        checkFrequentOnAdd([{ 1: 25 }, { 2: 25 }, { 3: 25 }, { 4: 25 }])
       );
 
-      it('should not change frequent size on add (new)', () =>
-        checkFrequent([{ 100: 25 }])
+      it('should not change frequent size on add (new, less)', () =>
+        checkFrequentOnAdd(Array.from({ length: 9 }).map((j, i) => ({ [100 + i]: 20 })))
       );
 
-      it('should increase frequent size on add (new)', () =>
-        checkFrequent(Array.from({ length: 11 }).map((j, i) => ({ [100 + i]: 20 })), true)
+      it('should not change frequent size on add (new, equal)', () =>
+        checkFrequentOnAdd(Array.from({ length: 10 }).map((j, i) => ({ [100 + i]: 20 })))
+      );
+
+      it('should change frequent size on add (new, more)', () =>
+        checkFrequentOnAdd(Array.from({ length: 11 }).map((j, i) => ({ [100 + i]: 20 })), 20)
+      );
+
+      it('should change frequent size on add (new, equal, double)', () =>
+        checkFrequentOnAdd([
+          ...Array.from({ length: 11 }).map((j, i) => ({ [100 + i]: 20 })),
+          ...Array.from({ length: 11 }).map((j, i) => ({ [200 + i]: 30 })),
+        ], 20)
+      );
+    });
+
+    describe('On remove', () => {
+      it('should not change frequent size on remove (empty)', () =>
+        checkFrequentOnRemove([])
+      );
+
+      it('should change frequent size on remove (many)', () =>
+        checkFrequentOnRemove([1, 2, 3, 4, 5], 5)
+      );
+
+      it('should change frequent size on remove (single)', () =>
+        checkFrequentOnRemove([1], 5)
+      );
+
+      it('should not change frequent size on remove (many)', () =>
+        checkFrequentOnRemove([2, 4, 6, 8, 10])
+      );
+
+      it('should not change frequent size on remove (single)', () =>
+        checkFrequentOnRemove([2])
+      );
+
+      it('should not change frequent size on remove (all)', () =>
+        checkFrequentOnRemove([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
       );
     });
   });

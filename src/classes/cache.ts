@@ -125,6 +125,7 @@ export class Cache<Data = unknown> {
 
   recalculateFrequentSize(): void {
     const { oldItems, newItems, removed } = this.recalculateFrequent;
+    const oldFrequentSizeCount = this.sizeMap.get(this.frequentSize);
     if (newItems.length) {
       newItems.forEach(({ size }) => this.sizeMap.set(size, (this.sizeMap.get(size) || 0) + 1));
     }
@@ -135,7 +136,14 @@ export class Cache<Data = unknown> {
     if (removed.length) {
       removed.forEach(({ size }) => this.sizeMap.set(size, Math.max((this.sizeMap.get(size) || 0) - 1, 0)));
     }
-    this.frequentSize = [...this.sizeMap.entries()].reduce((a, e) => e[1] > a[1] ? e : a)[0];
+    const sorted = [...this.sizeMap.entries()].sort((a, b) => b[1] - a[1]);
+    const mostFrequentCount = sorted[0][1];
+    const listEqual = sorted.filter(i => i[1] === mostFrequentCount);
+    if (listEqual.length > 1 && listEqual.find(i => i[0] === oldFrequentSizeCount)) {
+      // if there are more than 1 most frequent sizes, but the old one is present
+      return;
+    }
+    this.frequentSize = sorted[0][0];
   }
 
   recalculateDefaultSize(): boolean {

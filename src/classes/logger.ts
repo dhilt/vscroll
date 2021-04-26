@@ -33,7 +33,7 @@ export class Logger {
         'size: ' + viewport.getScrollableSize() + ', ' +
         'bwd_p: ' + viewport.paddings.backward.size + ', ' +
         'fwd_p: ' + viewport.paddings.forward.size + ', ' +
-        'aver: ' + (buffer.hasItemSize ? buffer.averageSize : 'no') + ', ' +
+        'aver: ' + (buffer.defaultSize || 'no') + ', ' +
         'items: ' + buffer.getVisibleItemsCount() + ', ' +
         'range: ' + (first && last ? `[${first.$index}..${last.$index}]` : 'no');
     };

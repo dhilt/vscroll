@@ -1,4 +1,4 @@
-import { Cache } from './cache';
+import { Cache } from './buffer/cache';
 import { Item } from './item';
 import { Settings } from './settings';
 import { Logger } from './logger';
@@ -137,16 +137,8 @@ export class Buffer<Data> {
     return this.cache.size;
   }
 
-  get averageSize(): number {
-    return this.cache.averageSize;
-  }
-
-  get frequentSize(): number {
-    return this.cache.frequentSize;
-  }
-
-  get hasItemSize(): boolean {
-    return this.averageSize > 0;
+  get defaultSize(): number {
+    return this.cache.getDefaultSize();
   }
 
   get minIndex(): number {
@@ -375,7 +367,7 @@ export class Buffer<Data> {
 
   getSizeByIndex(index: number): number {
     const item = this.cache.get(index);
-    return item ? item.size : this.averageSize;
+    return item ? item.size : this.defaultSize;
   }
 
   checkDefaultSize(): boolean {

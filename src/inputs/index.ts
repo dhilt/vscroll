@@ -1,4 +1,4 @@
-import { Direction, SizeStrategy } from './direction';
+import { Direction, SizeStrategy } from './common';
 import { ValidatorType, VALIDATORS, validateOne, validate } from './validation';
 import { DatasourceProps, DATASOURCE } from './datasource';
 import { SETTINGS, DEV_SETTINGS } from './settings';

@@ -1,6 +1,6 @@
 import { VALIDATORS } from './validation';
 import { ICommonProps } from '../interfaces/index';
-import { SizeStrategy } from './direction';
+import { SizeStrategy } from './common';
 
 const { NUMBER, INTEGER, INTEGER_UNLIMITED, MORE_OR_EQUAL, BOOLEAN, ELEMENT, FUNC, OR, ENUM } = VALIDATORS;
 

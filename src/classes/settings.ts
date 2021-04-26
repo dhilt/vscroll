@@ -16,7 +16,8 @@ export class Settings<Data = unknown> implements ISettings, IDevSettings {
   windowViewport: boolean;
   viewportElement: HTMLElement | (() => void) | null;
   inverse: boolean; // if true, bwd padding element will have a priority when filling the viewport (if lack of items)
-  onBeforeClip: ItemsProcessor | null;
+  onBeforeClip: ItemsProcessor | null; // if set, it will be run before clipping items from Buffer after they are hidden
+  sizeStrategy: SizeStrategy; // "average" | "frequent", determines behavior of unknown items
 
   // development settings
   debug: boolean; // if true, logging is enabled; need to turn off when release
@@ -30,7 +31,6 @@ export class Settings<Data = unknown> implements ISettings, IDevSettings {
   cacheOnReload: boolean; // if true, cache will not be flushed on reload
   changeOverflow: boolean; // if true, scroll will be disabled per each item's average size change
   dismissOverflowAnchor: boolean; // if true, the viewport will receive "overflowAnchor: none"
-  sizeStrategy: SizeStrategy; // "average" | "frequent", determines behavior of unknown items
 
   // internal settings, managed by scroller itself
   instanceIndex: number;

@@ -18,6 +18,7 @@ enum Settings {
   viewportElement = 'viewportElement',
   inverse = 'inverse',
   onBeforeClip = 'onBeforeClip',
+  sizeStrategy = 'sizeStrategy',
 }
 
 enum DevSettings {
@@ -32,7 +33,6 @@ enum DevSettings {
   cacheOnReload = 'cacheOnReload',
   changeOverflow = 'changeOverflow',
   dismissOverflowAnchor = 'dismissOverflowAnchor',
-  sizeStrategy = 'sizeStrategy',
 }
 
 export const MIN = {
@@ -97,6 +97,10 @@ export const SETTINGS: ICommonProps<Settings> = {
     validators: [FUNC],
     defaultValue: null
   },
+  [Settings.sizeStrategy]: {
+    validators: [ENUM(SizeStrategy)],
+    defaultValue: SizeStrategy.Average
+  },
 };
 
 export const DEV_SETTINGS: ICommonProps<DevSettings> = {
@@ -143,9 +147,5 @@ export const DEV_SETTINGS: ICommonProps<DevSettings> = {
   [DevSettings.dismissOverflowAnchor]: {
     validators: [BOOLEAN],
     defaultValue: true
-  },
-  [DevSettings.sizeStrategy]: {
-    validators: [ENUM(SizeStrategy)],
-    defaultValue: SizeStrategy.Average
   },
 };

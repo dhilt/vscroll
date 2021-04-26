@@ -1,4 +1,5 @@
 import { ItemsProcessor } from './adapter';
+import { SizeStrategy } from '../inputs/index';
 
 export interface Settings<T = unknown> {
   adapter?: boolean;
@@ -14,6 +15,7 @@ export interface Settings<T = unknown> {
   viewportElement?: HTMLElement | (() => void) | null;
   inverse?: boolean;
   onBeforeClip?: ItemsProcessor<T> | null;
+  sizeStrategy?: SizeStrategy;
 }
 
 export interface DevSettings {

@@ -3,7 +3,7 @@ import { makeDatasource } from './classes/datasource';
 import packageInfo from './version';
 import { INVALID_DATASOURCE_PREFIX } from './scroller';
 import { AdapterPropName, EMPTY_ITEM, getDefaultAdapterProps } from './classes/adapter/props';
-import { Direction } from './inputs/index';
+import { Direction, SizeStrategy } from './inputs/index';
 
 import {
   IDatasource,
@@ -25,6 +25,7 @@ export {
   EMPTY_ITEM,
   getDefaultAdapterProps,
   Direction,
+  SizeStrategy,
 };
 
 // export interfaces

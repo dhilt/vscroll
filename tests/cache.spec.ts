@@ -315,7 +315,7 @@ describe('Cache Spec', () => {
 
     interface ICheckFrequent {
       cacheSize: number;
-      setItemSize: (item: Item) => unknown;
+      setItemSize: (item: Item, defaultSize?: number) => unknown;
       updateCache: (cache: Cache) => void;
       before?: number;
       after?: number;
@@ -328,7 +328,7 @@ describe('Cache Spec', () => {
         sizeStrategy: SizeStrategy.Frequent
       } as never, loggerMock as never);
       const items = generateBufferItems(1, cacheSize);
-      items.forEach(item => setItemSize(item) && cache.add(item));
+      items.forEach(item => setItemSize(item, cache.itemSize) && cache.add(item));
       cache.recalculateDefaultSize();
       before = before === void 0 ? cache.itemSize : before;
       expect(cache.getDefaultSize()).toBe(before);
@@ -336,6 +336,16 @@ describe('Cache Spec', () => {
       cache.recalculateDefaultSize();
       expect(cache.getDefaultSize()).toBe(after === void 0 ? before : after);
     };
+
+    const checkFrequentOnInit = (list: IndexSizeList, before: number, after?: number) =>
+      checkFrequent({
+        cacheSize: list.length,
+        setItemSize: (item, defaultSize) => item.size =
+          list.reduce((a, i) => item.$index === Number(Object.keys(i)[0]) ? Object.values(i)[0] : a, defaultSize),
+        updateCache: () => null,
+        before,
+        after
+      });
 
     const checkFrequentOnAdd = (toAdd: IndexSizeList, newSize?: number) =>
       checkFrequent({
@@ -355,6 +365,20 @@ describe('Cache Spec', () => {
         updateCache: cache => cache.removeItems(toRemove, false),
         after: newSize
       });
+
+    describe('On init', () => {
+      it('should set frequent', () =>
+        checkFrequentOnInit([{ 1: 15 }, { 2: 16 }, { 3: 15 }], 15)
+      );
+
+      it('should set first', () =>
+        checkFrequentOnInit([{ 1: 15 }, { 2: 16 }, { 3: 17 }], 15)
+      );
+
+      it('should set first frequent', () =>
+        checkFrequentOnInit([{ 1: 15 }, { 2: 16 }, { 3: 15 }, { 4: 16 }], 15)
+      );
+    });
 
     describe('On add', () => {
       it('should increase frequent size on add (existed)', () =>

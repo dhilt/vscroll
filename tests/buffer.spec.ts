@@ -393,66 +393,58 @@ describe('Buffer Spec', () => {
       {
         title: 'cache matches buffer',
         min: -9, max: 20, minCache: -9, maxCache: 20, fixRight: false, index: 5, result: NaN,
-        predicate: () => [],
       }, {
         title: 'simple flush',
         min: 1, max: 10, minCache: -9, maxCache: 20, fixRight: false, index: 5, result: 1,
-        predicate: () => [],
       }, {
         title: 'simple flush (fixRight)',
         min: 1, max: 10, minCache: -9, maxCache: 20, fixRight: true, index: 5, result: 11,
-        predicate: () => [],
       }, {
         title: 'flush when eof',
         min: 1, max: 20, minCache: -9, maxCache: 20, fixRight: false, index: 5, result: 0,
-        predicate: () => [],
       }, {
         title: 'flush when eof (fixRight)',
         min: 1, max: 20, minCache: -9, maxCache: 20, fixRight: true, index: 5, result: 20,
-        predicate: () => [],
       }, {
         title: 'flush when bof',
         min: -9, max: 10, minCache: -9, maxCache: 20, fixRight: false, index: 5, result: -9,
-        predicate: () => [],
       }, {
         title: 'flush when bof (fixRight)',
         min: -9, max: 10, minCache: -9, maxCache: 20, fixRight: true, index: 5, result: 11,
-        predicate: () => [],
       }]
-      .forEach(config => it(config.title, checkIndexTrackingOnUpdate(config)))
+      .forEach(config => it(config.title, checkIndexTrackingOnUpdate({
+        ...config,
+        predicate: () => []
+      })))
     );
 
     describe('No Cache behind, but absolute borders are present', () => [
       {
         title: 'borders matches buffer',
         min: -9, max: 20, absMin: -9, absMax: 20, fixRight: false, index: 5, result: NaN,
-        predicate: () => [],
       }, {
         title: 'simple flush',
         min: 1, max: 10, absMin: -9, absMax: 20, fixRight: false, index: 5, result: 1,
-        predicate: () => [],
       }, {
         title: 'simple flush (fixRight)',
         min: 1, max: 10, absMin: -9, absMax: 20, fixRight: true, index: 5, result: 11,
-        predicate: () => [],
       }, {
         title: 'no right border',
         min: 1, max: 10, absMin: -9, absMax: 10, fixRight: false, index: 5, result: 0,
-        predicate: () => [],
       }, {
         title: 'no right border (fixRight)',
         min: 1, max: 10, absMin: -9, absMax: 10, fixRight: true, index: 5, result: 10,
-        predicate: () => [],
       }, {
         title: 'no left border',
         min: 1, max: 10, absMin: 1, absMax: 20, fixRight: false, index: 5, result: 1,
-        predicate: () => [],
       }, {
         title: 'no left border (fixRight)',
         min: 1, max: 10, absMin: 1, absMax: 20, fixRight: true, index: 5, result: 11,
-        predicate: () => [],
       }]
-      .forEach(config => it(config.title, checkIndexTrackingOnUpdate(config)))
+      .forEach(config => it(config.title, checkIndexTrackingOnUpdate({
+        ...config,
+        predicate: () => []
+      })))
     );
   });
 

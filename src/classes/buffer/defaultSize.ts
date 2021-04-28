@@ -105,13 +105,14 @@ export class DefaultSize {
     if (!oldItems.length && !newItems.length && !removed.length) {
       return false;
     }
+    const oldValue = this.get();
     if (this.sizeStrategy === SizeStrategy.Average) {
       this.recalculateAverageSize(cacheSize);
     } else {
       this.recalculateFrequentSize();
     }
     this.recalculation.reset();
-    return true;
+    return this.get() !== oldValue;
   }
 
 }

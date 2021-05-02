@@ -63,6 +63,7 @@ export interface IBufferInfo {
   maxIndex: number;
   absMinIndex: number;
   absMaxIndex: number;
+  defaultSize: number;
 }
 
 export interface IAdapterInput<T> {

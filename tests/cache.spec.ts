@@ -311,34 +311,38 @@ describe('Cache Spec', () => {
 
   });
 
+  interface ICheckDefaultSize {
+    sizeStrategy: SizeStrategy;
+    cacheSize: number;
+    setItemSize: (item: Item, defaultSize?: number) => unknown;
+    updateCache: (cache: Cache) => void;
+    before?: number;
+    after?: number;
+  }
+
+  const checkDefaultSize = ({
+    sizeStrategy, cacheSize, setItemSize, updateCache, before, after
+  }: ICheckDefaultSize) => {
+    const cache = new Cache({
+      ...settings,
+      itemSize: 10,
+      sizeStrategy
+    } as never, loggerMock as never);
+    const items = generateBufferItems(1, cacheSize);
+    items.forEach(item => setItemSize(item, cache.itemSize) && cache.add(item));
+    cache.recalculateDefaultSize();
+    before = before === void 0 ? cache.itemSize : before;
+    expect(cache.getDefaultSize()).toBe(before);
+    updateCache(cache);
+    cache.recalculateDefaultSize();
+    expect(cache.getDefaultSize()).toBe(after === void 0 ? before : after);
+  };
+
   describe('Frequent size', () => {
 
-    interface ICheckFrequent {
-      cacheSize: number;
-      setItemSize: (item: Item, defaultSize?: number) => unknown;
-      updateCache: (cache: Cache) => void;
-      before?: number;
-      after?: number;
-    }
-
-    const checkFrequent = ({ cacheSize, setItemSize, updateCache, before, after }: ICheckFrequent) => {
-      const cache = new Cache({
-        ...settings,
-        itemSize: 10,
-        sizeStrategy: SizeStrategy.Frequent
-      } as never, loggerMock as never);
-      const items = generateBufferItems(1, cacheSize);
-      items.forEach(item => setItemSize(item, cache.itemSize) && cache.add(item));
-      cache.recalculateDefaultSize();
-      before = before === void 0 ? cache.itemSize : before;
-      expect(cache.getDefaultSize()).toBe(before);
-      updateCache(cache);
-      cache.recalculateDefaultSize();
-      expect(cache.getDefaultSize()).toBe(after === void 0 ? before : after);
-    };
-
     const checkFrequentOnInit = (list: IndexSizeList, before: number, after?: number) =>
-      checkFrequent({
+      checkDefaultSize({
+        sizeStrategy: SizeStrategy.Frequent,
         cacheSize: list.length,
         setItemSize: (item, defaultSize) => item.size =
           list.reduce((a, i) => item.$index === Number(Object.keys(i)[0]) ? Object.values(i)[0] : a, defaultSize),
@@ -348,7 +352,8 @@ describe('Cache Spec', () => {
       });
 
     const checkFrequentOnAdd = (toAdd: IndexSizeList, newSize?: number) =>
-      checkFrequent({
+      checkDefaultSize({
+        sizeStrategy: SizeStrategy.Frequent,
         cacheSize: 10,
         setItemSize: item => item.size = 10,
         updateCache: cache => toAdd.forEach(r => {
@@ -359,7 +364,8 @@ describe('Cache Spec', () => {
       });
 
     const checkFrequentOnRemove = (toRemove: number[], newSize?: number) =>
-      checkFrequent({
+      checkDefaultSize({
+        sizeStrategy: SizeStrategy.Frequent,
         cacheSize: 10,
         setItemSize: item => item.size = item.$index % 2 === 0 ? 5 : 10, // 1 - 10, 2 - 5, ...
         updateCache: cache => cache.removeItems(toRemove, false),
@@ -442,6 +448,51 @@ describe('Cache Spec', () => {
         checkFrequentOnRemove([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
       );
     });
+  });
+
+  describe('Constant size', () => {
+
+    const checkConstantOnInit = (list: IndexSizeList, updateCache = c => null) =>
+      checkDefaultSize({
+        sizeStrategy: SizeStrategy.Constant,
+        cacheSize: list.length,
+        setItemSize: (item, defaultSize) => item.size =
+          list.reduce((a, i) => item.$index === Number(Object.keys(i)[0]) ? Object.values(i)[0] : a, defaultSize),
+        updateCache
+      });
+
+    const checkConstantOnRemove = (list: IndexSizeList, toRemove: number[]) =>
+      checkConstantOnInit(list, cache => cache.removeItems(toRemove, false));
+
+    const checkConstantOnAdd = (list: IndexSizeList, toAdd: IndexSizeList) =>
+      checkConstantOnInit(list, cache => toAdd.forEach(r => {
+        const key = Number(Object.keys(r)[0]);
+        cache.add({ $index: key, size: r[key], data: {} } as Item);
+      }));
+
+    it('should not change default size on init', () =>
+      checkConstantOnInit([{ 1: 15 }, { 2: 16 }, { 3: 15 }])
+    );
+
+    it('should not change default size on init (2)', () =>
+      checkConstantOnInit([{ 1: 15 }, { 2: 16 }, { 3: 17 }])
+    );
+
+    it('should not change default size on remove (1)', () =>
+      checkConstantOnRemove([{ 1: 5 }, { 2: 6 }, { 3: 7 }], [])
+    );
+
+    it('should not change default size on remove (2)', () =>
+      checkConstantOnRemove([{ 1: 10 }, { 2: 11 }, { 3: 12 }], [1])
+    );
+
+    it('should not change default size on add (1)', () =>
+      checkConstantOnAdd([{ 1: 5 }, { 2: 6 }], [{ 1: 5 }, { 2: 5 }, { 3: 5 }])
+    );
+
+    it('should not change default size on add (2)', () =>
+      checkConstantOnAdd([{ 1: 10 }, { 2: 10 }], [{ 1: 5 }, { 2: 5 }, { 3: 5 }])
+    );
   });
 
 });

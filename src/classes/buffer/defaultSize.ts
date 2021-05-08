@@ -22,11 +22,10 @@ export class SizesRecalculation {
 }
 
 export class DefaultSize {
-  readonly itemSize: number;
-  readonly sizeStrategy: SizeStrategy;
+  private readonly itemSize: number;
+  private readonly sizeStrategy: SizeStrategy;
   private sizeMap: Map<number, number>;
-
-  recalculation: SizesRecalculation;
+  private recalculation: SizesRecalculation;
 
   private frequentSize: number;
   private averageSize: number;
@@ -50,13 +49,17 @@ export class DefaultSize {
   }
 
   get(): number {
-    if (this.sizeStrategy === SizeStrategy.Average) {
-      return this.averageSize;
+    switch (this.sizeStrategy) {
+      case SizeStrategy.Average:
+        return this.averageSize;
+      case SizeStrategy.Frequent:
+        return this.frequentSize;
+      default:
+        return this.itemSize;
     }
-    return this.frequentSize;
   }
 
-  recalculateAverageSize(cacheSize: number): void {
+  private recalculateAverageSize(cacheSize: number): void {
     const { oldItems, newItems, removed } = this.recalculation;
     if (oldItems.length) {
       const oldSize = oldItems.reduce((acc, item) => acc + item.size, 0);
@@ -77,7 +80,7 @@ export class DefaultSize {
     this.averageSize = Math.round(this.averageSizeFloat);
   }
 
-  recalculateFrequentSize(): void {
+  private recalculateFrequentSize(): void {
     const { oldItems, newItems, removed } = this.recalculation;
     const oldFrequentSizeCount = this.sizeMap.get(this.frequentSize);
     if (newItems.length) {
@@ -101,6 +104,9 @@ export class DefaultSize {
   }
 
   recalculate(cacheSize: number): boolean {
+    if (this.sizeStrategy === SizeStrategy.Constant) {
+      return false;
+    }
     const { oldItems, newItems, removed } = this.recalculation;
     if (!oldItems.length && !newItems.length && !removed.length) {
       return false;
@@ -115,4 +121,28 @@ export class DefaultSize {
     return this.get() !== oldValue;
   }
 
+  setExisted(oldItem: ItemSize, newItem: ItemSize): void {
+    if (this.sizeStrategy !== SizeStrategy.Constant) {
+      this.recalculation.oldItems.push({
+        size: oldItem.size,
+        newSize: newItem.size
+      });
+    }
+  }
+
+  setNew(newItem: ItemSize): void {
+    if (this.sizeStrategy !== SizeStrategy.Constant) {
+      this.recalculation.newItems.push({
+        size: newItem.size
+      });
+    }
+  }
+
+  setRemoved(oldItem: ItemSize): void {
+    if (this.sizeStrategy !== SizeStrategy.Constant) {
+      this.recalculation.removed.push({
+        size: oldItem.size
+      });
+    }
+  }
 }

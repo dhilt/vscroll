@@ -83,8 +83,8 @@ export class Cache<Data = unknown> {
   }
 
   /**
-   * Adds item to Set, replaces existed item if $index matches.
-   * Maintains min/max indexes and average/frequent item size.
+   * Adds item to Set by $index, replaces existed item if $index matches.
+   * Maintains min/max indexes and default item size.
    *
    * @param {Item<Data>} item A Buffer item to be cached, an objects with { $index, data, size } props.
    */
@@ -96,19 +96,16 @@ export class Cache<Data = unknown> {
       }
       if (itemCache.size !== item.size) { // size changes
         if (itemCache.size !== void 0) {
-          this.defaultSize.recalculation.oldItems.push({
-            size: itemCache.size,
-            newSize: item.size
-          });
+          this.defaultSize.setExisted(itemCache, item);
         } else {
-          this.defaultSize.recalculation.newItems.push({ size: item.size });
+          this.defaultSize.setNew(item);
         }
         itemCache.size = item.size;
       }
     } else {
       itemCache = new ItemCache<Data>(item, this.saveData);
       this.items.set(item.$index, itemCache);
-      this.defaultSize.recalculation.newItems.push({ size: itemCache.size });
+      this.defaultSize.setNew(itemCache);
     }
     if (item.$index < this.minIndex) {
       this.minIndex = item.$index;
@@ -120,9 +117,9 @@ export class Cache<Data = unknown> {
   }
 
   /**
-   * Removes items from Set, shifts indexes of items that remain.
+   * Removes items from Set, shifts $indexes of items that remain.
    * Replaces current Set with a new one with new regular $indexes.
-   * Maintains min/max indexes and average/frequent item size.
+   * Maintains min/max indexes and default item size.
    *
    * @param {number[]} toRemove List of indexes to be removed.
    * @param {boolean} fixRight Defines indexes shifting strategy.
@@ -135,7 +132,7 @@ export class Cache<Data = unknown> {
     this.items.forEach(item => {
       if (toRemove.some(index => index === item.$index)) {
         if (item.size !== void 0) {
-          this.defaultSize.recalculation.removed.push({ size: item.size });
+          this.defaultSize.setRemoved(item);
         }
         return;
       }
@@ -153,10 +150,10 @@ export class Cache<Data = unknown> {
   }
 
   /**
-   * Destructively updates cache items Set based on subset (before-after) changes.
+   * Destructively updates Set based on subset (before-after) changes.
    * Replaces current Set with a new one with new regular $indexes.
-   * Maintains min/max indexes. Maintains average/frequent item size on remove.
-   * Inserted and replaced items will be taken into account on Cache.set async calls after render.
+   * Maintains min/max indexes. Maintains default item size on remove only.
+   * Inserted and replaced items will be taken into account on Cache.add async calls after render.
    *
    * @param {number[]} before Initial subset of indexes to be replaced by "after". Must be incremental.
    * @param {Item<Data>[]} after Transformed subset that replaces "before". Must be be $index-incremental.
@@ -179,11 +176,11 @@ export class Cache<Data = unknown> {
     }
     const items = new Map<number, ItemCache<Data>>();
     this.items.forEach(item => {
-      if (item.$index < minB) { // items before subset
+      if (item.$index < minB) { // items to the left of the subset
         item.changeIndex(item.$index + leftDiff);
         items.set(item.$index, item);
         return;
-      } else if (item.$index > maxB) { // items after subset
+      } else if (item.$index > maxB) { // items to the right of the subset
         item.changeIndex(item.$index + rightDiff);
         items.set(item.$index, item);
         return;
@@ -192,9 +189,9 @@ export class Cache<Data = unknown> {
     after.forEach(item => // subset items
       items.set(item.$index, new ItemCache<Data>(item, this.saveData))
     );
-    before.forEach(index => { // removed items immediately affect average/frequent size
+    before.forEach(index => { // removed items immediately affect the default size
       if (!after.some(({ $index }) => index === $index) && (found = this.get(index))) {
-        this.defaultSize.recalculation.removed.push({ size: found.size });
+        this.defaultSize.setRemoved(found);
       }
     });
     this.minIndex += leftDiff;

@@ -47,7 +47,7 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     const { buffer, viewport: { paddings } } = scroller;
     const bufferToken = prepend ? 'absMinIndex' : 'absMaxIndex';
     if (isFinite(buffer[bufferToken])) {
-      const size = items.length * buffer.averageSize;
+      const size = items.length * buffer.defaultSize;
       const padding = prepend ? paddings.backward : paddings.forward;
       buffer[bufferToken] += (prepend ? -1 : 1) * items.length;
       padding.size += size;

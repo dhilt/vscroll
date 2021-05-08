@@ -1,4 +1,4 @@
-import { SETTINGS, DEV_SETTINGS, validate, validateOne, VALIDATORS } from '../inputs/index';
+import { SETTINGS, DEV_SETTINGS, validate, validateOne, VALIDATORS, SizeStrategy } from '../inputs/index';
 import { Settings as ISettings, DevSettings as IDevSettings, ICommonProps, ItemsProcessor } from '../interfaces/index';
 
 export class Settings<Data = unknown> implements ISettings, IDevSettings {
@@ -16,7 +16,8 @@ export class Settings<Data = unknown> implements ISettings, IDevSettings {
   windowViewport: boolean;
   viewportElement: HTMLElement | (() => void) | null;
   inverse: boolean; // if true, bwd padding element will have a priority when filling the viewport (if lack of items)
-  onBeforeClip: ItemsProcessor | null;
+  onBeforeClip: ItemsProcessor | null; // if set, it will be run before clipping items from Buffer after they are hidden
+  sizeStrategy: SizeStrategy; // "average" | "frequent", determines behavior of unknown items
 
   // development settings
   debug: boolean; // if true, logging is enabled; need to turn off when release

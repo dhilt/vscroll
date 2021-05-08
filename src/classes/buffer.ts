@@ -1,4 +1,4 @@
-import { Cache } from './cache';
+import { Cache } from './buffer/cache';
 import { Item } from './item';
 import { Settings } from './settings';
 import { Logger } from './logger';
@@ -29,7 +29,7 @@ export class Buffer<Data> {
     this.changeItems = onDataChanged;
     this.bof = new Reactive<boolean>(false);
     this.eof = new Reactive<boolean>(false);
-    this.cache = new Cache<Data>(settings.itemSize, settings.cacheData, settings.cacheOnReload, logger);
+    this.cache = new Cache<Data>(settings, logger);
     this.startIndexUser = settings.startIndex;
     this.minIndexUser = settings.minIndex;
     this.maxIndexUser = settings.maxIndex;
@@ -137,12 +137,8 @@ export class Buffer<Data> {
     return this.cache.size;
   }
 
-  get averageSize(): number {
-    return this.cache.averageSize;
-  }
-
-  get hasItemSize(): boolean {
-    return this.averageSize > 0;
+  get defaultSize(): number {
+    return this.cache.getDefaultSize();
   }
 
   get minIndex(): number {
@@ -256,7 +252,7 @@ export class Buffer<Data> {
     indexToTrack: number,
     fixRight: boolean
   ): number {
-    if (!this.size || isNaN(this.firstIndex)) {
+    if (!this.size || Number.isNaN(this.firstIndex)) {
       return NaN;
     }
     let _indexToTrack = indexToTrack;
@@ -371,11 +367,11 @@ export class Buffer<Data> {
 
   getSizeByIndex(index: number): number {
     const item = this.cache.get(index);
-    return item ? item.size : this.averageSize;
+    return item ? item.size : this.defaultSize;
   }
 
-  checkAverageSize(): boolean {
-    return this.cache.recalculateAverageSize();
+  checkDefaultSize(): boolean {
+    return this.cache.recalculateDefaultSize();
   }
 
   getIndexToAppend(eof?: boolean): number {

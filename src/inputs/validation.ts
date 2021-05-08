@@ -24,11 +24,11 @@ export enum ValidatorType {
   oneOfCan = 'can be present as only one item of {arg1} list',
   oneOfMust = 'must be present as only one item of {arg1} list',
   or = 'must satisfy at least 1 validator from {arg1} list',
+  enum = 'must belong to {arg1} list',
 }
 
 const getError = (msg: ValidatorType, args?: string[]) =>
   (args || ['']).reduce((acc, arg, index) => acc.replace(`{arg${index + 1}}`, arg), msg);
-
 
 const getNumber = (value: unknown): number =>
   typeof value === 'number' || (typeof value === 'string' && value !== '')
@@ -220,6 +220,18 @@ const onOr = (validators: IValidator[]) => (value: unknown): ValidatedValue => {
   return { value, isSet: true, isValid: !errors.length, errors };
 };
 
+enum AbstractEnum { }
+type TEnum = typeof AbstractEnum;
+
+const onEnum = (list: TEnum) => (value: unknown): ValidatedValue => {
+  const errors = [];
+  const values = Object.keys(list).filter(k => isNaN(Number(k))).map(k => list[k as unknown as number]);
+  if (!values.some(item => item === value)) {
+    errors.push(getError(ValidatorType.enum, ['[' + values.join(',') + ']']));
+  }
+  return { value, isSet: true, isValid: !errors.length, errors };
+};
+
 export const VALIDATORS = {
   NUMBER: {
     type: ValidatorType.number,
@@ -281,6 +293,10 @@ export const VALIDATORS = {
     type: ValidatorType.or,
     method: onOr(list)
   }),
+  ENUM: (list: TEnum): IValidator => ({
+    type: ValidatorType.enum,
+    method: onEnum(list)
+  })
 };
 
 export class ValidatedData implements IValidatedData {

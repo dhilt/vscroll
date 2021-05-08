@@ -55,7 +55,7 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
     if (offset) {
       startDelta += offset;
     }
-    if (!buffer.hasItemSize) {
+    if (!buffer.defaultSize) {
       return startDelta;
     }
     for (let index = buffer.finiteAbsMinIndex; index < buffer.startIndex; index++) {
@@ -74,7 +74,7 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
     let firstIndexPosition = 0;
     if (state.cycle.innerLoop.isInitial) {
       scroller.logger.log('skipping fetch backward direction [initial loop]');
-    } else if (!buffer.hasItemSize) {
+    } else if (!buffer.defaultSize) {
       scroller.logger.log('skipping fetch backward direction [no item size]');
     } else {
       let position = firstIndexPosition;
@@ -117,7 +117,7 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
     const { state: { fetch, cycle }, buffer, settings } = scroller;
     const { positions: { relative, end }, first, last } = fetch;
     let lastIndex;
-    if (!buffer.hasItemSize) {
+    if (!buffer.defaultSize) {
       // just to fetch forward bufferSize items if neither averageItemSize nor itemSize are present
       lastIndex = buffer.startIndex + settings.bufferSize - 1;
       scroller.logger.log('forcing fetch forward direction [no item size]');

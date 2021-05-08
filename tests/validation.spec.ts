@@ -14,6 +14,7 @@ const {
   ONE_OF_CAN,
   ONE_OF_MUST,
   OR,
+  ENUM,
 } = VALIDATORS;
 
 describe('Input Params Validation', () => {
@@ -382,6 +383,36 @@ describe('Validation', () => {
       );
       expect(run({ [token]: {} }, boolOrObj)).toBe(true);
       expect(run({ [token]: true }, boolOrObj)).toBe(true);
+    });
+  });
+
+  describe('[Enum]', () => {
+    it('should pass an enumerated value', () => {
+      enum myEnum { a = 'a', b = 'b', c = 33, d }
+      const enumValidators = [ENUM(myEnum)];
+      expect(run({}, enumValidators)).toBe(true);
+      expect(run({}, enumValidators, true)).toBe(false);
+      [
+        0,
+        1,
+        '33',
+        '34',
+        35,
+      ].forEach(input =>
+        expect(run({ [token]: input }, enumValidators)).toBe(false)
+      );
+      [
+        myEnum.a,
+        myEnum.b,
+        myEnum.c,
+        myEnum.d,
+        'a',
+        'b',
+        33,
+        34,
+      ].forEach(input =>
+        expect(run({ [token]: input }, enumValidators)).toBe(true)
+      );
     });
   });
 

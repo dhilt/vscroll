@@ -1,12 +1,13 @@
-import { Cache } from '../src/classes/cache';
+import { Cache } from '../src/classes/buffer/cache';
 import { Item } from '../src/classes/item';
 
-import { Data, CheckIndexList } from './misc/types';
+import { Data, Id, IndexIdList, IndexSizeList } from './misc/types';
 import { generateBufferItem, generateBufferItems, generateItem } from './misc/items';
+import { SizeStrategy } from '../src/inputs';
 
 const loggerMock = { log: () => null };
 
-const make = (list: CheckIndexList): Item<Data>[] =>
+const make = (list: IndexIdList): Item<Data>[] =>
   list.map(current => {
     const index = Number(Object.keys(current)[0]);
     const id = current[index];
@@ -14,6 +15,13 @@ const make = (list: CheckIndexList): Item<Data>[] =>
   });
 
 describe('Cache Spec', () => {
+
+  const settings = {
+    itemSize: NaN,
+    cacheData: true,
+    cacheOnReload: true,
+    sizeStrategy: SizeStrategy.Average
+  };
 
   describe('Remove', () => {
     const MIN = 1, COUNT = 5;
@@ -28,7 +36,7 @@ describe('Cache Spec', () => {
       });
 
     beforeEach(() => {
-      cache = new Cache(NaN, true, true, loggerMock as never);
+      cache = new Cache(settings as never, loggerMock as never);
       items.forEach(item => cache.add(item));
     });
 
@@ -94,7 +102,7 @@ describe('Cache Spec', () => {
     const subset = items.slice(2, 5).map(({ $index }) => $index); // [3, 4, 5]
     let cache: Cache<Data>;
 
-    const checkUpdate = (list: CheckIndexList) => {
+    const checkUpdate = (list: IndexIdList) => {
       // console.log(Array.from((cache as unknown as { items: Map<number, Item<Data>> }).items).map(i => i[1].data));
       expect(cache.size).toEqual(list.length);
       list.forEach((current, index) => {
@@ -113,7 +121,7 @@ describe('Cache Spec', () => {
     };
 
     beforeEach(() => {
-      cache = new Cache(NaN, true, true, loggerMock as never);
+      cache = new Cache(settings as never, loggerMock as never);
       items.forEach(item => cache.add(item));
     });
 
@@ -207,44 +215,232 @@ describe('Cache Spec', () => {
   });
 
   describe('Average size', () => {
-    const prepare = ({ length, toRemove }) => {
-      const before = Math.round(
-        Array.from({ length }).reduce((acc: number, j, i) => acc + i + 1, 0) / length
-      );
-      const after = Math.round(
-        Array.from({ length }).reduce(
-          (acc: number, j, i) => acc + (toRemove.includes(i + 1) ? 0 : (i + 1)), 0
-        ) / (length - toRemove.length));
+    const averageSizeSettings = {
+      ...settings,
+      sizeStrategy: SizeStrategy.Average
+    };
 
-      const cache = new Cache(NaN, true, true, loggerMock as never);
+    const prepareAverage = (
+      { length, toRemove, toAdd }: { length: number, toRemove?: Id[], toAdd?: IndexSizeList }
+    ) => {
+      const beforeTotal = Array.from({ length }).reduce((acc: number, j, i) => acc + i + 1, 0);
+      const before = Math.round(beforeTotal / length);
+      let after;
+      if (toRemove) {
+        after = Math.round(
+          Array.from({ length }).reduce(
+            (acc: number, j, i) => acc + (toRemove.includes(i + 1) ? 0 : (i + 1)), 0
+          ) / (length - toRemove.length));
+      } else if (toAdd) {
+        let countNew = 0, sizeNew = 0, sizeOld = 0, sizeOldBefore = 0;
+        toAdd.forEach(r => {
+          const key = Number(Object.keys(r)[0]);
+          const size = r[key];
+          if (key > length) {
+            countNew++;
+            sizeNew += size;
+          } else {
+            sizeOld += size;
+            sizeOldBefore += key;
+          }
+        });
+        after = Math.round((beforeTotal + sizeNew + sizeOld - sizeOldBefore) / (length + countNew));
+      }
+      const cache = new Cache(averageSizeSettings as never, loggerMock as never);
       const items = generateBufferItems(1, length);
       items.forEach(item => cache.add(item));
-      cache.recalculateAverageSize();
+      cache.recalculateDefaultSize();
       return { items, cache, average: { after, before } };
     };
 
-    it('should maintain average size on remove', () => {
-      const toRemove = [10, 20, 30, 40, 50];
-      const { cache, average } = prepare({ length: 50, toRemove });
+    describe('On add', () => {
+      const checkAdd = (toAdd: IndexSizeList) => {
+        const { cache, average } = prepareAverage({ length: 50, toAdd });
+        expect(cache.getDefaultSize()).toBe(average.before);
 
-      expect(cache.averageSize).toBe(average.before);
+        toAdd.forEach(r => {
+          const key = Number(Object.keys(r)[0]);
+          cache.add({ $index: key, size: r[key], data: {} } as Item);
+        });
+        cache.recalculateDefaultSize();
+        expect(cache.getDefaultSize()).toBe(average.after);
+      };
 
-      cache.removeItems(toRemove, true);
-      cache.recalculateAverageSize();
-      expect(cache.averageSize).toBe(average.after);
+      it('should maintain average size on add (increase, new)', () => {
+        checkAdd([{ 51: 101 }, { 52: 102 }, { 53: 103 }]);
+      });
+
+      it('should maintain average size on add (decrease, new)', () => {
+        checkAdd([{ 51: 1 }, { 52: 2 }, { 53: 3 }]);
+      });
+
+      it('should maintain average size on add (increase, mixed)', () => {
+        checkAdd([{ 1: 101 }, { 2: 102 }, { 3: 103 }]);
+      });
+
+      it('should maintain average size on add (decrease, mixed)', () => {
+        checkAdd([{ 50: 3 }, { 49: 2 }, { 48: 1 }]);
+      });
     });
 
-    it('should maintain average size on remove via update', () => {
-      const toRemove = [5, 8, 10];
-      const { items, cache, average } = prepare({ length: 10, toRemove });
-      const listAfter = [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 5: 6 }, { 6: 7 }, { 7: 9 }];
-      const subset = items.slice(toRemove[0], toRemove[toRemove.length - 1] + 1).map(({ $index }) => $index);
+    describe('On remove', () => {
+      it('should maintain average size on remove', () => {
+        const toRemove = [10, 20, 30, 40, 50];
+        const { cache, average } = prepareAverage({ length: 50, toRemove });
 
-      expect(cache.averageSize).toBe(average.before);
+        expect(cache.getDefaultSize()).toBe(average.before);
 
-      cache.updateSubset(subset, make(listAfter));
-      cache.recalculateAverageSize();
-      expect(cache.averageSize).toBe(average.after);
+        cache.removeItems(toRemove, true);
+        cache.recalculateDefaultSize();
+        expect(cache.getDefaultSize()).toBe(average.after);
+      });
+
+      it('should maintain average size on remove via update', () => {
+        const toRemove = [5, 8, 10];
+        const { items, cache, average } = prepareAverage({ length: 10, toRemove });
+        const listAfter = [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 5: 6 }, { 6: 7 }, { 7: 9 }];
+        const subset = items.slice(toRemove[0], toRemove[toRemove.length - 1] + 1).map(({ $index }) => $index);
+
+        expect(cache.getDefaultSize()).toBe(average.before);
+
+        cache.updateSubset(subset, make(listAfter));
+        cache.recalculateDefaultSize();
+        expect(cache.getDefaultSize()).toBe(average.after);
+      });
+    });
+
+  });
+
+  describe('Frequent size', () => {
+
+    interface ICheckFrequent {
+      cacheSize: number;
+      setItemSize: (item: Item, defaultSize?: number) => unknown;
+      updateCache: (cache: Cache) => void;
+      before?: number;
+      after?: number;
+    }
+
+    const checkFrequent = ({ cacheSize, setItemSize, updateCache, before, after }: ICheckFrequent) => {
+      const cache = new Cache({
+        ...settings,
+        itemSize: 10,
+        sizeStrategy: SizeStrategy.Frequent
+      } as never, loggerMock as never);
+      const items = generateBufferItems(1, cacheSize);
+      items.forEach(item => setItemSize(item, cache.itemSize) && cache.add(item));
+      cache.recalculateDefaultSize();
+      before = before === void 0 ? cache.itemSize : before;
+      expect(cache.getDefaultSize()).toBe(before);
+      updateCache(cache);
+      cache.recalculateDefaultSize();
+      expect(cache.getDefaultSize()).toBe(after === void 0 ? before : after);
+    };
+
+    const checkFrequentOnInit = (list: IndexSizeList, before: number, after?: number) =>
+      checkFrequent({
+        cacheSize: list.length,
+        setItemSize: (item, defaultSize) => item.size =
+          list.reduce((a, i) => item.$index === Number(Object.keys(i)[0]) ? Object.values(i)[0] : a, defaultSize),
+        updateCache: () => null,
+        before,
+        after
+      });
+
+    const checkFrequentOnAdd = (toAdd: IndexSizeList, newSize?: number) =>
+      checkFrequent({
+        cacheSize: 10,
+        setItemSize: item => item.size = 10,
+        updateCache: cache => toAdd.forEach(r => {
+          const key = Number(Object.keys(r)[0]);
+          cache.add({ $index: key, size: r[key], data: {} } as Item);
+        }),
+        after: newSize
+      });
+
+    const checkFrequentOnRemove = (toRemove: number[], newSize?: number) =>
+      checkFrequent({
+        cacheSize: 10,
+        setItemSize: item => item.size = item.$index % 2 === 0 ? 5 : 10, // 1 - 10, 2 - 5, ...
+        updateCache: cache => cache.removeItems(toRemove, false),
+        after: newSize
+      });
+
+    describe('On init', () => {
+      it('should set frequent', () =>
+        checkFrequentOnInit([{ 1: 15 }, { 2: 16 }, { 3: 15 }], 15)
+      );
+
+      it('should set first', () =>
+        checkFrequentOnInit([{ 1: 15 }, { 2: 16 }, { 3: 17 }], 15)
+      );
+
+      it('should set first frequent', () =>
+        checkFrequentOnInit([{ 1: 15 }, { 2: 16 }, { 3: 15 }, { 4: 16 }], 15)
+      );
+    });
+
+    describe('On add', () => {
+      it('should increase frequent size on add (existed)', () =>
+        checkFrequentOnAdd([{ 1: 20 }, { 2: 20 }, { 3: 20 }, { 4: 20 }, { 5: 20 }, { 6: 20 }], 20)
+      );
+
+      it('should decrease frequent size on add (existed)', () =>
+        checkFrequentOnAdd([{ 1: 5 }, { 2: 5 }, { 3: 5 }, { 4: 5 }, { 5: 5 }, { 6: 5 }], 5)
+      );
+
+      it('should not change frequent size on add (existed, smaller)', () =>
+        checkFrequentOnAdd([{ 1: 5 }, { 2: 5 }, { 3: 5 }, { 4: 5 }])
+      );
+
+      it('should not change frequent size on add (existed, bigger)', () =>
+        checkFrequentOnAdd([{ 1: 25 }, { 2: 25 }, { 3: 25 }, { 4: 25 }])
+      );
+
+      it('should not change frequent size on add (new, less)', () =>
+        checkFrequentOnAdd(Array.from({ length: 9 }).map((j, i) => ({ [100 + i]: 20 })))
+      );
+
+      it('should not change frequent size on add (new, equal)', () =>
+        checkFrequentOnAdd(Array.from({ length: 10 }).map((j, i) => ({ [100 + i]: 20 })))
+      );
+
+      it('should change frequent size on add (new, more)', () =>
+        checkFrequentOnAdd(Array.from({ length: 11 }).map((j, i) => ({ [100 + i]: 20 })), 20)
+      );
+
+      it('should change frequent size on add (new, equal, double)', () =>
+        checkFrequentOnAdd([
+          ...Array.from({ length: 11 }).map((j, i) => ({ [100 + i]: 20 })),
+          ...Array.from({ length: 11 }).map((j, i) => ({ [200 + i]: 30 })),
+        ], 20)
+      );
+    });
+
+    describe('On remove', () => {
+      it('should not change frequent size on remove (empty)', () =>
+        checkFrequentOnRemove([])
+      );
+
+      it('should change frequent size on remove (many)', () =>
+        checkFrequentOnRemove([1, 2, 3, 4, 5], 5)
+      );
+
+      it('should change frequent size on remove (single)', () =>
+        checkFrequentOnRemove([1], 5)
+      );
+
+      it('should not change frequent size on remove (many)', () =>
+        checkFrequentOnRemove([2, 4, 6, 8, 10])
+      );
+
+      it('should not change frequent size on remove (single)', () =>
+        checkFrequentOnRemove([2])
+      );
+
+      it('should not change frequent size on remove (all)', () =>
+        checkFrequentOnRemove([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+      );
     });
   });
 

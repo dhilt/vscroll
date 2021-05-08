@@ -75,6 +75,7 @@ const bufferInfoDefault: IBufferInfo = {
   maxIndex: NaN,
   absMinIndex: -Infinity,
   absMaxIndex: +Infinity,
+  defaultSize: NaN,
 };
 
 export const EMPTY_ITEM = {

@@ -1,7 +1,8 @@
 import { VALIDATORS } from './validation';
 import { ICommonProps } from '../interfaces/index';
+import { SizeStrategy } from './common';
 
-const { NUMBER, INTEGER, INTEGER_UNLIMITED, MORE_OR_EQUAL, BOOLEAN, ELEMENT, FUNC, OR } = VALIDATORS;
+const { NUMBER, INTEGER, INTEGER_UNLIMITED, MORE_OR_EQUAL, BOOLEAN, ELEMENT, FUNC, OR, ENUM } = VALIDATORS;
 
 enum Settings {
   adapter = 'adapter',
@@ -17,6 +18,7 @@ enum Settings {
   viewportElement = 'viewportElement',
   inverse = 'inverse',
   onBeforeClip = 'onBeforeClip',
+  sizeStrategy = 'sizeStrategy',
 }
 
 enum DevSettings {
@@ -94,6 +96,10 @@ export const SETTINGS: ICommonProps<Settings> = {
   [Settings.onBeforeClip]: {
     validators: [FUNC],
     defaultValue: null
+  },
+  [Settings.sizeStrategy]: {
+    validators: [ENUM(SizeStrategy)],
+    defaultValue: SizeStrategy.Average
   },
 };
 

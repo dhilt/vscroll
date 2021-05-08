@@ -247,6 +247,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         maxIndex: buffer.maxIndex,
         absMinIndex: buffer.absMinIndex,
         absMaxIndex: buffer.absMaxIndex,
+        defaultSize: buffer.defaultSize,
       })
     });
     this.bof = buffer.bof.get();

@@ -8,7 +8,8 @@ export interface Data {
   size: number;
 }
 
-export type CheckIndexList = { [key: string]: Id }[];
+export type IndexIdList = { [key: number]: Id }[];
+export type IndexSizeList = { [key: number]: number }[];
 
 // [absMin..minCache..min..max..maxCache..absMax]
 export interface BufferParams {
@@ -25,7 +26,7 @@ export interface BufferUpdateConfig extends BufferParams {
   title: string;
   predicate: BufferUpdater<Data>;
   fixRight: boolean;
-  list: CheckIndexList;
+  list: IndexIdList;
 }
 
 export interface BufferUpdateTrackConfig extends BufferParams {

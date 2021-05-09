@@ -27,6 +27,7 @@ export class DefaultSize {
   private sizeMap: Map<number, number>;
   private recalculation: SizesRecalculation;
 
+  private constantSize: number;
   private frequentSize: number;
   private averageSize: number;
   private averageSizeFloat: number;
@@ -40,6 +41,7 @@ export class DefaultSize {
 
   reset(force: boolean): void {
     if (force) {
+      this.constantSize = this.itemSize;
       this.frequentSize = this.itemSize;
       this.averageSize = this.itemSize;
       this.averageSizeFloat = this.itemSize;
@@ -55,7 +57,7 @@ export class DefaultSize {
       case SizeStrategy.Frequent:
         return this.frequentSize;
       default:
-        return this.itemSize;
+        return this.constantSize;
     }
   }
 
@@ -135,6 +137,10 @@ export class DefaultSize {
       this.recalculation.newItems.push({
         size: newItem.size
       });
+    } else {
+      if (!this.constantSize) {
+        this.constantSize = newItem.size;
+      }
     }
   }
 

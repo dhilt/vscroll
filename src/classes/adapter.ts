@@ -114,7 +114,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     this.relaxRun = null;
     this.reloadCounter = 0;
 
-    // public context (if exists) should provide Reactive props configuration
+    // public context (if exists) should provide access Reactive props configuration by id
     const reactivePropsStore = context && reactiveConfigStorage.get(context.id) || {};
 
     // make array of the original values from public context if present

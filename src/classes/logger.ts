@@ -18,7 +18,7 @@ export class Logger {
   readonly getScrollPosition: (element: HTMLElement) => number;
   private logs: unknown[][] = [];
 
-  constructor(scroller: Scroller, packageInfo: IPackages) {
+  constructor(scroller: Scroller, packageInfo: IPackages, adapter?: { id: number }) {
     const { settings } = scroller;
     this.debug = settings.debug;
     this.immediateLog = settings.immediateLog;
@@ -49,9 +49,11 @@ export class Logger {
       `${settings.instanceIndex}-${scroller.state.cycle.count}`;
     this.getScrollPosition = (element: HTMLElement) => scroller.routines.getScrollPosition(element);
     this.log(() =>
-      'uiScroll Workflow has been started, ' +
-      `core: ${packageInfo.core.name} v${packageInfo.core.version} (instance ${settings.instanceIndex}), ` +
-      `consumer: ${packageInfo.consumer.name} v${packageInfo.consumer.version}`
+      'vscroll Workflow has been started, ' +
+      `core: ${packageInfo.core.name} v${packageInfo.core.version}, ` +
+      `consumer: ${packageInfo.consumer.name} v${packageInfo.consumer.version}, ` +
+      `workflow instance: ${settings.instanceIndex}, adapter ` +
+      (!adapter ? 'is not instantiated' : `instance: ${adapter.id}`)
     );
   }
 

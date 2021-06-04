@@ -87,6 +87,8 @@ export class Cache<Data = unknown> {
    * Maintains min/max indexes and average/frequent item size.
    *
    * @param {Item<Data>} item A Buffer item to be cached, an objects with { $index, data, size } props.
+   * 
+   * @returns {ItemCache<Data>} Cached item.
    */
   add(item: Item<Data>): ItemCache<Data> {
     let itemCache = this.get(item.$index);

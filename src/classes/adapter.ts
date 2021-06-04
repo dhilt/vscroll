@@ -1,13 +1,13 @@
 import { Logger } from './logger';
 import { Buffer } from './buffer';
 import { Reactive } from './reactive';
-import { AdapterPropName, AdapterPropType, getDefaultAdapterProps, methodPreResult } from './adapter/props';
-import { AdapterContext } from './adapter/context';
+import {
+  AdapterPropName, AdapterPropType, getDefaultAdapterProps, methodPreResult, reactiveConfigStorage
+} from './adapter/props';
 import { AdapterProcess, ProcessStatus } from '../processes/index';
 import {
   WorkflowGetter,
   IAdapterProp,
-  IReactivePropsStore,
   AdapterMethodResult,
   IAdapter,
   ItemAdapter,
@@ -114,9 +114,8 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     this.relaxRun = null;
     this.reloadCounter = 0;
 
-    // public context stores Reactive props configuration
-    const reactivePropsStore: IReactivePropsStore =
-      context && (context as AdapterContext).reactiveConfiguredProps || {};
+    // public context (if exists) should provide Reactive props configuration
+    const reactivePropsStore = context && reactiveConfigStorage.get(context.id) || {};
 
     // make array of the original values from public context if present
     const adapterProps = context
@@ -229,9 +228,6 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
             : value // Reactive props and methods (Functions/WorkflowRunners) can be defined once
         });
       });
-
-    // public context cleanup
-    delete (context as AdapterContext).reactiveConfiguredProps;
   }
 
   initialize(buffer: Buffer<Item>, state: State, logger: Logger, adapterRun$?: Reactive<ProcessSubject>): void {

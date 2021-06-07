@@ -5,5 +5,6 @@ export enum Direction {
 
 export enum SizeStrategy {
   Average = 'average',
+  Constant = 'constant',
   Frequent = 'frequent'
 }

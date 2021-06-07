@@ -74,12 +74,12 @@ export default class Fix extends BaseAdapterProcessFactory(AdapterProcess.fix) {
     buffer.absMaxIndex = value;
   }
 
-  static updateItems({ buffer }: Scroller, value: ItemsUpdater): void {
+  static updateItems({ buffer, logger }: Scroller, value: ItemsUpdater): void {
     let updateReference = false;
     const updater = () => updateReference = true;
     buffer.items.forEach(item => value(item.get(), updater));
     if (updateReference) {
-      buffer.logger.log(() => 'update Buffer.items reference');
+      logger.log(() => 'update Buffer.items reference');
       buffer.items = [...buffer.items];
     }
   }

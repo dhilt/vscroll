@@ -22,7 +22,7 @@ export class Buffer<Data> {
 
   private pristine: boolean;
   private cache: Cache<Data>;
-  readonly logger: Logger;
+  private readonly logger: Logger;
 
   constructor(settings: Settings<Data>, onDataChanged: OnDataChanged<Data>, logger: Logger) {
     this.logger = logger;

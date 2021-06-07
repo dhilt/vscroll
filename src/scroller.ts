@@ -41,12 +41,12 @@ export class Scroller<Data = unknown> {
 
     this.workflow = workflow;
     this.settings = new Settings<Data>(datasource.settings, datasource.devSettings, ++instanceCount);
-    this.logger = new Logger(this as Scroller, packageInfo);
+    this.logger = new Logger(this as Scroller, packageInfo, datasource.adapter);
     this.routines = new Routines(this.settings);
     this.state = new State(packageInfo, this.settings, scroller ? scroller.state : void 0);
     this.buffer = new Buffer<Data>(this.settings, workflow.onDataChanged, this.logger);
     this.viewport = new Viewport(element, this.settings, this.routines, this.state, this.logger);
-    this.logger.object('uiScroll settings object', this.settings, true);
+    this.logger.object('vscroll settings object', this.settings, true);
 
     this.initDatasource(datasource, scroller);
   }

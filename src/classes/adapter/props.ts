@@ -1,5 +1,7 @@
 import { Reactive } from '../reactive';
-import { IAdapterProp, IBufferInfo, ItemAdapter, IPackages, AdapterMethodResult } from '../../interfaces/index';
+import {
+  IAdapterProp, IBufferInfo, ItemAdapter, IPackages, AdapterMethodResult, IReactivePropsStore
+} from '../../interfaces/index';
 
 export enum AdapterPropName {
   id = 'id',
@@ -265,3 +267,5 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
     value: new Reactive<boolean>()
   }
 ];
+
+export const reactiveConfigStorage = new Map<number, IReactivePropsStore>();

@@ -11,7 +11,7 @@ export class AdapterContext {
   constructor(config: IAdapterConfig) {
     const { mock, reactive } = config;
     const id = ++instanceCount;
-    const conf = { configurable: !mock };
+    const conf = { configurable: true };
     const reactivePropsStore: IReactivePropsStore = {};
 
     // set up permanent props

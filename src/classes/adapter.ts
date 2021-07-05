@@ -212,7 +212,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
     // Adapter public context augmentation
     adapterProps
-      .forEach(({ name, type, value: defaultValue }: IAdapterProp) => {
+      .forEach(({ name, type, value: defaultValue, permanent }: IAdapterProp) => {
         let value = (this as IAdapter)[name];
         if (type === AdapterPropType.Function) {
           value = (value as () => void).bind(this);
@@ -222,9 +222,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
           value = (context as IAdapter)[name];
         }
         Object.defineProperty(context, name, {
-          configurable: false,
-          get: () => type === AdapterPropType.Scalar
-            ? (this as IAdapter)[name] // Scalars should be taken in runtime
+          configurable: true,
+          get: () => !permanent && type === AdapterPropType.Scalar
+            ? (this as IAdapter)[name] // non-permanent Scalars should be taken in runtime
             : value // Reactive props and methods (Functions/WorkflowRunners) can be defined once
         });
       });

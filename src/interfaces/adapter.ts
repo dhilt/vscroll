@@ -9,7 +9,7 @@ export interface IReactivePropConfig {
 }
 
 interface IReactivePropStore extends IReactivePropConfig {
-  default: unknown;
+  default: Reactive<unknown>;
 }
 
 export type IReactivePropsConfig = {

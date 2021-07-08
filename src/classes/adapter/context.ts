@@ -1,5 +1,6 @@
 import { AdapterPropName, AdapterPropType, getDefaultAdapterProps, reactiveConfigStorage } from './props';
 import core from '../../version';
+import { Reactive } from '../reactive';
 import { IReactivePropsStore, IAdapterConfig } from '../../interfaces/index';
 
 let instanceCount = 0;
@@ -32,7 +33,7 @@ export class AdapterContext {
             // persist the original default value as it will be used by the Adapter internally
             reactivePropsStore[name] = {
               ...react,
-              default: value // persisting the default
+              default: value as Reactive<unknown> // persisting the default
             };
             value = react.source; // exposing the configured prop instead of the default one
           }

@@ -139,6 +139,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       .filter(({ type, permanent }) => type === AdapterPropType.Scalar && permanent)
       .forEach(({ name, value }: IAdapterProp) =>
         Object.defineProperty(this, name, {
+          configurable: true,
           get: () => value
         })
       );
@@ -151,6 +152,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       .forEach(({ name, value }: IAdapterProp) => {
         this.source[name] = value as Reactive<unknown>;
         Object.defineProperty(this, name, {
+          configurable: true,
           get: () => {
             const scalarWanted = ADAPTER_PROPS_STUB.find(
               ({ wanted, reactive }) => wanted && reactive === name
@@ -175,6 +177,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         }
         this.box[name] = value;
         Object.defineProperty(this, name, {
+          configurable: true,
           set: (newValue: unknown) => {
             if (newValue !== this.box[name]) {
               this.box[name] = newValue;
@@ -203,6 +206,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       .forEach(({ name, value }: IAdapterProp) => {
         this.demand[name] = value;
         Object.defineProperty(this, name, {
+          configurable: true,
           get: () => this.demand[name]
         });
       });

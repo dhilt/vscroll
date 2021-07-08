@@ -129,6 +129,7 @@ type MethodResult = Promise<AdapterMethodResult>;
 export interface IAdapter<Data = unknown> {
   readonly id: number;
   readonly mock: boolean;
+  readonly augmented: boolean;
   readonly version: string;
   readonly init: boolean;
   readonly init$: Reactive<boolean>;

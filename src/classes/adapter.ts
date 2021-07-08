@@ -73,6 +73,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
   id: number;
   mock: boolean;
+  augmented: boolean;
   version: string;
   init: boolean;
   init$: Reactive<boolean>;
@@ -220,6 +221,8 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
           value = this.getPromisifiedMethod(value as MethodResolver, defaultValue as MethodResolver);
         } else if (type === AdapterPropType.Reactive && reactivePropsStore[name]) {
           value = (context as IAdapter)[name];
+        } else if (name === AdapterPropName.augmented) {
+          value = true;
         }
         Object.defineProperty(context, name, {
           configurable: true,

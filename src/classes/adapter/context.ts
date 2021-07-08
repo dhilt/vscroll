@@ -6,8 +6,6 @@ let instanceCount = 0;
 
 export class AdapterContext {
 
-  reactiveConfiguredProps?: IReactivePropsStore;
-
   constructor(config: IAdapterConfig) {
     const { mock, reactive } = config;
     const id = ++instanceCount;
@@ -17,6 +15,7 @@ export class AdapterContext {
     // set up permanent props
     Object.defineProperty(this, AdapterPropName.id, { get: () => id, ...conf });
     Object.defineProperty(this, AdapterPropName.mock, { get: () => mock, ...conf });
+    Object.defineProperty(this, AdapterPropName.augmented, { get: () => false, ...conf });
     Object.defineProperty(this, AdapterPropName.version, { get: () => core.version, ...conf });
 
     // set up default props, they will be reassigned during the Adapter instantiation

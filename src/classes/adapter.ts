@@ -73,6 +73,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
   id: number;
   mock: boolean;
+  augmented: boolean;
   version: string;
   init: boolean;
   init$: Reactive<boolean>;
@@ -119,10 +120,17 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
     // make array of the original values from public context if present
     const adapterProps = context
-      ? ADAPTER_PROPS_STUB.map(prop => ({
-        ...prop,
-        value: context[prop.name]
-      }))
+      ? ADAPTER_PROPS_STUB.map(prop => {
+        let value = context[prop.name];
+        // if context is augmented, we need to replace external reactive props with inner ones
+        if (context.augmented) {
+          const reactiveProp = reactivePropsStore[prop.name];
+          if (reactiveProp) {
+            value = reactiveProp.default as Reactive<boolean>; // boolean doesn't matter here
+          }
+        }
+        return ({ ...prop, value });
+      })
       : getDefaultAdapterProps();
 
     // restore default reactive props if they were configured
@@ -138,6 +146,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       .filter(({ type, permanent }) => type === AdapterPropType.Scalar && permanent)
       .forEach(({ name, value }: IAdapterProp) =>
         Object.defineProperty(this, name, {
+          configurable: true,
           get: () => value
         })
       );
@@ -150,6 +159,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       .forEach(({ name, value }: IAdapterProp) => {
         this.source[name] = value as Reactive<unknown>;
         Object.defineProperty(this, name, {
+          configurable: true,
           get: () => {
             const scalarWanted = ADAPTER_PROPS_STUB.find(
               ({ wanted, reactive }) => wanted && reactive === name
@@ -174,6 +184,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         }
         this.box[name] = value;
         Object.defineProperty(this, name, {
+          configurable: true,
           set: (newValue: unknown) => {
             if (newValue !== this.box[name]) {
               this.box[name] = newValue;
@@ -202,6 +213,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       .forEach(({ name, value }: IAdapterProp) => {
         this.demand[name] = value;
         Object.defineProperty(this, name, {
+          configurable: true,
           get: () => this.demand[name]
         });
       });
@@ -212,7 +224,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
     // Adapter public context augmentation
     adapterProps
-      .forEach(({ name, type, value: defaultValue }: IAdapterProp) => {
+      .forEach(({ name, type, value: defaultValue, permanent }: IAdapterProp) => {
         let value = (this as IAdapter)[name];
         if (type === AdapterPropType.Function) {
           value = (value as () => void).bind(this);
@@ -220,11 +232,13 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
           value = this.getPromisifiedMethod(value as MethodResolver, defaultValue as MethodResolver);
         } else if (type === AdapterPropType.Reactive && reactivePropsStore[name]) {
           value = (context as IAdapter)[name];
+        } else if (name === AdapterPropName.augmented) {
+          value = true;
         }
         Object.defineProperty(context, name, {
-          configurable: false,
-          get: () => type === AdapterPropType.Scalar
-            ? (this as IAdapter)[name] // Scalars should be taken in runtime
+          configurable: true,
+          get: () => !permanent && type === AdapterPropType.Scalar
+            ? (this as IAdapter)[name] // non-permanent Scalars should be taken in runtime
             : value // Reactive props and methods (Functions/WorkflowRunners) can be defined once
         });
       });
@@ -297,8 +311,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     if (this.relax$) {
       this.relax$.dispose();
     }
-    Object.values(this.source).forEach(reactive => reactive.dispose());
-    this.init = false;
+    Object.getOwnPropertyNames(this).forEach(prop => {
+      delete (this as Record<string, unknown>)[prop];
+    });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

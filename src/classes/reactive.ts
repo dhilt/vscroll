@@ -13,6 +13,7 @@ interface Options {
 
 export class Reactive<T> {
 
+  private initialValue: T;
   private value: T;
   private id: number;
   private options: Options;
@@ -22,6 +23,7 @@ export class Reactive<T> {
     this.id = 0;
     if (value !== void 0) {
       this.value = value;
+      this.initialValue = value;
     }
     this.options = options || {};
     this.subscriptions = new Map();
@@ -66,6 +68,10 @@ export class Reactive<T> {
       func(v);
     });
     return off;
+  }
+
+  reset(): void {
+    this.set(this.initialValue);
   }
 
   dispose(): void {

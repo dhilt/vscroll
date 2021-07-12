@@ -39,6 +39,8 @@ export class Buffer<Data> {
   dispose(): void {
     this.bof.dispose();
     this.eof.dispose();
+    this._items.forEach(item => item.dispose());
+    this._items = [];
   }
 
   reset(force: boolean, startIndex?: number): void {

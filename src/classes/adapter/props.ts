@@ -6,6 +6,7 @@ import {
 export enum AdapterPropName {
   id = 'id',
   mock = 'mock',
+  augmented = 'augmented',
   version = 'version',
   init = 'init',
   init$ = 'init$',
@@ -96,6 +97,12 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
     type: Type.Scalar,
     name: Name.mock,
     value: true,
+    permanent: true
+  },
+  {
+    type: Type.Scalar,
+    name: Name.augmented,
+    value: false,
     permanent: true
   },
   {

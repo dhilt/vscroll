@@ -1,22 +1,22 @@
 import { AdapterPropName, AdapterPropType, getDefaultAdapterProps, reactiveConfigStorage } from './props';
 import core from '../../version';
+import { Reactive } from '../reactive';
 import { IReactivePropsStore, IAdapterConfig } from '../../interfaces/index';
 
 let instanceCount = 0;
 
 export class AdapterContext {
 
-  reactiveConfiguredProps?: IReactivePropsStore;
-
   constructor(config: IAdapterConfig) {
     const { mock, reactive } = config;
     const id = ++instanceCount;
-    const conf = { configurable: !mock };
+    const conf = { configurable: true };
     const reactivePropsStore: IReactivePropsStore = {};
 
     // set up permanent props
     Object.defineProperty(this, AdapterPropName.id, { get: () => id, ...conf });
     Object.defineProperty(this, AdapterPropName.mock, { get: () => mock, ...conf });
+    Object.defineProperty(this, AdapterPropName.augmented, { get: () => false, ...conf });
     Object.defineProperty(this, AdapterPropName.version, { get: () => core.version, ...conf });
 
     // set up default props, they will be reassigned during the Adapter instantiation
@@ -33,7 +33,7 @@ export class AdapterContext {
             // persist the original default value as it will be used by the Adapter internally
             reactivePropsStore[name] = {
               ...react,
-              default: value // persisting the default
+              default: value as Reactive<unknown> // persisting the default
             };
             value = react.source; // exposing the configured prop instead of the default one
           }

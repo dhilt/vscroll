@@ -185,7 +185,9 @@ export class Workflow<ItemData = unknown> {
     this.disposeScrollEventHandler();
     this.adapterRun$.dispose();
     this.scroller.dispose(true);
-    this.isInitialized = false;
+    Object.getOwnPropertyNames(this).forEach(prop => {
+      delete (this as Record<string, unknown>)[prop];
+    });
   }
 
   finalize(): void {

@@ -120,10 +120,17 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
     // make array of the original values from public context if present
     const adapterProps = context
-      ? ADAPTER_PROPS_STUB.map(prop => ({
-        ...prop,
-        value: context[prop.name]
-      }))
+      ? ADAPTER_PROPS_STUB.map(prop => {
+        let value = context[prop.name];
+        // if context is augmented, we need to replace external reactive props with inner ones
+        if (context.augmented) {
+          const reactiveProp = reactivePropsStore[prop.name];
+          if (reactiveProp) {
+            value = reactiveProp.default as Reactive<boolean>; // boolean doesn't matter here
+          }
+        }
+        return ({ ...prop, value });
+      })
       : getDefaultAdapterProps();
 
     // restore default reactive props if they were configured
@@ -304,8 +311,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     if (this.relax$) {
       this.relax$.dispose();
     }
-    Object.values(this.source).forEach(reactive => reactive.dispose());
-    this.init = false;
+    Object.getOwnPropertyNames(this).forEach(prop => {
+      delete (this as Record<string, unknown>)[prop];
+    });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

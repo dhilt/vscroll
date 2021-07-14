@@ -24,16 +24,16 @@ export class AdapterContext {
       .filter(({ permanent }) => !permanent)
       .forEach(({ name, value, type }) => {
 
-        // reactive props might be reconfigured
+        // reactive props might be reconfigured by the vscroll consumer
         if (reactive && type === AdapterPropType.Reactive) {
           const react = reactive[name];
           if (react) {
-            // here we have a configured reactive prop that came from the outer config
+            // here we have a configured reactive property that came from the outer config
             // this prop must be exposed via Adapter, but at the same time we need to
             // persist the original default value as it will be used by the Adapter internally
             reactivePropsStore[name] = {
               ...react,
-              default: value as Reactive<unknown> // persisting the default
+              default: value as Reactive<unknown> // persisting the default native Reactive prop
             };
             value = react.source; // exposing the configured prop instead of the default one
           }
@@ -45,6 +45,8 @@ export class AdapterContext {
         });
       });
 
-    reactiveConfigStorage.set(id, reactivePropsStore);
+    if (reactive) { // save both configured and default reactive props in the store
+      reactiveConfigStorage.set(id, reactivePropsStore);
+    }
   }
 }

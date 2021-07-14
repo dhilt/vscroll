@@ -53,6 +53,7 @@ const convertRemoveArgs = <Item>(options: AdapterRemoveOptions<Item> | ItemsPred
 };
 
 export class Adapter<Item = unknown> implements IAdapter<Item> {
+  private externalContext: IAdapter<Item>;
   private logger: Logger;
   private getWorkflow: WorkflowGetter<Item>;
   private reloadCounter: number;
@@ -242,6 +243,8 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
             : value // Reactive props and methods (Functions/WorkflowRunners) can be defined once
         });
       });
+
+    this.externalContext = context;
   }
 
   initialize(buffer: Buffer<Item>, state: State, logger: Logger, adapterRun$?: Reactive<ProcessSubject>): void {
@@ -311,9 +314,34 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     if (this.relax$) {
       this.relax$.dispose();
     }
+    if (this.externalContext) {
+      this.resetContext();
+    }
     Object.getOwnPropertyNames(this).forEach(prop => {
       delete (this as Record<string, unknown>)[prop];
     });
+  }
+
+  resetContext(): void {
+    const reactiveStore = reactiveConfigStorage.get(this.externalContext.id);
+    ADAPTER_PROPS_STUB
+      .forEach(({ type, permanent, name, value }) => {
+        // assign initial values to non-reactive non-permanent props
+        if (type !== AdapterPropType.Reactive && !permanent) {
+          Object.defineProperty(this.externalContext, name, {
+            configurable: true,
+            get: () => value
+          });
+        }
+        // reset reactive props
+        if (type === AdapterPropType.Reactive && reactiveStore) {
+          const property = reactiveStore[name];
+          if (property) {
+            property.default.reset();
+            property.emit(property.source, property.default.get());
+          }
+        }
+      });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

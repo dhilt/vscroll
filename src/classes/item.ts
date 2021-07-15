@@ -46,6 +46,10 @@ export class Item<Data = unknown> implements _Item<Data> {
     this.toInsert = false;
   }
 
+  dispose(): void {
+    delete this.container.element;
+  }
+
   setSize(): void {
     this.size = this.routines.getSize(this.element);
   }

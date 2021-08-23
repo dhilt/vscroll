@@ -33,9 +33,9 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
     render.positionBefore = viewport.scrollPosition;
     if (!fetch.isCheck) {
       render.sizeBefore = viewport.getScrollableSize();
-      if (
-        fetch.items.map(item => Render.processElement(scroller, item)).some(x => !x)
-      ) {
+      if (!fetch.items.every(item =>
+        Render.processElement(scroller, item)
+      )) {
         return false;
       }
     }

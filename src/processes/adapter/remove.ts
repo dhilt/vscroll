@@ -39,15 +39,13 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
 
   static removeBufferedItems(scroller: Scroller, options: AdapterRemoveOptions): number[] {
     const { predicate, indexes, increase } = options;
-    let result: number[] = [];
-    if (predicate) {
-      result = Remove.runPredicateOverBuffer(scroller, predicate, !!increase);
+    if (!predicate && !indexes) {
+      return [];
     }
-    if (indexes) {
-      const indexPredicate: ItemsPredicate = ({ $index }) => indexes.indexOf($index) >= 0;
-      result = Remove.runPredicateOverBuffer(scroller, indexPredicate, !!increase);
-    }
-    return result;
+    const newPredicate: ItemsPredicate = item =>
+      (predicate && predicate(item)) ||
+      (!!indexes && indexes.includes(item.$index));
+    return Remove.runPredicateOverBuffer(scroller, newPredicate, !!increase);
   }
 
   static runPredicateOverBuffer(scroller: Scroller, predicate: ItemsPredicate, increase: boolean): number[] {

@@ -48,6 +48,20 @@ class Last {
   }
 }
 
+class FirstVisible {
+  index: number;
+  delta: number;
+
+  constructor() {
+    this.reset();
+  }
+
+  reset() {
+    this.index = NaN;
+    this.delta = NaN;
+  }
+}
+
 export class FetchModel {
   private _newItemsData: unknown[] | null;
 
@@ -58,8 +72,7 @@ export class FetchModel {
   hasAnotherPack: boolean;
   callCount: number;
   minIndex: number;
-  firstVisibleIndex: number;
-  firstVisibleItemDelta: number;
+  firstVisible: FirstVisible;
   negativeSize: number;
   direction: Direction | null;
   cancel: (() => void) | null;
@@ -74,6 +87,7 @@ export class FetchModel {
     this.positions = new Positions();
     this.first = new First();
     this.last = new Last();
+    this.firstVisible = new FirstVisible();
     this.reset();
   }
 
@@ -83,9 +97,8 @@ export class FetchModel {
     this.positions.reset();
     this.first.reset();
     this.last.reset();
+    this.firstVisible.reset();
     this.hasAnotherPack = false;
-    this.firstVisibleIndex = NaN;
-    this.firstVisibleItemDelta = NaN;
     this.negativeSize = 0;
     this.direction = null;
     this.cancel = null;
@@ -167,8 +180,8 @@ export class FetchModel {
 
   update(index: number, delta: number, items: Item[], itemsToRemove: Item[]): void {
     this.startSimulate(items);
-    this.firstVisibleIndex = index;
-    this.firstVisibleItemDelta = delta;
+    this.firstVisible.index = index;
+    this.firstVisible.delta = delta;
     this.doRemove = itemsToRemove.length > 0;
   }
 }

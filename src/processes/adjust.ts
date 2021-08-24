@@ -31,7 +31,7 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
       first = firstItem.$index;
       last = lastItem.$index;
     } else {
-      first = !isNaN(fetch.firstVisibleIndex) ? fetch.firstVisibleIndex : buffer.startIndex;
+      first = !isNaN(fetch.firstVisible.index) ? fetch.firstVisible.index : buffer.startIndex;
       last = first - 1;
     }
     const { forward, backward } = viewport.paddings;
@@ -66,17 +66,16 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
   }
 
   static calculatePosition(scroller: Scroller): number {
-    const { viewport, buffer, state } = scroller;
-    const { fetch, render, scrollState } = state;
+    const { viewport, buffer, state: { fetch, render, scrollState } } = scroller;
     let position = viewport.paddings.backward.size;
 
     // backward outlet increase
-    if (!isNaN(fetch.firstVisibleIndex) && !isNaN(buffer.firstIndex)) {
-      for (let i = buffer.firstIndex; i < fetch.firstVisibleIndex; i++) {
+    if (!isNaN(fetch.firstVisible.index) && !isNaN(buffer.firstIndex)) {
+      for (let i = buffer.firstIndex; i < fetch.firstVisible.index; i++) {
         position += buffer.getSizeByIndex(i);
       }
-      if (fetch.firstVisibleItemDelta) {
-        position -= fetch.firstVisibleItemDelta;
+      if (fetch.firstVisible.delta) {
+        position -= fetch.firstVisible.delta;
       }
     } else {
       if (fetch.isPrepend && fetch.negativeSize) {

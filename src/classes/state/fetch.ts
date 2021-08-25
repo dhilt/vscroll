@@ -63,7 +63,7 @@ class FirstVisible {
 }
 
 export class FetchModel {
-  private _newItemsData: unknown[] | null;
+  private _newItemsData: unknown[] | null; // there are public setter and getter
 
   items: Item[];
   positions: Positions;

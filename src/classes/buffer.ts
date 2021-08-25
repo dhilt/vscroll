@@ -368,8 +368,7 @@ export class Buffer<Data> {
   }
 
   getSizeByIndex(index: number): number {
-    const item = this.cache.get(index);
-    return item ? item.size : this.defaultSize;
+    return this.cache.getSizeByIndex(index);
   }
 
   checkDefaultSize(): boolean {

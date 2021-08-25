@@ -67,23 +67,36 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
 
   static calculatePosition(scroller: Scroller): number {
     const { viewport, buffer, state: { fetch, render, scrollState } } = scroller;
+
+    // set the position right after the backward padding element
     let position = viewport.paddings.backward.size;
 
-    // backward outlet increase
+    // increase the position to meet the expectation of the first visible item
     if (!isNaN(fetch.firstVisible.index) && !isNaN(buffer.firstIndex)) {
-      for (let i = buffer.firstIndex; i < fetch.firstVisible.index; i++) {
-        position += buffer.getSizeByIndex(i);
-      }
-      if (fetch.firstVisible.delta) {
-        position -= fetch.firstVisible.delta;
-      }
+      const last = fetch.items[fetch.items.length - 1];
+      const tail = last && last.$index < buffer.lastIndex;
+      buffer.items.forEach(item => {
+        // 1) buffered items before the first visible item
+        if (item.$index < fetch.firstVisible.index) {
+          position += item.size;
+          return;
+        }
+        // 2) delta of the first visible item
+        if (item.$index === fetch.firstVisible.index && fetch.firstVisible.delta) {
+          position -= fetch.firstVisible.delta;
+        }
+        // 3) fetched items after the first visible, difference between expected and real sizes
+        if (tail && fetch.items.some(_item => item === _item) && item.preSize) {
+          position += item.size - item.preSize;
+        }
+      });
     } else {
       if (fetch.isPrepend && fetch.negativeSize) {
         position += fetch.negativeSize;
       }
     }
 
-    // change per slow fetch/render
+    // change the position if it was shifted due to slow fetch/render
     if (scrollState.positionBeforeAsync !== null) {
       const diff = render.positionBefore - scrollState.positionBeforeAsync;
       if (diff !== 0) {
@@ -92,7 +105,7 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
       }
     }
 
-    // offset increase
+    // increase the position due to viewport's offset
     if (viewport.offset > 0 && (position || fetch.positions.before)) {
       position += viewport.offset;
     }

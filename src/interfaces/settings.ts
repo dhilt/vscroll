@@ -1,5 +1,5 @@
 import { ItemsProcessor } from './adapter';
-import { SizeStrategy } from '../inputs/index';
+import { SizeStrategy, Direction } from '../inputs/index';
 
 export interface Settings<T = unknown> {
   adapter?: boolean;
@@ -28,6 +28,6 @@ export interface DevSettings {
   initWindowDelay?: number;
   cacheData?: boolean;
   cacheOnReload?: boolean;
-  changeOverflow?: boolean;
   dismissOverflowAnchor?: boolean;
+  directionPriority?: Direction;
 }

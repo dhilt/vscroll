@@ -67,16 +67,15 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
 
   static calculatePosition(scroller: Scroller): number {
     const { viewport, buffer, state: { fetch, render, scrollState } } = scroller;
-
-    // set the position right after the backward padding element
     let position = viewport.paddings.backward.size;
 
     // increase the position to meet the expectation of the first visible item
     if (!isNaN(fetch.firstVisible.index) && !isNaN(buffer.firstIndex)) {
-      const last = fetch.items[fetch.items.length - 1];
-      const tail = last && last.$index < buffer.lastIndex;
+      scroller.logger.log(`first index = ${fetch.firstVisible.index}, delta = ${fetch.firstVisible.delta}`);
+      const lastFetched = fetch.items[fetch.items.length - 1];
+      const shouldCheckPreSizeExpectation = lastFetched && lastFetched.$index < buffer.lastIndex;
       buffer.items.forEach(item => {
-        // 1) buffered items before the first visible item
+        // 1) shift of the buffered items before the first visible item
         if (item.$index < fetch.firstVisible.index) {
           position += item.size;
           return;
@@ -86,17 +85,19 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
           position -= fetch.firstVisible.delta;
         }
         // 3) fetched items after the first visible, difference between expected and real sizes
-        if (tail && fetch.items.some(_item => item === _item) && item.preSize) {
+        // only if there was at least one buffered item after the fetched set
+        if (shouldCheckPreSizeExpectation && item.preSize && fetch.items.includes(item)) {
           position += item.size - item.preSize;
         }
       });
     } else {
+      // todo: switch prepend to fetch.firstVisible and get rid of fetch.negativeSize
       if (fetch.isPrepend && fetch.negativeSize) {
         position += fetch.negativeSize;
       }
     }
 
-    // change the position if it was shifted due to slow fetch/render
+    // slow fetch/render case
     if (scrollState.positionBeforeAsync !== null) {
       const diff = render.positionBefore - scrollState.positionBeforeAsync;
       if (diff !== 0) {

@@ -58,7 +58,7 @@ class FirstVisible {
 
   reset() {
     this.index = NaN;
-    this.delta = NaN;
+    this.delta = 0;
   }
 }
 

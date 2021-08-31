@@ -53,7 +53,9 @@ export class Item<Data = unknown> implements _Item<Data> {
 
   setSize(preSize = 0): void {
     this.preSize = preSize;
-    this.size = this.routines.getSize(this.element);
+    if (this.element) {
+      this.size = this.routines.getSize(this.element);
+    }
   }
 
   hide(): void {

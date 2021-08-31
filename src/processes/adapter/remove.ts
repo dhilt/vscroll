@@ -72,7 +72,9 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     const { index: firstIndex, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
     if (firstIndex < firstClipIndex || firstIndex > lastClipIndex) {
       firstVisible.index = firstIndex;
-      firstVisible.delta = - buffer.getSizeByIndex(firstIndex) + diff;
+      if (!isNaN(firstIndex)) {
+        firstVisible.delta = - buffer.getSizeByIndex(firstIndex) + diff;
+      }
     }
     // 2) next after the last removed item
     if (isNaN(firstVisible.index) && lastClipIndex < buffer.finiteAbsMaxIndex) {
@@ -136,8 +138,8 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     // what should be shown after remove; Buffer removal has priority
     if (isNaN(fetch.firstVisible.index)) {
       const { index, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
+      fetch.firstVisible.index = index;
       if (!isNaN(index)) {
-        fetch.firstVisible.index = index;
         fetch.firstVisible.delta = - buffer.getSizeByIndex(index) + diff;
       }
     }

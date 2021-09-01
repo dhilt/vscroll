@@ -83,8 +83,7 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
         if (item.$index === fetch.firstVisible.index && fetch.firstVisible.delta) {
           position -= fetch.firstVisible.delta;
         }
-        // 3) fetched items after the first visible, difference between expected and real sizes
-        // only if there was at least one buffered item after the fetched set
+        // 3) difference between expected and real sizes of fetched items after the first visible
         if (shouldCheckPreSizeExpectation && item.preSize && fetch.items.includes(item)) {
           position += item.size - item.preSize;
         }

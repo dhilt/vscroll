@@ -72,8 +72,7 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
     // increase the position to meet the expectation of the first visible item
     if (!isNaN(fetch.firstVisible.index) && !isNaN(buffer.firstIndex)) {
       scroller.logger.log(`first index = ${fetch.firstVisible.index}, delta = ${fetch.firstVisible.delta}`);
-      const lastFetched = fetch.items[fetch.items.length - 1];
-      const shouldCheckPreSizeExpectation = lastFetched && lastFetched.$index < buffer.lastIndex;
+      const shouldCheckPreSizeExpectation = fetch.shouldCheckPreSizeExpectation(buffer.lastIndex);
       buffer.items.forEach(item => {
         // 1) shift of the buffered items before the first visible item
         if (item.$index < fetch.firstVisible.index) {

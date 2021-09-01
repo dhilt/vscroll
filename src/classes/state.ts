@@ -33,7 +33,7 @@ export class State implements IState {
 
     this.cycle = new WorkflowCycleModel(this.settings.instanceIndex, state ? state.cycle : void 0);
 
-    this.fetch = new FetchModel();
+    this.fetch = new FetchModel(settings.directionPriority);
     this.clip = new ClipModel();
     this.render = new RenderModel();
 

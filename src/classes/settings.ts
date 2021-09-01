@@ -103,7 +103,7 @@ export class Settings<Data = unknown> implements ISettings, IDevSettings {
    * Development setting.
    * Determines the strategy of fixing the difference between estimated and real (rendered) sizes
    * on scroll position adjustments. If set to 'backward', the difference is always resolved in favour of the
-   * backward direction: top/left content is fixed and appears in accordance with estimation.
+   * backward direction: top/left content is fixed and appears in accordance with pre-render expectations.
    * If set to 'forward', both directions could be used, and there is a case when bottom/right content is fixed:
    * new items are to the left of the previously rendered
    * and at least one previously rendered item remains.

@@ -63,6 +63,7 @@ class FirstVisible {
 }
 
 export class FetchModel {
+  private readonly directionPriority: Direction;
   private _newItemsData: unknown[] | null; // there are public setter and getter
 
   items: Item[];
@@ -82,7 +83,8 @@ export class FetchModel {
   isCheck: boolean;
   doRemove: boolean;
 
-  constructor() {
+  constructor(directionPriority: Direction) {
+    this.directionPriority = directionPriority;
     this.callCount = 0;
     this.positions = new Positions();
     this.first = new First();
@@ -133,6 +135,14 @@ export class FetchModel {
 
   get count(): number {
     return !isNaN(this.first.index) && !isNaN(this.last.index) ? this.last.index - this.first.index + 1 : 0;
+  }
+
+  shouldCheckPreSizeExpectation(lastBufferedIndex: number): boolean {
+    if (this.directionPriority === Direction.backward) {
+      return false;
+    }
+    const lastFetched = this.items[this.items.length - 1];
+    return lastFetched && lastFetched.$index < lastBufferedIndex;
   }
 
   startSimulate(items: Item[]): void {

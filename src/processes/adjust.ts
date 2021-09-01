@@ -31,7 +31,7 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
       first = firstItem.$index;
       last = lastItem.$index;
     } else {
-      first = !isNaN(fetch.firstVisibleIndex) ? fetch.firstVisibleIndex : buffer.startIndex;
+      first = !isNaN(fetch.firstVisible.index) ? fetch.firstVisible.index : buffer.startIndex;
       last = first - 1;
     }
     const { forward, backward } = viewport.paddings;
@@ -66,25 +66,37 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
   }
 
   static calculatePosition(scroller: Scroller): number {
-    const { viewport, buffer, state } = scroller;
-    const { fetch, render, scrollState } = state;
+    const { viewport, buffer, state: { fetch, render, scrollState } } = scroller;
     let position = viewport.paddings.backward.size;
 
-    // backward outlet increase
-    if (!isNaN(fetch.firstVisibleIndex) && !isNaN(buffer.firstIndex)) {
-      for (let i = buffer.firstIndex; i < fetch.firstVisibleIndex; i++) {
-        position += buffer.getSizeByIndex(i);
-      }
-      if (fetch.firstVisibleItemDelta) {
-        position -= fetch.firstVisibleItemDelta;
-      }
+    // increase the position to meet the expectation of the first visible item
+    if (!isNaN(fetch.firstVisible.index) && !isNaN(buffer.firstIndex)) {
+      scroller.logger.log(`first index = ${fetch.firstVisible.index}, delta = ${fetch.firstVisible.delta}`);
+      const shouldCheckPreSizeExpectation = fetch.shouldCheckPreSizeExpectation(buffer.lastIndex);
+      buffer.items.forEach(item => {
+        // 1) shift of the buffered items before the first visible item
+        if (item.$index < fetch.firstVisible.index) {
+          position += item.size;
+          return;
+        }
+        // 2) delta of the first visible item
+        if (item.$index === fetch.firstVisible.index && fetch.firstVisible.delta) {
+          position -= fetch.firstVisible.delta;
+        }
+        // 3) fetched items after the first visible, difference between expected and real sizes
+        // only if there was at least one buffered item after the fetched set
+        if (shouldCheckPreSizeExpectation && item.preSize && fetch.items.includes(item)) {
+          position += item.size - item.preSize;
+        }
+      });
     } else {
+      // todo: switch prepend to fetch.firstVisible and get rid of fetch.negativeSize
       if (fetch.isPrepend && fetch.negativeSize) {
         position += fetch.negativeSize;
       }
     }
 
-    // change per slow fetch/render
+    // slow fetch/render case
     if (scrollState.positionBeforeAsync !== null) {
       const diff = render.positionBefore - scrollState.positionBeforeAsync;
       if (diff !== 0) {
@@ -93,7 +105,7 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
       }
     }
 
-    // offset increase
+    // increase the position due to viewport's offset
     if (viewport.offset > 0 && (position || fetch.positions.before)) {
       position += viewport.offset;
     }

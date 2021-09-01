@@ -20,7 +20,7 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
 
   static doRemove(scroller: Scroller, params: AdapterRemoveOptions, sequenceOnly = false): boolean {
     const { fetch } = scroller.state;
-    fetch.firstVisibleIndex = NaN;
+    fetch.firstVisible.index = NaN;
     const bufferRemoveList = Remove.removeBufferedItems(scroller, params);
     if (params.indexes && params.indexes.length) { // to avoid duplicate buffer-virtual removals
       params.indexes = params.indexes.filter(i => !bufferRemoveList.includes(i));
@@ -30,7 +30,7 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     if (!shouldRemoveBuffered && !shouldRemoveVirtual) {
       return false;
     }
-    if (!isNaN(fetch.firstVisibleIndex)) {
+    if (!isNaN(fetch.firstVisible.index)) {
       fetch.remove();
     }
     scroller.logger.stat('after remove');
@@ -49,7 +49,7 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
   }
 
   static runPredicateOverBuffer(scroller: Scroller, predicate: ItemsPredicate, increase: boolean): number[] {
-    const { viewport, buffer, buffer: { items }, state: { fetch } } = scroller;
+    const { viewport, buffer, buffer: { items }, state: { fetch: { firstVisible } } } = scroller;
 
     // get items to remove
     const clipList = [];
@@ -71,20 +71,22 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     // 1) current first visible item will remain
     const { index: firstIndex, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
     if (firstIndex < firstClipIndex || firstIndex > lastClipIndex) {
-      fetch.firstVisibleIndex = firstIndex;
-      fetch.firstVisibleItemDelta = - buffer.getSizeByIndex(firstIndex) + diff;
+      firstVisible.index = firstIndex;
+      if (!isNaN(firstIndex)) {
+        firstVisible.delta = - buffer.getSizeByIndex(firstIndex) + diff;
+      }
     }
     // 2) next after the last removed item
-    if (isNaN(fetch.firstVisibleIndex) && lastClipIndex < buffer.finiteAbsMaxIndex) {
-      fetch.firstVisibleIndex = lastClipIndex + 1;
+    if (isNaN(firstVisible.index) && lastClipIndex < buffer.finiteAbsMaxIndex) {
+      firstVisible.index = lastClipIndex + 1;
     }
     // 3) prev before the first removed item
-    if (isNaN(fetch.firstVisibleIndex) && firstClipIndex > buffer.finiteAbsMinIndex) {
-      fetch.firstVisibleIndex = firstClipIndex - 1;
+    if (isNaN(firstVisible.index) && firstClipIndex > buffer.finiteAbsMinIndex) {
+      firstVisible.index = firstClipIndex - 1;
     }
     // 4) prev before the first removed item
-    if (isNaN(fetch.firstVisibleIndex)) {
-      fetch.firstVisibleIndex = buffer.finiteAbsMinIndex;
+    if (isNaN(firstVisible.index)) {
+      firstVisible.index = buffer.finiteAbsMinIndex;
     }
 
     // logical removal
@@ -134,11 +136,11 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     }
 
     // what should be shown after remove; Buffer removal has priority
-    if (isNaN(fetch.firstVisibleIndex)) {
+    if (isNaN(fetch.firstVisible.index)) {
       const { index, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
+      fetch.firstVisible.index = index;
       if (!isNaN(index)) {
-        fetch.firstVisibleIndex = index;
-        fetch.firstVisibleItemDelta = - buffer.getSizeByIndex(index) + diff;
+        fetch.firstVisible.delta = - buffer.getSizeByIndex(index) + diff;
       }
     }
 
@@ -151,14 +153,15 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     return true;
   }
 
-  static shiftFirstVisibleIndex({ state: { fetch } }: Scroller, listToRemove: number[], increase: boolean): void {
-    if (isNaN(fetch.firstVisibleIndex)) {
+  static shiftFirstVisibleIndex(scroller: Scroller, listToRemove: number[], increase: boolean): void {
+    const { firstVisible } = scroller.state.fetch;
+    if (isNaN(firstVisible.index)) {
       return;
     }
     const shift = listToRemove.reduce((acc, index) => acc + (
-      ((increase && index > fetch.firstVisibleIndex) || (!increase && index < fetch.firstVisibleIndex)) ? 1 : 0
+      ((increase && index > firstVisible.index) || (!increase && index < firstVisible.index)) ? 1 : 0
     ), 0);
-    fetch.firstVisibleIndex = fetch.firstVisibleIndex + (increase ? shift : -shift);
+    firstVisible.index = firstVisible.index + (increase ? shift : -shift);
   }
 
 }

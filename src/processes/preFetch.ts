@@ -115,7 +115,7 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
 
   static setLastIndex(scroller: Scroller): void {
     const { state: { fetch, cycle }, buffer, settings } = scroller;
-    const { positions: { relative, end }, first, last } = fetch;
+    const { firstVisible, positions: { relative, end }, first, last } = fetch;
     let lastIndex;
     if (!buffer.defaultSize) {
       // just to fetch forward bufferSize items if neither averageItemSize nor itemSize are present
@@ -129,10 +129,10 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
         lastIndex = index;
         const size = buffer.getSizeByIndex(index);
         position += size;
-        if (isNaN(fetch.firstVisibleIndex) && position > relative) {
-          fetch.firstVisibleIndex = index;
+        if (isNaN(firstVisible.index) && position > relative) {
+          firstVisible.index = index;
           if (!cycle.innerLoop.isInitial) {
-            fetch.firstVisibleItemDelta = position - size - relative;
+            firstVisible.delta = position - size - relative;
           }
         }
         if (position >= end) {

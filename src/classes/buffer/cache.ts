@@ -65,9 +65,9 @@ export class Cache<Data = unknown> {
     return this.items.get(index);
   }
 
-  getItemSize(index: number): number {
+  getSizeByIndex(index: number): number {
     const item = this.get(index);
-    return item ? item.size : 0;
+    return item ? item.size : this.defaultSize.get();
   }
 
   getDefaultSize(): number {

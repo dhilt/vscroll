@@ -28,6 +28,6 @@ export interface DevSettings {
   initWindowDelay?: number;
   cacheData?: boolean;
   cacheOnReload?: boolean;
-  changeOverflow?: boolean;
   dismissOverflowAnchor?: boolean;
+  directionPriority?: 'backward' | 'forward';
 }

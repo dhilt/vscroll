@@ -48,8 +48,23 @@ class Last {
   }
 }
 
+class FirstVisible {
+  index: number;
+  delta: number;
+
+  constructor() {
+    this.reset();
+  }
+
+  reset() {
+    this.index = NaN;
+    this.delta = 0;
+  }
+}
+
 export class FetchModel {
-  private _newItemsData: unknown[] | null;
+  private readonly directionPriority: Direction;
+  private _newItemsData: unknown[] | null; // there are public setter and getter
 
   items: Item[];
   positions: Positions;
@@ -58,8 +73,7 @@ export class FetchModel {
   hasAnotherPack: boolean;
   callCount: number;
   minIndex: number;
-  firstVisibleIndex: number;
-  firstVisibleItemDelta: number;
+  firstVisible: FirstVisible;
   negativeSize: number;
   direction: Direction | null;
   cancel: (() => void) | null;
@@ -69,11 +83,13 @@ export class FetchModel {
   isCheck: boolean;
   doRemove: boolean;
 
-  constructor() {
+  constructor(directionPriority: Direction) {
+    this.directionPriority = directionPriority;
     this.callCount = 0;
     this.positions = new Positions();
     this.first = new First();
     this.last = new Last();
+    this.firstVisible = new FirstVisible();
     this.reset();
   }
 
@@ -83,9 +99,8 @@ export class FetchModel {
     this.positions.reset();
     this.first.reset();
     this.last.reset();
+    this.firstVisible.reset();
     this.hasAnotherPack = false;
-    this.firstVisibleIndex = NaN;
-    this.firstVisibleItemDelta = NaN;
     this.negativeSize = 0;
     this.direction = null;
     this.cancel = null;
@@ -120,6 +135,14 @@ export class FetchModel {
 
   get count(): number {
     return !isNaN(this.first.index) && !isNaN(this.last.index) ? this.last.index - this.first.index + 1 : 0;
+  }
+
+  shouldCheckPreSizeExpectation(lastBufferedIndex: number): boolean {
+    if (this.directionPriority === Direction.backward) {
+      return false;
+    }
+    const lastFetched = this.items[this.items.length - 1];
+    return lastFetched && lastFetched.$index < lastBufferedIndex;
   }
 
   startSimulate(items: Item[]): void {
@@ -167,8 +190,8 @@ export class FetchModel {
 
   update(index: number, delta: number, items: Item[], itemsToRemove: Item[]): void {
     this.startSimulate(items);
-    this.firstVisibleIndex = index;
-    this.firstVisibleItemDelta = delta;
+    this.firstVisible.index = index;
+    this.firstVisible.delta = delta;
     this.doRemove = itemsToRemove.length > 0;
   }
 }

@@ -57,7 +57,7 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
     item.element.style.top = '';
     item.element.style.position = '';
     item.invisible = false;
-    item.setSize();
+    item.setSize(buffer.getSizeByIndex(item.$index));
     buffer.cacheItem(item);
     if (item.$index < fetch.minIndex) {
       fetch.negativeSize += item.size;

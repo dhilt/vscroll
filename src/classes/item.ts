@@ -5,7 +5,8 @@ import { Item as _Item, ItemAdapter } from '../interfaces/index';
 export class Item<Data = unknown> implements _Item<Data> {
   nodeId: string;
   routines: Routines;
-  size: number;
+  preSize: number; // estimated size
+  size: number; // real size
   invisible: boolean;
   toRemove: boolean;
   toInsert: boolean;
@@ -50,8 +51,11 @@ export class Item<Data = unknown> implements _Item<Data> {
     delete this.container.element;
   }
 
-  setSize(): void {
-    this.size = this.routines.getSize(this.element);
+  setSize(preSize = 0): void {
+    this.preSize = preSize;
+    if (this.element) {
+      this.size = this.routines.getSize(this.element);
+    }
   }
 
   hide(): void {

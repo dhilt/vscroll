@@ -20,8 +20,9 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
       return;
     }
     const { buffer } = scroller;
-    const { items, bof, eof } = params;
+    const { items, bof, eof, increase, decrease } = params;
     const prepend = process !== AdapterProcess.append;
+    const fixRight = (prepend && !increase) || (!prepend && !!decrease);
 
     if ((prepend && bof && !buffer.bof.get()) || (!prepend && eof && !buffer.eof.get())) {
       Append.doVirtual(scroller, items, prepend);
@@ -35,7 +36,7 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     if (!buffer.size) {
       Append.doEmpty(scroller, items, prepend);
     } else {
-      Append.doRegular(scroller, items, prepend);
+      Append.doRegular(scroller, items, prepend, fixRight);
     }
 
     scroller.workflow.call({
@@ -85,7 +86,7 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     fetch.last.indexBuffer = !isNaN(buffer.lastIndex) ? buffer.lastIndex : index;
   }
 
-  static doRegular(scroller: Scroller, items: unknown[], prepend: boolean): boolean {
+  static doRegular(scroller: Scroller, items: unknown[], prepend: boolean, fixRight: boolean): boolean {
     const index = scroller.buffer[prepend ? 'firstIndex' : 'lastIndex'];
     const updateOptions: AdapterUpdateOptions = {
       predicate: ({ $index, data }) => {
@@ -94,7 +95,7 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
         }
         return true;
       },
-      fixRight: prepend
+      fixRight
     };
     return Update.doUpdate(scroller, updateOptions);
   }

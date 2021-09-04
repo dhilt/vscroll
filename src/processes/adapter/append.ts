@@ -15,7 +15,7 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
 
   static run(scroller: Scroller, { process, options }: AppendRunOptions): void {
 
-    const { params } = Append.parseInput(scroller, options);
+    const { params } = Append.parseInput(scroller, options, false, process);
     if (!params) {
       return;
     }

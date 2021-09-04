@@ -375,22 +375,4 @@ export class Buffer<Data> {
     return this.cache.recalculateDefaultSize();
   }
 
-  getIndexToAppend(eof?: boolean): number {
-    return (!eof
-      ? (this.size ? this.items[this.size - 1].$index : this.maxIndex)
-      : this.absMaxIndex
-    ) + (this.size ? 1 : 0);
-  }
-
-  getIndexToPrepend(bof?: boolean): number {
-    return (!bof
-      ? (this.size ? this.items[0].$index : this.minIndex)
-      : this.absMinIndex
-    ) - (this.size ? 1 : 0);
-  }
-
-  getIndexToAdd(eof: boolean, prepend: boolean): number {
-    return prepend ? this.getIndexToPrepend(eof) : this.getIndexToAppend(eof);
-  }
-
 }

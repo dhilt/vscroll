@@ -24,9 +24,8 @@ export default class PostFetch extends BaseProcessFactory(CommonProcess.postFetc
   }
 
   static setBufferLimits(scroller: Scroller): void {
-    const { buffer, state: { fetch, fetch: { items }, cycle: { innerLoop } } } = scroller;
-    const first = fetch.first.index;
-    const last = fetch.last.index;
+    const { buffer, state: { fetch, cycle: { innerLoop } } } = scroller;
+    const { items, first: { index: first }, last: { index: last } } = fetch;
     if (!items.length) {
       if (last < buffer.minIndex || innerLoop.isInitial) {
         buffer.absMinIndex = buffer.minIndex;

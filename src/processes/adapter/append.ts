@@ -1,7 +1,8 @@
 import { Scroller } from '../../scroller';
 import { Item } from '../../classes/item';
+import Update from './update';
 import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
-import { AdapterAppendOptions, AdapterPrependOptions } from '../../interfaces/index';
+import { AdapterAppendOptions, AdapterPrependOptions, AdapterUpdateOptions } from '../../interfaces/index';
 
 type AdapterAppendPrependOptions = AdapterAppendOptions & AdapterPrependOptions;
 
@@ -18,16 +19,12 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     if (!params) {
       return;
     }
+    const { buffer } = scroller;
     const { items, bof, eof } = params;
     const prepend = process !== AdapterProcess.append;
-    const _eof = !!(prepend ? bof : eof);
 
-    // virtual prepend case: shift abs min index and update viewport params
-    if (
-      (prepend && _eof && !scroller.buffer.bof.get()) ||
-      (!prepend && _eof && !scroller.buffer.eof.get())
-    ) {
-      Append.doVirtualize(scroller, items, prepend);
+    if ((prepend && bof && !buffer.bof.get()) || (!prepend && eof && !buffer.eof.get())) {
+      Append.doVirtual(scroller, items, prepend);
       scroller.workflow.call({
         process: Append.process,
         status: ProcessStatus.done
@@ -35,7 +32,11 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
       return;
     }
 
-    Append.simulateFetch(scroller, items, _eof, prepend);
+    if (!buffer.size) {
+      Append.doEmpty(scroller, items, prepend);
+    } else {
+      Append.doRegular(scroller, items, prepend);
+    }
 
     scroller.workflow.call({
       process: Append.process,
@@ -43,53 +44,59 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     });
   }
 
-  static doVirtualize(scroller: Scroller, items: unknown[], prepend: boolean): void {
+  static doVirtual(scroller: Scroller, items: unknown[], prepend: boolean): void {
     const { buffer, viewport: { paddings } } = scroller;
-    const bufferToken = prepend ? 'absMinIndex' : 'absMaxIndex';
-    if (isFinite(buffer[bufferToken])) {
+    const absIndexToken = prepend ? 'absMinIndex' : 'absMaxIndex';
+    if (isFinite(buffer[absIndexToken])) {
       const size = items.length * buffer.defaultSize;
       const padding = prepend ? paddings.backward : paddings.forward;
-      buffer[bufferToken] += (prepend ? -1 : 1) * items.length;
+      buffer[absIndexToken] += (prepend ? -1 : 1) * items.length;
       padding.size += size;
       if (prepend) {
         scroller.viewport.scrollPosition += size;
       }
-      scroller.logger.log(() => `buffer.${[bufferToken]} value is set to ${buffer[bufferToken]}`);
+      scroller.logger.log(() => `buffer.${[absIndexToken]} value is set to ${buffer[absIndexToken]}`);
       scroller.logger.stat(`after virtual ${prepend ? 'prepend' : 'append'}`);
     }
   }
 
-  static simulateFetch(scroller: Scroller, items: unknown[], eof: boolean, prepend: boolean): boolean {
+  static doEmpty(scroller: Scroller, items: unknown[], prepend: boolean): void {
     const { buffer, state: { fetch } } = scroller;
-    const bufferToken = prepend ? 'absMinIndex' : 'absMaxIndex';
-    let indexToAdd = buffer.getIndexToAdd(eof, prepend);
-    let bufferLimit = buffer[bufferToken];
+    const absIndexToken = prepend ? 'absMinIndex' : 'absMaxIndex';
+    let index = scroller.buffer[prepend ? 'minIndex' : 'maxIndex'];
+    let bufferLimit = buffer[absIndexToken];
     const newItems: Item[] = [];
 
-    for (let i = 0; i < items.length; i++) {
-      const itemToAdd = new Item(indexToAdd, items[i], scroller.routines);
-      if (isFinite(bufferLimit) && (
-        (prepend && indexToAdd < bufferLimit) ||
-        (!prepend && indexToAdd > bufferLimit)
-      )) {
-        bufferLimit += (prepend ? -1 : 1);
-      }
-      (prepend ? Array.prototype.unshift : Array.prototype.push).apply(newItems, [itemToAdd]);
-      // (prepend ? newItems.unshift : newItems.push)(itemToAdd);
-      indexToAdd += (prepend ? -1 : 1);
-    }
+    items.forEach(item => {
+      const newItem = new Item(index, item, scroller.routines);
+      Array.prototype[prepend ? 'unshift' : 'push'].call(newItems, newItem);
+      bufferLimit += prepend ? (index < bufferLimit ? -1 : 0) : (index > bufferLimit ? 1 : 0);
+      index += prepend ? -1 : 1;
+    });
 
-    if (bufferLimit !== buffer[bufferToken]) {
-      buffer[bufferToken] = bufferLimit;
-      scroller.logger.log(() => `buffer.${bufferToken} value is set to ${buffer[bufferToken]}`);
+    if (bufferLimit !== buffer[absIndexToken]) {
+      buffer[absIndexToken] = bufferLimit;
+      scroller.logger.log(() => `buffer.${absIndexToken} value is set to ${buffer[absIndexToken]}`);
     }
 
     (prepend ? fetch.prepend : fetch.append).call(fetch, newItems);
     (prepend ? buffer.prepend : buffer.append).call(buffer, newItems);
-    fetch.first.indexBuffer = !isNaN(buffer.firstIndex) ? buffer.firstIndex : indexToAdd;
-    fetch.last.indexBuffer = !isNaN(buffer.lastIndex) ? buffer.lastIndex : indexToAdd;
+    fetch.first.indexBuffer = !isNaN(buffer.firstIndex) ? buffer.firstIndex : index;
+    fetch.last.indexBuffer = !isNaN(buffer.lastIndex) ? buffer.lastIndex : index;
+  }
 
-    return true;
+  static doRegular(scroller: Scroller, items: unknown[], prepend: boolean): boolean {
+    const index = scroller.buffer[prepend ? 'firstIndex' : 'lastIndex'];
+    const updateOptions: AdapterUpdateOptions = {
+      predicate: ({ $index, data }) => {
+        if ($index === index) {
+          return prepend ? [...items.reverse(), data] : [data, ...items];
+        }
+        return true;
+      },
+      fixRight: prepend
+    };
+    return Update.doUpdate(scroller, updateOptions);
   }
 
 }

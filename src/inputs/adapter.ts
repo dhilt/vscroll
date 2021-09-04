@@ -45,6 +45,7 @@ const RELOAD_METHOD_PARAMS: ICommonProps<AdapterReloadParams> = {
 enum AdapterPrependParams {
   items = 'items',
   bof = 'bof',
+  increase = 'increase',
 }
 
 const PREPEND_METHOD_PARAMS: ICommonProps<AdapterPrependParams> = {
@@ -56,11 +57,16 @@ const PREPEND_METHOD_PARAMS: ICommonProps<AdapterPrependParams> = {
     validators: [BOOLEAN],
     defaultValue: false
   },
+  [AdapterPrependParams.increase]: {
+    validators: [BOOLEAN],
+    defaultValue: false
+  },
 };
 
 enum AdapterAppendParams {
   items = 'items',
   eof = 'eof',
+  decrease = 'decrease',
 }
 
 const APPEND_METHOD_PARAMS: ICommonProps<AdapterAppendParams> = {
@@ -69,6 +75,10 @@ const APPEND_METHOD_PARAMS: ICommonProps<AdapterAppendParams> = {
     mandatory: true
   },
   [AdapterAppendParams.eof]: {
+    validators: [BOOLEAN],
+    defaultValue: false
+  },
+  [AdapterAppendParams.decrease]: {
     validators: [BOOLEAN],
     defaultValue: false
   },

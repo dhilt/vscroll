@@ -74,11 +74,13 @@ export interface IAdapterInput<T> {
 export interface AdapterAppendOptions<Data = unknown> {
   items: Data[];
   eof?: boolean;
+  decrease?: boolean;
 }
 
 export interface AdapterPrependOptions<Data = unknown> {
   items: Data[];
   bof?: boolean;
+  increase?: boolean;
 }
 
 export interface AdapterRemoveOptions<Data = unknown> {

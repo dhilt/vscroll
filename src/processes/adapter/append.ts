@@ -34,7 +34,7 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     }
 
     if (!buffer.size) {
-      Append.doEmpty(scroller, items, prepend);
+      Append.doEmpty(scroller, items, prepend, fixRight);
     } else {
       Append.doRegular(scroller, items, prepend, fixRight);
     }
@@ -61,18 +61,19 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     }
   }
 
-  static doEmpty(scroller: Scroller, items: unknown[], prepend: boolean): void {
+  static doEmpty(scroller: Scroller, items: unknown[], prepend: boolean, fixRight: boolean): void {
     const { buffer, state: { fetch } } = scroller;
-    const absIndexToken = prepend ? 'absMinIndex' : 'absMaxIndex';
-    let index = scroller.buffer[prepend ? 'minIndex' : 'maxIndex'];
-    let bufferLimit = buffer[absIndexToken];
+    const absIndexToken = fixRight ? 'absMinIndex' : 'absMaxIndex';
+    const shift = prepend && !fixRight ? items.length - 1 : (!prepend && fixRight ? 1 - items.length : 0);
+    const bufferLimit = buffer[absIndexToken] + (fixRight ? -1 : 1) * (items.length - 1);
     const newItems: Item[] = [];
+    const startIndex = scroller.buffer[prepend ? 'minIndex' : 'maxIndex'];
+    let index = startIndex;
 
     items.forEach(item => {
-      const newItem = new Item(index, item, scroller.routines);
+      const newItem = new Item(index + shift, item, scroller.routines);
       Array.prototype[prepend ? 'unshift' : 'push'].call(newItems, newItem);
-      bufferLimit += prepend ? (index < bufferLimit ? -1 : 0) : (index > bufferLimit ? 1 : 0);
-      index += prepend ? -1 : 1;
+      index += (prepend ? -1 : 1);
     });
 
     if (bufferLimit !== buffer[absIndexToken]) {
@@ -81,9 +82,10 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     }
 
     (prepend ? fetch.prepend : fetch.append).call(fetch, newItems);
-    (prepend ? buffer.prepend : buffer.append).call(buffer, newItems);
+    (prepend ? buffer.prepend : buffer.append).apply(buffer, [newItems]);
     fetch.first.indexBuffer = !isNaN(buffer.firstIndex) ? buffer.firstIndex : index;
     fetch.last.indexBuffer = !isNaN(buffer.lastIndex) ? buffer.lastIndex : index;
+    fetch.firstVisible.index = startIndex;
   }
 
   static doRegular(scroller: Scroller, items: unknown[], prepend: boolean, fixRight: boolean): boolean {

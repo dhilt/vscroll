@@ -47,7 +47,7 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
   }
 
   static processElement(scroller: Scroller, item: Item): boolean {
-    const { state: { fetch }, viewport, buffer } = scroller;
+    const { viewport, buffer } = scroller;
     const element = viewport.element.querySelector(`[data-sid="${item.nodeId}"]`);
     if (!element) {
       return false;
@@ -59,9 +59,6 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
     item.invisible = false;
     item.setSize(buffer.getSizeByIndex(item.$index));
     buffer.cacheItem(item);
-    if (item.$index < fetch.minIndex) {
-      fetch.negativeSize += item.size;
-    }
     return true;
   }
 

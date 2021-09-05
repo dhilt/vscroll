@@ -74,7 +74,6 @@ export class FetchModel {
   callCount: number;
   minIndex: number;
   firstVisible: FirstVisible;
-  negativeSize: number;
   direction: Direction | null;
   cancel: (() => void) | null;
 
@@ -101,7 +100,6 @@ export class FetchModel {
     this.last.reset();
     this.firstVisible.reset();
     this.hasAnotherPack = false;
-    this.negativeSize = 0;
     this.direction = null;
     this.cancel = null;
     this.simulate = false;
@@ -150,7 +148,6 @@ export class FetchModel {
     this._newItemsData = items.map(item => item.data);
     this.items = items;
     this.hasAnotherPack = false;
-    this.negativeSize = 0;
   }
 
   stopSimulate(): void {

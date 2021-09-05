@@ -88,11 +88,6 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
           position += item.size - item.preSize;
         }
       });
-    } else {
-      // todo: switch prepend to fetch.firstVisible and get rid of fetch.negativeSize
-      if (fetch.isPrepend && fetch.negativeSize) {
-        position += fetch.negativeSize;
-      }
     }
 
     // slow fetch/render case

@@ -206,6 +206,7 @@ export class Buffer<Data> {
     if (fixRight) {
       this.items.forEach(item => item.updateIndex(item.$index - count));
       this.cache.shiftIndexes(-count);
+      this.items = [...this.items];
     }
     this.shiftExtremum(count, fixRight);
   }
@@ -214,6 +215,7 @@ export class Buffer<Data> {
     if (!fixRight) {
       this.items.forEach(item => item.updateIndex(item.$index + count));
       this.cache.shiftIndexes(count);
+      this.items = [...this.items];
     }
     this.shiftExtremum(count, fixRight);
   }

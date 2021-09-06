@@ -23,25 +23,21 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     const { items, bof, eof, increase, decrease } = params;
     const prepend = process !== AdapterProcess.append;
     const fixRight = (prepend && !increase) || (!prepend && !!decrease);
+    let next = false;
 
     if ((prepend && bof && !buffer.bof.get()) || (!prepend && eof && !buffer.eof.get())) {
       Append.doVirtual(scroller, items, prepend, fixRight);
-      scroller.workflow.call({
-        process: Append.process,
-        status: ProcessStatus.done
-      });
-      return;
-    }
-
-    if (!buffer.size) {
-      Append.doEmpty(scroller, items, prepend, fixRight);
     } else {
-      Append.doRegular(scroller, items, prepend, fixRight);
+      if (!buffer.size) {
+        next = Append.doEmpty(scroller, items, prepend, fixRight);
+      } else {
+        next = Append.doRegular(scroller, items, prepend, fixRight);
+      }
     }
 
     scroller.workflow.call({
       process: Append.process,
-      status: ProcessStatus.next
+      status: next ? ProcessStatus.next : ProcessStatus.done
     });
   }
 
@@ -63,7 +59,7 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     }
   }
 
-  static doEmpty(scroller: Scroller, items: unknown[], prepend: boolean, fixRight: boolean): void {
+  static doEmpty(scroller: Scroller, items: unknown[], prepend: boolean, fixRight: boolean): boolean {
     const { buffer, state: { fetch } } = scroller;
     const absIndexToken = fixRight ? 'absMinIndex' : 'absMaxIndex';
     const shift = prepend && !fixRight ? items.length - 1 : (!prepend && fixRight ? 1 - items.length : 0);
@@ -88,6 +84,7 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     fetch.first.indexBuffer = !isNaN(buffer.firstIndex) ? buffer.firstIndex : index;
     fetch.last.indexBuffer = !isNaN(buffer.lastIndex) ? buffer.lastIndex : index;
     fetch.firstVisible.index = startIndex;
+    return true;
   }
 
   static doRegular(scroller: Scroller, items: unknown[], prepend: boolean, fixRight: boolean): boolean {

@@ -37,3 +37,10 @@ export interface BufferUpdateTrackConfig extends BufferParams {
   result: number;
   debug?: boolean;
 }
+
+export interface BufferAppendConfig extends BufferParams {
+  title: string;
+  prepend: boolean;
+  amount: number;
+  fixRight: boolean;
+}

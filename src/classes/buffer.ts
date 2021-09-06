@@ -188,14 +188,6 @@ export class Buffer<Data> {
     this.items = this.items.filter(({ toRemove }) => !toRemove);
   }
 
-  append(items: Item<Data>[]): void {
-    this.items = [...this.items, ...items];
-  }
-
-  prepend(items: Item<Data>[]): void {
-    this.items = [...items, ...this.items];
-  }
-
   private shiftExtremum(amount: number, fixRight: boolean) {
     if (!fixRight) {
       this.absMaxIndex += amount;
@@ -208,6 +200,22 @@ export class Buffer<Data> {
     } else if (this.startIndex < this.absMinIndex) {
       this.startIndex = this.absMinIndex;
     }
+  }
+
+  append(count: number, fixRight: boolean): void {
+    if (fixRight) {
+      this.items.forEach(item => item.updateIndex(item.$index - count));
+      this.cache.shiftIndexes(-count);
+    }
+    this.shiftExtremum(count, fixRight);
+  }
+
+  prepend(count: number, fixRight: boolean): void {
+    if (!fixRight) {
+      this.items.forEach(item => item.updateIndex(item.$index + count));
+      this.cache.shiftIndexes(count);
+    }
+    this.shiftExtremum(count, fixRight);
   }
 
   removeItems(indexes: number[], fixRight: boolean, virtual = false): void {

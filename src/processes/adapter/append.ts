@@ -25,7 +25,7 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     const fixRight = (prepend && !increase) || (!prepend && !!decrease);
 
     if ((prepend && bof && !buffer.bof.get()) || (!prepend && eof && !buffer.eof.get())) {
-      Append.doVirtual(scroller, items, prepend);
+      Append.doVirtual(scroller, items, prepend, fixRight);
       scroller.workflow.call({
         process: Append.process,
         status: ProcessStatus.done
@@ -45,16 +45,18 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     });
   }
 
-  static doVirtual(scroller: Scroller, items: unknown[], prepend: boolean): void {
+  static doVirtual(scroller: Scroller, items: unknown[], prepend: boolean, fixRight: boolean): void {
     const { buffer, viewport: { paddings } } = scroller;
-    const absIndexToken = prepend ? 'absMinIndex' : 'absMaxIndex';
+    const absIndexToken = fixRight ? 'absMinIndex' : 'absMaxIndex';
     if (isFinite(buffer[absIndexToken])) {
       const size = items.length * buffer.defaultSize;
       const padding = prepend ? paddings.backward : paddings.forward;
-      buffer[absIndexToken] += (prepend ? -1 : 1) * items.length;
       padding.size += size;
       if (prepend) {
+        buffer.prepend(items.length, fixRight);
         scroller.viewport.scrollPosition += size;
+      } else {
+        buffer.append(items.length, fixRight);
       }
       scroller.logger.log(() => `buffer.${[absIndexToken]} value is set to ${buffer[absIndexToken]}`);
       scroller.logger.stat(`after virtual ${prepend ? 'prepend' : 'append'}`);
@@ -82,7 +84,7 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     }
 
     (prepend ? fetch.prepend : fetch.append).call(fetch, newItems);
-    (prepend ? buffer.prepend : buffer.append).apply(buffer, [newItems]);
+    buffer.setItems(newItems);
     fetch.first.indexBuffer = !isNaN(buffer.firstIndex) ? buffer.firstIndex : index;
     fetch.last.indexBuffer = !isNaN(buffer.lastIndex) ? buffer.lastIndex : index;
     fetch.firstVisible.index = startIndex;

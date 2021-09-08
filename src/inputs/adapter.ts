@@ -42,10 +42,31 @@ const RELOAD_METHOD_PARAMS: ICommonProps<AdapterReloadParams> = {
   },
 };
 
-enum AdapterAppendParams {
+enum AdapterPrependParams {
   items = 'items',
   bof = 'bof',
+  increase = 'increase',
+}
+
+const PREPEND_METHOD_PARAMS: ICommonProps<AdapterPrependParams> = {
+  [AdapterPrependParams.items]: {
+    validators: [ITEM_LIST],
+    mandatory: true
+  },
+  [AdapterPrependParams.bof]: {
+    validators: [BOOLEAN],
+    defaultValue: false
+  },
+  [AdapterPrependParams.increase]: {
+    validators: [BOOLEAN],
+    defaultValue: false
+  },
+};
+
+enum AdapterAppendParams {
+  items = 'items',
   eof = 'eof',
+  decrease = 'decrease',
 }
 
 const APPEND_METHOD_PARAMS: ICommonProps<AdapterAppendParams> = {
@@ -53,11 +74,13 @@ const APPEND_METHOD_PARAMS: ICommonProps<AdapterAppendParams> = {
     validators: [ITEM_LIST],
     mandatory: true
   },
-  [AdapterAppendParams.bof]: {
-    validators: [BOOLEAN, ONE_OF_CAN([AdapterAppendParams.eof])]
-  },
   [AdapterAppendParams.eof]: {
-    validators: [BOOLEAN, ONE_OF_CAN([AdapterAppendParams.bof])]
+    validators: [BOOLEAN],
+    defaultValue: false
+  },
+  [AdapterAppendParams.decrease]: {
+    validators: [BOOLEAN],
+    defaultValue: false
   },
 };
 
@@ -190,8 +213,8 @@ const FIX_METHOD_PARAMS: ICommonProps<AdapterFixParams> = {
 export const AdapterMethods: AdapterProcessMap<{ [key: string]: string }> = {
   [Process.reset]: AdapterResetParams,
   [Process.reload]: AdapterReloadParams,
+  [Process.prepend]: AdapterPrependParams,
   [Process.append]: AdapterAppendParams,
-  [Process.prepend]: AdapterAppendParams,
   [Process.check]: AdapterNoParams,
   [Process.remove]: AdapterRemoveParams,
   [Process.clip]: AdapterClipParams,
@@ -204,8 +227,8 @@ export const AdapterMethods: AdapterProcessMap<{ [key: string]: string }> = {
 export const ADAPTER_METHODS: AdapterProcessMap<ICommonProps<PropertyKey>> = {
   [Process.reset]: RESET_METHOD_PARAMS,
   [Process.reload]: RELOAD_METHOD_PARAMS,
+  [Process.prepend]: PREPEND_METHOD_PARAMS,
   [Process.append]: APPEND_METHOD_PARAMS,
-  [Process.prepend]: APPEND_METHOD_PARAMS,
   [Process.check]: NO_METHOD_PARAMS,
   [Process.remove]: REMOVE_METHOD_PARAMS,
   [Process.clip]: CLIP_METHOD_PARAMS,

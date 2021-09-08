@@ -38,5 +38,7 @@ export interface IBaseProcess {
 }
 
 export interface IBaseAdapterProcess extends IBaseProcess {
-  parseInput: <T>(scroller: Scroller, options: T, ignoreErrors?: boolean) => IAdapterInput<T>;
+  parseInput: <T>(
+    scroller: Scroller, options: T, ignoreErrors?: boolean, process?: AdapterProcess
+  ) => IAdapterInput<T>;
 }

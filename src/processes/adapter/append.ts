@@ -1,7 +1,8 @@
 import { Scroller } from '../../scroller';
 import { Item } from '../../classes/item';
+import Update from './update';
 import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
-import { AdapterAppendOptions, AdapterPrependOptions } from '../../interfaces/index';
+import { AdapterAppendOptions, AdapterPrependOptions, AdapterUpdateOptions } from '../../interfaces/index';
 
 type AdapterAppendPrependOptions = AdapterAppendOptions & AdapterPrependOptions;
 
@@ -14,82 +15,90 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
 
   static run(scroller: Scroller, { process, options }: AppendRunOptions): void {
 
-    const { params } = Append.parseInput(scroller, options);
+    const { params } = Append.parseInput(scroller, options, false, process);
     if (!params) {
       return;
     }
-    const { items, bof, eof } = params;
+    const { buffer } = scroller;
+    const { items, bof, eof, increase, decrease } = params;
     const prepend = process !== AdapterProcess.append;
-    const _eof = !!(prepend ? bof : eof);
+    const fixRight = (prepend && !increase) || (!prepend && !!decrease);
+    let next = false;
 
-    // virtual prepend case: shift abs min index and update viewport params
-    if (
-      (prepend && _eof && !scroller.buffer.bof.get()) ||
-      (!prepend && _eof && !scroller.buffer.eof.get())
-    ) {
-      Append.doVirtualize(scroller, items, prepend);
-      scroller.workflow.call({
-        process: Append.process,
-        status: ProcessStatus.done
-      });
-      return;
+    if ((prepend && bof && !buffer.bof.get()) || (!prepend && eof && !buffer.eof.get())) {
+      Append.doVirtual(scroller, items, prepend, fixRight);
+    } else {
+      if (!buffer.size) {
+        next = Append.doEmpty(scroller, items, prepend, fixRight);
+      } else {
+        next = Append.doRegular(scroller, items, prepend, fixRight);
+      }
     }
-
-    Append.simulateFetch(scroller, items, _eof, prepend);
 
     scroller.workflow.call({
       process: Append.process,
-      status: ProcessStatus.next
+      status: next ? ProcessStatus.next : ProcessStatus.done
     });
   }
 
-  static doVirtualize(scroller: Scroller, items: unknown[], prepend: boolean): void {
+  static doVirtual(scroller: Scroller, items: unknown[], prepend: boolean, fixRight: boolean): void {
     const { buffer, viewport: { paddings } } = scroller;
-    const bufferToken = prepend ? 'absMinIndex' : 'absMaxIndex';
-    if (isFinite(buffer[bufferToken])) {
+    const absIndexToken = fixRight ? 'absMinIndex' : 'absMaxIndex';
+    if (isFinite(buffer[absIndexToken])) {
       const size = items.length * buffer.defaultSize;
       const padding = prepend ? paddings.backward : paddings.forward;
-      buffer[bufferToken] += (prepend ? -1 : 1) * items.length;
       padding.size += size;
       if (prepend) {
+        buffer.prepend(items.length, fixRight);
         scroller.viewport.scrollPosition += size;
+      } else {
+        buffer.append(items.length, fixRight);
       }
-      scroller.logger.log(() => `buffer.${[bufferToken]} value is set to ${buffer[bufferToken]}`);
+      scroller.logger.log(() => `buffer.${[absIndexToken]} value is set to ${buffer[absIndexToken]}`);
       scroller.logger.stat(`after virtual ${prepend ? 'prepend' : 'append'}`);
     }
   }
 
-  static simulateFetch(scroller: Scroller, items: unknown[], eof: boolean, prepend: boolean): boolean {
+  static doEmpty(scroller: Scroller, items: unknown[], prepend: boolean, fixRight: boolean): boolean {
     const { buffer, state: { fetch } } = scroller;
-    const bufferToken = prepend ? 'absMinIndex' : 'absMaxIndex';
-    let indexToAdd = buffer.getIndexToAdd(eof, prepend);
-    let bufferLimit = buffer[bufferToken];
+    const absIndexToken = fixRight ? 'absMinIndex' : 'absMaxIndex';
+    const shift = prepend && !fixRight ? items.length - 1 : (!prepend && fixRight ? 1 - items.length : 0);
+    const bufferLimit = buffer[absIndexToken] + (fixRight ? -1 : 1) * (items.length - 1);
     const newItems: Item[] = [];
+    const startIndex = scroller.buffer[prepend ? 'minIndex' : 'maxIndex'];
+    let index = startIndex;
 
-    for (let i = 0; i < items.length; i++) {
-      const itemToAdd = new Item(indexToAdd, items[i], scroller.routines);
-      if (isFinite(bufferLimit) && (
-        (prepend && indexToAdd < bufferLimit) ||
-        (!prepend && indexToAdd > bufferLimit)
-      )) {
-        bufferLimit += (prepend ? -1 : 1);
-      }
-      (prepend ? Array.prototype.unshift : Array.prototype.push).apply(newItems, [itemToAdd]);
-      // (prepend ? newItems.unshift : newItems.push)(itemToAdd);
-      indexToAdd += (prepend ? -1 : 1);
-    }
+    items.forEach(item => {
+      const newItem = new Item(index + shift, item, scroller.routines);
+      Array.prototype[prepend ? 'unshift' : 'push'].call(newItems, newItem);
+      index += (prepend ? -1 : 1);
+    });
 
-    if (bufferLimit !== buffer[bufferToken]) {
-      buffer[bufferToken] = bufferLimit;
-      scroller.logger.log(() => `buffer.${bufferToken} value is set to ${buffer[bufferToken]}`);
+    if (bufferLimit !== buffer[absIndexToken]) {
+      buffer[absIndexToken] = bufferLimit;
+      scroller.logger.log(() => `buffer.${absIndexToken} value is set to ${buffer[absIndexToken]}`);
     }
 
     (prepend ? fetch.prepend : fetch.append).call(fetch, newItems);
-    (prepend ? buffer.prepend : buffer.append).call(buffer, newItems);
-    fetch.first.indexBuffer = !isNaN(buffer.firstIndex) ? buffer.firstIndex : indexToAdd;
-    fetch.last.indexBuffer = !isNaN(buffer.lastIndex) ? buffer.lastIndex : indexToAdd;
-
+    buffer.setItems(newItems);
+    fetch.first.indexBuffer = !isNaN(buffer.firstIndex) ? buffer.firstIndex : index;
+    fetch.last.indexBuffer = !isNaN(buffer.lastIndex) ? buffer.lastIndex : index;
+    fetch.firstVisible.index = startIndex;
     return true;
+  }
+
+  static doRegular(scroller: Scroller, items: unknown[], prepend: boolean, fixRight: boolean): boolean {
+    const index = scroller.buffer[prepend ? 'firstIndex' : 'lastIndex'];
+    const updateOptions: AdapterUpdateOptions = {
+      predicate: ({ $index, data }) => {
+        if ($index === index) {
+          return prepend ? [...items.reverse(), data] : [data, ...items];
+        }
+        return true;
+      },
+      fixRight
+    };
+    return Update.doUpdate(scroller, updateOptions);
   }
 
 }

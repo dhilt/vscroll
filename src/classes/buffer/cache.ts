@@ -200,4 +200,25 @@ export class Cache<Data = unknown> {
     this.maxIndex += rightDiff;
     this.items = items;
   }
+
+  /**
+   * Shifts all indexes by some value.
+   * Replaces current Set with a new one with new regular $indexes.
+   * Maintains min/max indexes.
+   *
+   * @param {number} delta A shift value.
+   */
+  shiftIndexes(delta: number): void {
+    const items = new Map<number, ItemCache<Data>>();
+    let min = Infinity, max = -Infinity;
+    this.items.forEach(item => {
+      item.changeIndex(item.$index + delta);
+      items.set(item.$index, item);
+      min = item.$index < min ? item.$index : min;
+      max = item.$index > max ? item.$index : max;
+    });
+    this.items = items;
+    this.minIndex = min;
+    this.maxIndex = max;
+  }
 }

@@ -17,9 +17,11 @@ export const BaseAdapterProcessFactory = (process: AdapterProcess): IBaseAdapter
 
     static process: AdapterProcess = process;
 
-    static parseInput<T>(scroller: Scroller, options: T, ignoreErrors = false): IAdapterInput<T> {
+    static parseInput<T>(
+      scroller: Scroller, options: T, ignoreErrors = false, _process?: AdapterProcess
+    ): IAdapterInput<T> {
       const result: IAdapterInput<T> = {
-        data: validate(options, ADAPTER_METHODS[process])
+        data: validate(options, ADAPTER_METHODS[_process || process])
       };
 
       if (result.data.isValid) {

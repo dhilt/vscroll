@@ -1,6 +1,6 @@
 import { Buffer } from '../src/classes/buffer';
 
-import { Data, BufferParams, BufferUpdateConfig, BufferUpdateTrackConfig } from './misc/types';
+import { Data, BufferParams, BufferUpdateConfig, BufferUpdateTrackConfig, BufferAppendConfig } from './misc/types';
 import { generateItem as makeItem, generateBufferItem as cb, generateBufferItems } from './misc/items';
 
 const loggerMock = { log: () => null };
@@ -69,6 +69,28 @@ tracked index: ${trackedIndex ? `${trackedIndex}~${trackedItem ? trackedItem.get
   }
 
   expect(trackedIndex).toBe(result);
+};
+
+const checkAppend = (params: BufferAppendConfig) => () => {
+  const buffer = makeBuffer(params);
+  const firstIndex = buffer.items[0].$index;
+  const firstId = buffer.items[0].data.id;
+  let indexShift = 0;
+  if (params.prepend) {
+    buffer.prepend(params.amount, params.fixRight);
+    if (!params.fixRight) {
+      indexShift += params.amount;
+    }
+  } else {
+    buffer.append(params.amount, params.fixRight);
+    if (params.fixRight) {
+      indexShift -= params.amount;
+    }
+  }
+  expect(buffer.absMinIndex).toEqual(params.absMin - (params.fixRight ? params.amount : 0));
+  expect(buffer.absMaxIndex).toEqual(params.absMax + (params.fixRight ? 0 : params.amount));
+  expect(buffer.items[0].$index).toEqual(firstIndex + indexShift);
+  expect(buffer.items[0].data.id).toEqual(firstId);
 };
 
 describe('Buffer Spec', () => {
@@ -447,5 +469,26 @@ describe('Buffer Spec', () => {
       })))
     );
   });
+
+  describe('Append', () => [
+    {
+      title: 'append & no fixRight',
+      min: -9, max: 10, absMin: -99, absMax: 100,
+      prepend: false, amount: 10, fixRight: false,
+    }, {
+      title: 'append & fixRight',
+      min: -9, max: 10, absMin: -99, absMax: 100,
+      prepend: false, amount: 10, fixRight: true,
+    }, {
+      title: 'prepend & no fixRight',
+      min: -9, max: 10, absMin: -99, absMax: 100,
+      prepend: true, amount: 10, fixRight: false,
+    }, {
+      title: 'prepend & fixRight',
+      min: -9, max: 10, absMin: -99, absMax: 100,
+      prepend: true, amount: 10, fixRight: true,
+    }]
+    .forEach(config => it(config.title, checkAppend(config)))
+  );
 
 });

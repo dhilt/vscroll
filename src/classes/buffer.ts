@@ -188,14 +188,6 @@ export class Buffer<Data> {
     this.items = this.items.filter(({ toRemove }) => !toRemove);
   }
 
-  append(items: Item<Data>[]): void {
-    this.items = [...this.items, ...items];
-  }
-
-  prepend(items: Item<Data>[]): void {
-    this.items = [...items, ...this.items];
-  }
-
   private shiftExtremum(amount: number, fixRight: boolean) {
     if (!fixRight) {
       this.absMaxIndex += amount;
@@ -208,6 +200,24 @@ export class Buffer<Data> {
     } else if (this.startIndex < this.absMinIndex) {
       this.startIndex = this.absMinIndex;
     }
+  }
+
+  append(count: number, fixRight: boolean): void {
+    if (fixRight) {
+      this.items.forEach(item => item.updateIndex(item.$index - count));
+      this.cache.shiftIndexes(-count);
+      this.items = [...this.items];
+    }
+    this.shiftExtremum(count, fixRight);
+  }
+
+  prepend(count: number, fixRight: boolean): void {
+    if (!fixRight) {
+      this.items.forEach(item => item.updateIndex(item.$index + count));
+      this.cache.shiftIndexes(count);
+      this.items = [...this.items];
+    }
+    this.shiftExtremum(count, fixRight);
   }
 
   removeItems(indexes: number[], fixRight: boolean, virtual = false): void {
@@ -373,24 +383,6 @@ export class Buffer<Data> {
 
   checkDefaultSize(): boolean {
     return this.cache.recalculateDefaultSize();
-  }
-
-  getIndexToAppend(eof?: boolean): number {
-    return (!eof
-      ? (this.size ? this.items[this.size - 1].$index : this.maxIndex)
-      : this.absMaxIndex
-    ) + (this.size ? 1 : 0);
-  }
-
-  getIndexToPrepend(bof?: boolean): number {
-    return (!bof
-      ? (this.size ? this.items[0].$index : this.minIndex)
-      : this.absMinIndex
-    ) - (this.size ? 1 : 0);
-  }
-
-  getIndexToAdd(eof: boolean, prepend: boolean): number {
-    return prepend ? this.getIndexToPrepend(eof) : this.getIndexToAppend(eof);
   }
 
 }

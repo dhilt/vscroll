@@ -114,12 +114,16 @@ export class DefaultSize {
       return false;
     }
     const oldValue = this.get();
-    if (this.sizeStrategy === SizeStrategy.Average) {
-      this.recalculateAverageSize(cacheSize);
+    if (!cacheSize) {
+      this.reset(true);
     } else {
-      this.recalculateFrequentSize();
+      if (this.sizeStrategy === SizeStrategy.Average) {
+        this.recalculateAverageSize(cacheSize);
+      } else {
+        this.recalculateFrequentSize();
+      }
+      this.recalculation.reset();
     }
-    this.recalculation.reset();
     return this.get() !== oldValue;
   }
 

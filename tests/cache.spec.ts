@@ -99,7 +99,7 @@ describe('Cache Spec', () => {
   describe('Update', () => {
     const MIN = 1, COUNT = 7;
     const items = generateBufferItems(MIN, COUNT);
-    const subset = items.slice(2, 5).map(({ $index }) => $index); // [3, 4, 5]
+    const subset = items.slice(2, 5); // [3, 4, 5]
     let cache: Cache<Data>;
 
     const checkUpdate = (list: IndexIdList) => {
@@ -248,7 +248,10 @@ describe('Cache Spec', () => {
       }
       const cache = new Cache(averageSizeSettings as never, loggerMock as never);
       const items = generateBufferItems(1, length);
-      items.forEach(item => cache.add(item));
+      items.forEach(item => {
+        item.toRemove = toRemove && toRemove.includes(item.$index);
+        cache.add(item);
+      });
       cache.recalculateDefaultSize();
       return { items, cache, average: { after, before } };
     };
@@ -299,7 +302,7 @@ describe('Cache Spec', () => {
         const toRemove = [5, 8, 10];
         const { items, cache, average } = prepareAverage({ length: 10, toRemove });
         const listAfter = [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 5: 6 }, { 6: 7 }, { 7: 9 }];
-        const subset = items.slice(toRemove[0], toRemove[toRemove.length - 1] + 1).map(({ $index }) => $index);
+        const subset = items.slice(toRemove[0], toRemove[toRemove.length - 1] + 1);
 
         expect(cache.getDefaultSize()).toBe(average.before);
 
@@ -307,7 +310,6 @@ describe('Cache Spec', () => {
         cache.recalculateDefaultSize();
         expect(cache.getDefaultSize()).toBe(average.after);
       });
-
 
       it('should maintain average size on remove via update (explicit)', () => {
         const INDEX_TO_REMOVE = 10;
@@ -321,8 +323,7 @@ describe('Cache Spec', () => {
         cache.recalculateDefaultSize();
         expect(cache.getDefaultSize()).toBe(25);
 
-        const before = items.filter(({ $index }) => [10, 11, 12, 13, 14, 15].includes($index))
-          .map(({ $index }) => $index);
+        const before = items.filter(({ $index }) => [10, 11, 12, 13, 14, 15].includes($index));
         const after = make([{ 10: 11 }, { 11: 12 }, { 12: 13 }, { 13: 14 }, { 14: 15 }]);
         after.forEach(item => item.size = item.data.size = 20);
 

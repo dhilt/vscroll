@@ -263,36 +263,44 @@ export class Buffer<Data> {
     generator: (index: number, data: Data) => Item<Data>,
     indexToTrack: number,
     fixRight: boolean
-  ): number {
+  ): { trackedIndex: number, toRemove: Item<Data>[] } {
     if (!this.size || Number.isNaN(this.firstIndex)) {
-      return NaN;
+      return { trackedIndex: NaN, toRemove: [] };
     }
-    let _indexToTrack = indexToTrack;
+    let trackedIndex = indexToTrack;
     let index = fixRight ? this.lastIndex : this.firstIndex;
     const items: Item<Data>[] = [];
     const diff = fixRight ? -1 : 1;
-    const initialIndexList = this.items.map(({ $index }) => $index);
-    (fixRight ? this.items.reverse() : this.items).forEach(item => {
+    const limit = this.size - 1;
+    const beforeMap = new Map<number, Item>(); // need to persist original $indexes
+    const updateArray = Array.prototype[fixRight ? 'unshift' : 'push'];
+
+    for (let i = fixRight ? limit : 0; fixRight ? i >= 0 : i <= limit; i += diff) {
+      const item = this.items[i];
+      beforeMap.set(item.$index, item);
       const result = predicate(item);
+
       // if predicate result is falsy or empty array -> delete
       if (!result || (Array.isArray(result) && !result.length)) {
         item.toRemove = true;
-        _indexToTrack += item.$index >= indexToTrack ? (fixRight ? 1 : 0) : (fixRight ? 0 : -1);
+        trackedIndex += item.$index >= indexToTrack ? (fixRight ? 1 : 0) : (fixRight ? 0 : -1);
         this.shiftExtremum(-1, fixRight);
-        return;
+        continue;
       }
+
       // if predicate result is truthy but not array -> leave
       if (!Array.isArray(result)) {
         item.updateIndex(index);
-        items.push(item);
+        updateArray.call(items, item);
         index += diff;
-        return;
+        continue;
       }
+
       // if predicate result is non-empty array -> insert/replace
       if (item.$index < indexToTrack) {
-        _indexToTrack += fixRight ? 0 : result.length - 1;
+        trackedIndex += fixRight ? 0 : result.length - 1;
       } else if (item.$index > indexToTrack) {
-        _indexToTrack += fixRight ? 1 - result.length : 0;
+        trackedIndex += fixRight ? 1 - result.length : 0;
       }
       let toRemove = true;
       const newItems: Item<Data>[] = [];
@@ -300,7 +308,7 @@ export class Buffer<Data> {
         let newItem: Item<Data>;
         if (item.data === data) {
           if (indexToTrack === item.$index) {
-            _indexToTrack = index + i * diff;
+            trackedIndex = index + i * diff;
           }
           item.updateIndex(index + i * diff);
           newItem = item;
@@ -309,26 +317,31 @@ export class Buffer<Data> {
           newItem = generator(index + i * diff, data);
           newItem.toInsert = true;
         }
-        newItems.push(newItem);
+        updateArray.call(newItems, newItem);
       });
       item.toRemove = toRemove;
-      items.push(...newItems);
+      updateArray.call(items, ...newItems);
       index += diff * result.length;
       if (result.length > 1) {
         this.shiftExtremum(result.length - 1, fixRight);
       }
-    });
-    this.items = fixRight ? items.reverse() : items;
-    this.cache.updateSubset(initialIndexList, this.items, fixRight);
+    }
+
+    const toRemove = this.items.filter(item => item.toRemove);
+    const itemsBefore = Array.from(beforeMap)
+      .map(([$index, { size, toRemove }]) => ({ $index, size, toRemove }))
+      .sort((a, b) => a.$index - b.$index);
+    this.items = items;
+    this.cache.updateSubset(itemsBefore, items, fixRight);
 
     if (this.finiteAbsMinIndex === this.finiteAbsMaxIndex) {
-      _indexToTrack = NaN;
-    } else if (_indexToTrack > this.finiteAbsMaxIndex) {
-      _indexToTrack = this.finiteAbsMaxIndex;
-    } else if (_indexToTrack < this.finiteAbsMinIndex) {
-      _indexToTrack = this.finiteAbsMinIndex;
+      trackedIndex = NaN;
+    } else if (trackedIndex > this.finiteAbsMaxIndex) {
+      trackedIndex = this.finiteAbsMaxIndex;
+    } else if (trackedIndex < this.finiteAbsMinIndex) {
+      trackedIndex = this.finiteAbsMinIndex;
     }
-    return _indexToTrack;
+    return { trackedIndex, toRemove };
   }
 
   cacheItem(item: Item<Data>): void {

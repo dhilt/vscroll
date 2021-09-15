@@ -56,7 +56,7 @@ const checkIndexTrackingOnUpdate = (params: BufferUpdateTrackConfig) => () => {
   const absMinBefore = debug && buffer.finiteAbsMinIndex, absMaxBefore = debug && buffer.finiteAbsMaxIndex;
   const minBefore = debug && buffer.minIndex, maxBefore = debug && buffer.maxIndex;
 
-  const trackedIndex = buffer.updateItems(predicate, cb, index, fixRight);
+  const { trackedIndex } = buffer.updateItems(predicate, cb, index, fixRight);
 
   if (debug) {
     const trackedItem = buffer.get(trackedIndex);

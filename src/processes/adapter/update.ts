@@ -26,11 +26,10 @@ export default class Update extends BaseAdapterProcessFactory(AdapterProcess.upd
       logger.log(() => 'no items in Buffer');
       return false;
     }
-    const before = [...buffer.items];
     const { item: firstItem, index: firstIndex, diff: firstItemDiff } =
       viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
 
-    const trackedIndex = buffer.updateItems(
+    const { trackedIndex, toRemove } = buffer.updateItems(
       params.predicate,
       (index, data) => new Item(index, data, routines),
       firstIndex,
@@ -43,21 +42,23 @@ export default class Update extends BaseAdapterProcessFactory(AdapterProcess.upd
       delta = - buffer.getSizeByIndex(trackedIndex) + firstItemDiff;
     }
 
-    const itemsToRemove = before.filter(({ toRemove }) => toRemove);
-    itemsToRemove.forEach(item => item.hide());
-    logger.log(() => itemsToRemove.length
-      ? 'items to remove: [' + itemsToRemove.map(({ $index }) => $index).join(',') + ']'
+    toRemove.forEach(item => item.hide());
+    logger.log(() => toRemove.length
+      ? 'items to remove: [' + toRemove.map(({ $index }) => $index).join(',') + ']'
       : 'no items to remove'
     );
+    if (toRemove.length) { // insertions will be processed on render
+      buffer.checkDefaultSize();
+    }
 
-    const itemsToRender = buffer.items.filter(({ toInsert }) => toInsert);
-    logger.log(() => itemsToRender.length
-      ? 'items to render: [' + itemsToRender.map(({ $index }) => $index).join(',') + ']'
+    const toRender = buffer.items.filter(({ toInsert }) => toInsert);
+    logger.log(() => toRender.length
+      ? 'items to render: [' + toRender.map(({ $index }) => $index).join(',') + ']'
       : 'no items to render'
     );
 
-    fetch.update(trackedIndex, delta, itemsToRender, itemsToRemove);
-    return !!itemsToRemove.length || !!itemsToRender.length;
+    fetch.update(trackedIndex, delta, toRender, toRemove);
+    return !!toRemove.length || !!toRender.length;
   }
 
 }

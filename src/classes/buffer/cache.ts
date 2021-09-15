@@ -4,6 +4,12 @@ import { Settings } from '../settings';
 import { Logger } from '../logger';
 import { SizeStrategy } from '../../inputs/index';
 
+interface ItemUpdate {
+  $index: number;
+  size: number;
+  toRemove?: boolean;
+}
+
 export class ItemCache<Data = unknown> {
   $index: number;
   nodeId: string;
@@ -155,19 +161,20 @@ export class Cache<Data = unknown> {
    * Destructively updates Set based on subset (before-after) changes.
    * Replaces current Set with a new one with new regular $indexes.
    * Maintains min/max indexes. Maintains default item size on remove only.
-   * Inserted and replaced items will be taken into account on Cache.add async calls after render.
    *
-   * @param {number[]} before Initial subset of indexes to be replaced by "after". Must be incremental.
-   * @param {Item<Data>[]} after Transformed subset that replaces "before". Must be be $index-incremental.
+   * @param {ItemUpdate[]} before Initial subset of items to be replaced by "after".
+   * Each element is an object with { $index, size, toRemove } props. Must be $index-incremental.
+   * Items to be removed must have toRemove flag: before[].toRemove = true.
+   * @param {Item<Data>[]} after Transformed subset that replaces "before". Must be $index-incremental.
    * Must contain at least 1 $index from "before" or be empty.
    * @param {boolean} fixRight This is to fix right indexes during subset collapsing. Acts only if "after" is empty.
    */
-  updateSubset(before: number[], after: Item<Data>[], fixRight?: boolean): void {
+  updateSubset(before: ItemUpdate[], after: Item<Data>[], fixRight?: boolean): void {
     if (!this.size || !before.length) {
       return;
     }
-    const minB = before[0], maxB = before[before.length - 1];
-    let leftDiff: number, rightDiff: number, found;
+    const minB = before[0].$index, maxB = before[before.length - 1].$index;
+    let leftDiff: number, rightDiff: number;
     if (after.length) {
       const minA = after[0].$index, maxA = after[after.length - 1].$index;
       leftDiff = minA - minB;
@@ -191,11 +198,9 @@ export class Cache<Data = unknown> {
     after.forEach(item => // subset items
       items.set(item.$index, new ItemCache<Data>(item, this.saveData))
     );
-    before.forEach(index => { // removed items immediately affect the default size
-      if (!after.some(({ $index }) => index === $index) && (found = this.get(index))) {
-        this.defaultSize.setRemoved(found);
-      }
-    });
+    before // to maintain default size on remove
+      .filter(item => item.toRemove)
+      .forEach(item => this.defaultSize.setRemoved(item));
     this.minIndex += leftDiff;
     this.maxIndex += rightDiff;
     this.items = items;

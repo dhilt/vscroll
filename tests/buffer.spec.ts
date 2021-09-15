@@ -32,10 +32,12 @@ const checkUpdate = ({ min, max, predicate, fixRight, list }: BufferUpdateConfig
     const $index = Number(Object.keys(current)[0]);
     if (index === 0) {
       expect(buffer.firstIndex).toEqual($index);
+      expect(buffer.minIndex).toEqual($index);
       expect(buffer.absMinIndex).toEqual($index);
     }
     if (index === list.length - 1) {
       expect(buffer.lastIndex).toEqual($index);
+      expect(buffer.maxIndex).toEqual($index);
       expect(buffer.absMaxIndex).toEqual($index);
     }
     const id = current[$index];

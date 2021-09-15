@@ -307,6 +307,29 @@ describe('Cache Spec', () => {
         cache.recalculateDefaultSize();
         expect(cache.getDefaultSize()).toBe(average.after);
       });
+
+
+      it('should maintain average size on remove via update (explicit)', () => {
+        const INDEX_TO_REMOVE = 10;
+        const cache = new Cache(averageSizeSettings as never, loggerMock as never);
+        const items = generateBufferItems(1, 15);
+        items.forEach(item => {
+          item.size = item.data.size = (item.$index === INDEX_TO_REMOVE ? 100 : 20);
+          item.toRemove = item.$index === INDEX_TO_REMOVE;
+          cache.add(item);
+        });
+        cache.recalculateDefaultSize();
+        expect(cache.getDefaultSize()).toBe(25);
+
+        const before = items.filter(({ $index }) => [10, 11, 12, 13, 14, 15].includes($index))
+          .map(({ $index }) => $index);
+        const after = make([{ 10: 11 }, { 11: 12 }, { 12: 13 }, { 13: 14 }, { 14: 15 }]);
+        after.forEach(item => item.size = item.data.size = 20);
+
+        cache.updateSubset(before, after);
+        cache.recalculateDefaultSize();
+        expect(cache.getDefaultSize()).toBe(20);
+      });
     });
 
   });

@@ -202,7 +202,7 @@ export class Buffer<Data> {
     }
   }
 
-  append(count: number, fixRight: boolean): void {
+  appendVirtually(count: number, fixRight: boolean): void {
     if (fixRight) {
       this.items.forEach(item => item.updateIndex(item.$index - count));
       this.cache.shiftIndexes(-count);
@@ -211,7 +211,7 @@ export class Buffer<Data> {
     this.shiftExtremum(count, fixRight);
   }
 
-  prepend(count: number, fixRight: boolean): void {
+  prependVirtually(count: number, fixRight: boolean): void {
     if (!fixRight) {
       this.items.forEach(item => item.updateIndex(item.$index + count));
       this.cache.shiftIndexes(count);
@@ -220,9 +220,7 @@ export class Buffer<Data> {
     this.shiftExtremum(count, fixRight);
   }
 
-  removeItems(indexes: number[], fixRight: boolean, virtual = false): void {
-    const result: Item<Data>[] = [];
-    const toRemove: number[] = virtual ? indexes : [];
+  removeVirtually(indexes: number[], fixRight: boolean): void {
     const length = this.items.length;
     let shifted = false;
     for (
@@ -231,31 +229,18 @@ export class Buffer<Data> {
       fixRight ? i-- : i++
     ) {
       const item = this.items[i];
-      if (!virtual && indexes.indexOf(item.$index) >= 0) {
-        toRemove.push(item.$index);
-        continue;
-      }
-      const diff = toRemove.reduce((acc, index) => acc + (fixRight
+      const diff = indexes.reduce((acc, index) => acc + (fixRight
         ? (item.$index < index ? 1 : 0)
         : (item.$index > index ? -1 : 0)
       ), 0);
       shifted = shifted || !!diff;
       item.updateIndex(item.$index + diff);
-      if (!virtual) {
-        if (fixRight) {
-          result.unshift(item);
-        } else {
-          result.push(item);
-        }
-      }
     }
-    this.shiftExtremum(-toRemove.length, fixRight);
-    if (!virtual) {
-      this.items = result;
-    } else if (shifted) {
+    this.shiftExtremum(-indexes.length, fixRight);
+    if (shifted) {
       this.items = [...this.items];
     }
-    this.cache.removeItems(toRemove, fixRight);
+    this.cache.removeItems(indexes, fixRight);
   }
 
   updateItems(

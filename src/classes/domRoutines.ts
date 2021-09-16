@@ -39,16 +39,20 @@ export class Routines {
     element[this.horizontal ? 'scrollLeft' : 'scrollTop'] = value;
   }
 
-  getParams(element: HTMLElement, doNotBind?: boolean): ClientRect {
+  getParams(element: HTMLElement, doNotBind?: boolean): DOMRect {
     this.checkElement(element);
     if (this.window && doNotBind) {
+      const { clientWidth, clientHeight, clientLeft, clientTop } = element;
       return {
-        'height': element.clientHeight,
-        'width': element.clientWidth,
-        'top': element.clientTop,
-        'bottom': element.clientTop + element.clientHeight,
-        'left': element.clientLeft,
-        'right': element.clientLeft + element.clientWidth
+        'height': clientHeight,
+        'width': clientWidth,
+        'top': clientTop,
+        'bottom': clientTop + clientHeight,
+        'left': clientLeft,
+        'right': clientLeft + clientWidth,
+        'x': clientLeft,
+        'y': clientTop,
+        'toJSON': () => null,
       };
     }
     return element.getBoundingClientRect();

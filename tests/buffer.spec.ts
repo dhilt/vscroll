@@ -79,12 +79,12 @@ const checkAppend = (params: BufferAppendConfig) => () => {
   const firstId = buffer.items[0].data.id;
   let indexShift = 0;
   if (params.prepend) {
-    buffer.prepend(params.amount, params.fixRight);
+    buffer.prependVirtually(params.amount, params.fixRight);
     if (!params.fixRight) {
       indexShift += params.amount;
     }
   } else {
-    buffer.append(params.amount, params.fixRight);
+    buffer.appendVirtually(params.amount, params.fixRight);
     if (params.fixRight) {
       indexShift -= params.amount;
     }

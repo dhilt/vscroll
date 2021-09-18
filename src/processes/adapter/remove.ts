@@ -22,13 +22,24 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
   static doRemove(scroller: Scroller, params: AdapterRemoveOptions): boolean {
     const { fetch } = scroller.state;
     fetch.firstVisible.index = NaN;
-    const bufferRemoveList = Remove.removeBufferedItems(scroller, params);
-    if (params.indexes && params.indexes.length) { // to avoid duplicate buffer-virtual removals
-      params.indexes = params.indexes.filter(i => !bufferRemoveList.includes(i));
+    const removed = Remove.removeBufferedItems(scroller, params);
+    const shouldBuffered = removed.length > 0;
+    if (shouldBuffered) {
+      // exclude just removed in-buffer indexes
+      if (params.indexes && params.indexes.length) {
+        params.indexes = params.indexes.filter(i => !removed.includes(i));
+      }
+      // shift virtual indexes that remain
+      if (params.indexes && params.indexes.length) {
+        const diffLeft = (params.increase ? 1 : 0) * removed.length;
+        const diffRight = (params.increase ? 0 : -1) * removed.length;
+        params.indexes = params.indexes.map(index =>
+          index + (index < removed[0] ? diffLeft : diffRight)
+        );
+      }
     }
-    const shouldRemoveBuffered = bufferRemoveList.length > 0;
-    const shouldRemoveVirtual = Remove.removeVirtualItems(scroller, params);
-    if (!shouldRemoveBuffered && !shouldRemoveVirtual) {
+    const shouldVirtual = Remove.removeVirtualItems(scroller, params);
+    if (!shouldBuffered && !shouldVirtual) {
       return false;
     }
     if (!isNaN(fetch.firstVisible.index)) {

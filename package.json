@@ -1,6 +1,6 @@
 {
   "name": "vscroll",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "Virtual scroll engine",
   "main": "dist/bundles/vscroll.umd.js",
   "module": "dist/bundles/vscroll.esm5.js",

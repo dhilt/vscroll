@@ -49,10 +49,10 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
       const padding = prepend ? paddings.backward : paddings.forward;
       padding.size += size;
       if (prepend) {
-        buffer.prepend(items.length, fixRight);
+        buffer.prependVirtually(items.length, fixRight);
         scroller.viewport.scrollPosition += size;
       } else {
-        buffer.append(items.length, fixRight);
+        buffer.appendVirtually(items.length, fixRight);
       }
       scroller.logger.log(() => `buffer.${[absIndexToken]} value is set to ${buffer[absIndexToken]}`);
       scroller.logger.stat(`after virtual ${prepend ? 'prepend' : 'append'}`);

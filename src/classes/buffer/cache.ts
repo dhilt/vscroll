@@ -103,7 +103,7 @@ export class Cache<Data = unknown> {
         itemCache.data = item.data;
       }
       if (itemCache.size !== item.size) { // size changes
-        if (itemCache.size !== void 0) {
+        if (!isNaN(itemCache.size)) {
           this.defaultSize.setExisted(itemCache, item);
         } else {
           this.defaultSize.setNew(item);
@@ -139,7 +139,7 @@ export class Cache<Data = unknown> {
     let min = Infinity, max = -Infinity;
     this.items.forEach(item => {
       if (toRemove.some(index => index === item.$index)) {
-        if (item.size !== void 0) {
+        if (!isNaN(item.size)) {
           this.defaultSize.setRemoved(item);
         }
         return;

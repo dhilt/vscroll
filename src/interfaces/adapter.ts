@@ -98,6 +98,8 @@ export interface AdapterInsertOptions<Data = unknown> {
   items: Data[];
   before?: ItemsPredicate<Data>;
   after?: ItemsPredicate<Data>;
+  beforeIndex?: number;
+  afterIndex?: number;
   decrease?: boolean;
 }
 

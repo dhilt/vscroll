@@ -123,6 +123,8 @@ enum AdapterInsertParams {
   items = 'items',
   before = 'before',
   after = 'after',
+  beforeIndex = 'beforeIndex',
+  afterIndex = 'afterIndex',
   decrease = 'decrease',
 }
 
@@ -132,10 +134,24 @@ const INSERT_METHOD_PARAMS: ICommonProps<AdapterInsertParams> = {
     mandatory: true
   },
   [AdapterInsertParams.before]: {
-    validators: [FUNC_WITH_X_ARGUMENTS(1), ONE_OF_MUST([AdapterInsertParams.after])]
+    validators: [FUNC_WITH_X_ARGUMENTS(1), ONE_OF_MUST([
+      AdapterInsertParams.after, AdapterInsertParams.beforeIndex, AdapterInsertParams.afterIndex
+    ])]
   },
   [AdapterInsertParams.after]: {
-    validators: [FUNC_WITH_X_ARGUMENTS(1), ONE_OF_MUST([AdapterInsertParams.before])]
+    validators: [FUNC_WITH_X_ARGUMENTS(1), ONE_OF_MUST([
+      AdapterInsertParams.before, AdapterInsertParams.beforeIndex, AdapterInsertParams.afterIndex
+    ])]
+  },
+  [AdapterInsertParams.beforeIndex]: {
+    validators: [INTEGER, ONE_OF_MUST([
+      AdapterInsertParams.before, AdapterInsertParams.after, AdapterInsertParams.afterIndex
+    ])]
+  },
+  [AdapterInsertParams.afterIndex]: {
+    validators: [INTEGER, ONE_OF_MUST([
+      AdapterInsertParams.before, AdapterInsertParams.after, AdapterInsertParams.beforeIndex
+    ])]
   },
   [AdapterInsertParams.decrease]: {
     validators: [BOOLEAN],

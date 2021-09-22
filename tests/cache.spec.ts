@@ -5,6 +5,20 @@ import { Data, Id, IndexIdList, IndexSizeList } from './misc/types';
 import { generateBufferItem, generateBufferItems, generateItem } from './misc/items';
 import { SizeStrategy } from '../src/inputs';
 
+interface ActionCacheConfig {
+  title: string;
+  action: () => void;
+  result: IndexIdList;
+  debug?: boolean;
+}
+
+const settings = {
+  itemSize: NaN,
+  cacheData: true,
+  cacheOnReload: true,
+  sizeStrategy: SizeStrategy.Average
+};
+
 const loggerMock = { log: () => null };
 
 const make = (list: IndexIdList): Item<Data>[] =>
@@ -14,14 +28,30 @@ const make = (list: IndexIdList): Item<Data>[] =>
     return generateBufferItem(index, generateItem(id));
   });
 
-describe('Cache Spec', () => {
+const checkCache = (cache: Cache<Data>, config: ActionCacheConfig) => {
+  if (config.debug) {
+    console.log(Array.from((cache as unknown as { items: Map<number, Item<Data>> }).items).map(
+      ([_, item]) => item.$index + ': ' + item.data.id)
+    );
+  }
+  const list = config.result;
+  expect(cache.size).toEqual(list.length);
+  list.forEach((current, index) => {
+    const $index = Number(Object.keys(current)[0]);
+    if (index === 0) {
+      expect(cache.minIndex).toEqual($index);
+    }
+    if (index === list.length - 1) {
+      expect(cache.maxIndex).toEqual($index);
+    }
+    const id = current[$index];
+    const item = cache.get($index);
+    expect(item.$index).toEqual($index);
+    expect(item.data.id).toEqual(id);
+  });
+};
 
-  const settings = {
-    itemSize: NaN,
-    cacheData: true,
-    cacheOnReload: true,
-    sizeStrategy: SizeStrategy.Average
-  };
+describe('Cache Spec', () => {
 
   describe('Remove', () => {
     const MIN = 1, COUNT = 5;
@@ -102,116 +132,122 @@ describe('Cache Spec', () => {
     const subset = items.slice(2, 5); // [3, 4, 5]
     let cache: Cache<Data>;
 
-    const checkUpdate = (list: IndexIdList) => {
-      // console.log(Array.from((cache as unknown as { items: Map<number, Item<Data>> }).items).map(i => i[1].data));
-      expect(cache.size).toEqual(list.length);
-      list.forEach((current, index) => {
-        const $index = Number(Object.keys(current)[0]);
-        if (index === 0) {
-          expect(cache.minIndex).toEqual($index);
-        }
-        if (index === list.length - 1) {
-          expect(cache.maxIndex).toEqual($index);
-        }
-        const id = current[$index];
-        const item = cache.get($index);
-        expect(item.$index).toEqual($index);
-        expect(item.data.id).toEqual(id);
-      });
-    };
-
     beforeEach(() => {
       cache = new Cache(settings as never, loggerMock as never);
       items.forEach(item => cache.add(item));
     });
 
-    it('should not change', () => {
-      const after = [{ 3: 3 }, { 4: 4 }, { 5: 5 }];
-      cache.updateSubset(subset, make(after));
-      checkUpdate([{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 5: 5 }, { 6: 6 }, { 7: 7 }]);
-    });
+    const updateConfigList: ActionCacheConfig[] = [{
+      title: 'should not change',
+      action: () => {
+        const after = [{ 3: 3 }, { 4: 4 }, { 5: 5 }];
+        cache.updateSubset(subset, make(after));
+      },
+      result: [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 5: 5 }, { 6: 6 }, { 7: 7 }]
+    }, {
+      title: 'should clear',
+      action: () => {
+        cache.updateSubset(subset, []);
+      },
+      result: [{ 1: 1 }, { 2: 2 }, { 3: 6 }, { 4: 7 }]
+    }, {
+      title: 'should clear (fixRight)',
+      action: () => {
+        cache.updateSubset(subset, [], true);
+      },
+      result: [{ 4: 1 }, { 5: 2 }, { 6: 6 }, { 7: 7 }]
+    }, {
+      title: 'should remove left',
+      action: () => {
+        const after = [{ 3: 4 }, { 4: 5 }];
+        cache.updateSubset(subset, make(after));
+      },
+      result: [{ 1: 1 }, { 2: 2 }, { 3: 4 }, { 4: 5 }, { 5: 6 }, { 6: 7 }]
+    }, {
+      title: 'should remove left (fixRight)',
+      action: () => {
+        const after = [{ 4: 4 }, { 5: 5 }];
+        cache.updateSubset(subset, make(after));
+      },
+      result: [{ 2: 1 }, { 3: 2 }, { 4: 4 }, { 5: 5 }, { 6: 6 }, { 7: 7 }]
+    }, {
+      title: 'should remove right',
+      action: () => {
+        const after = [{ 3: 3 }, { 4: 4 }];
+        cache.updateSubset(subset, make(after));
+      },
+      result: [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 5: 6 }, { 6: 7 }]
+    }, {
+      title: 'should remove right (fixRight)',
+      action: () => {
+        const after = [{ 4: 3 }, { 5: 4 }];
+        cache.updateSubset(subset, make(after));
+      },
+      result: [{ 2: 1 }, { 3: 2 }, { 4: 3 }, { 5: 4 }, { 6: 6 }, { 7: 7 }]
+    }, {
+      title: 'should remove left & right',
+      action: () => {
+        const after = [{ 3: 4 }];
+        cache.updateSubset(subset, make(after));
+      },
+      result: [{ 1: 1 }, { 2: 2 }, { 3: 4 }, { 4: 6 }, { 5: 7 }]
+    }, {
+      title: 'should remove left & right (fixRight)',
+      action: () => {
+        const after = [{ 5: 4 }];
+        cache.updateSubset(subset, make(after));
+      },
+      result: [{ 3: 1 }, { 4: 2 }, { 5: 4 }, { 6: 6 }, { 7: 7 }]
+    }, {
+      title: 'should insert left',
+      action: () => {
+        const after = [{ 3: 'xxx' }, { 4: 3 }, { 5: 4 }, { 6: 5 }];
+        cache.updateSubset(subset, make(after));
+      },
+      result: [{ 1: 1 }, { 2: 2 }, { 3: 'xxx' }, { 4: 3 }, { 5: 4 }, { 6: 5 }, { 7: 6 }, { 8: 7 }]
+    }, {
+      title: 'should insert left (fixRight)',
+      action: () => {
+        const after = [{ 2: 'xxx' }, { 3: 3 }, { 4: 4 }, { 5: 5 }];
+        cache.updateSubset(subset, make(after));
+      },
+      result: [{ 0: 1 }, { 1: 2 }, { 2: 'xxx' }, { 3: 3 }, { 4: 4 }, { 5: 5 }, { 6: 6 }, { 7: 7 }]
+    }, {
+      title: 'should insert right',
+      action: () => {
+        const after = [{ 3: 3 }, { 4: 4 }, { 5: 5 }, { 6: 'xxx' }];
+        cache.updateSubset(subset, make(after));
+      },
+      result: [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 5: 5 }, { 6: 'xxx' }, { 7: 6 }, { 8: 7 }]
+    }, {
+      title: 'should insert right (fixRight)',
+      action: () => {
+        const after = [{ 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'xxx' }];
+        cache.updateSubset(subset, make(after));
+      },
+      result: [{ 0: 1 }, { 1: 2 }, { 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'xxx' }, { 6: 6 }, { 7: 7 }]
+    }, {
+      title: 'should insert left & right',
+      action: () => {
+        const after = [{ 3: 'xxx' }, { 4: 3 }, { 5: 4 }, { 6: 5 }, { 7: 'xxx' }];
+        cache.updateSubset(subset, make(after));
+      },
+      result: [{ 1: 1 }, { 2: 2 }, { 3: 'xxx' }, { 4: 3 }, { 5: 4 }, { 6: 5 }, { 7: 'xxx' }, { 8: 6 }, { 9: 7 }]
+    }, {
+      title: 'should insert left & right (fixRight)',
+      action: () => {
+        const after = [{ 1: 'x' }, { 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'y' }];
+        cache.updateSubset(subset, make(after));
+      },
+      result: [{ '-1': 1 }, { 0: 2 }, { 1: 'x' }, { 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'y' }, { 6: 6 }, { 7: 7 }]
+    }];
 
-    it('should clear', () => {
-      cache.updateSubset(subset, []);
-      checkUpdate([{ 1: 1 }, { 2: 2 }, { 3: 6 }, { 4: 7 }]);
-    });
-
-    it('should clear (fixRight)', () => {
-      cache.updateSubset(subset, [], true);
-      checkUpdate([{ 4: 1 }, { 5: 2 }, { 6: 6 }, { 7: 7 }]);
-    });
-
-    it('should remove left', () => {
-      const after = [{ 3: 4 }, { 4: 5 }];
-      cache.updateSubset(subset, make(after));
-      checkUpdate([{ 1: 1 }, { 2: 2 }, { 3: 4 }, { 4: 5 }, { 5: 6 }, { 6: 7 }]);
-    });
-
-    it('should remove left (fixRight)', () => {
-      const after = [{ 4: 4 }, { 5: 5 }];
-      cache.updateSubset(subset, make(after));
-      checkUpdate([{ 2: 1 }, { 3: 2 }, { 4: 4 }, { 5: 5 }, { 6: 6 }, { 7: 7 }]);
-    });
-
-    it('should remove right', () => {
-      const after = [{ 3: 3 }, { 4: 4 }];
-      cache.updateSubset(subset, make(after));
-      checkUpdate([{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 5: 6 }, { 6: 7 }]);
-    });
-
-    it('should remove right (fixRight)', () => {
-      const after = [{ 4: 3 }, { 5: 4 }];
-      cache.updateSubset(subset, make(after));
-      checkUpdate([{ 2: 1 }, { 3: 2 }, { 4: 3 }, { 5: 4 }, { 6: 6 }, { 7: 7 }]);
-    });
-
-    it('should remove left & right', () => {
-      const after = [{ 3: 4 }];
-      cache.updateSubset(subset, make(after));
-      checkUpdate([{ 1: 1 }, { 2: 2 }, { 3: 4 }, { 4: 6 }, { 5: 7 }]);
-    });
-
-    it('should remove left & right (fixRight)', () => {
-      const after = [{ 5: 4 }];
-      cache.updateSubset(subset, make(after));
-      checkUpdate([{ 3: 1 }, { 4: 2 }, { 5: 4 }, { 6: 6 }, { 7: 7 }]);
-    });
-
-    it('should insert left', () => {
-      const after = [{ 3: 'xxx' }, { 4: 3 }, { 5: 4 }, { 6: 5 }];
-      cache.updateSubset(subset, make(after));
-      checkUpdate([{ 1: 1 }, { 2: 2 }, { 3: 'xxx' }, { 4: 3 }, { 5: 4 }, { 6: 5 }, { 7: 6 }, { 8: 7 }]);
-    });
-
-    it('should insert left (fixRight)', () => {
-      const after = [{ 2: 'xxx' }, { 3: 3 }, { 4: 4 }, { 5: 5 }];
-      cache.updateSubset(subset, make(after));
-      checkUpdate([{ 0: 1 }, { 1: 2 }, { 2: 'xxx' }, { 3: 3 }, { 4: 4 }, { 5: 5 }, { 6: 6 }, { 7: 7 }]);
-    });
-
-    it('should insert right', () => {
-      const after = [{ 3: 3 }, { 4: 4 }, { 5: 5 }, { 6: 'xxx' }];
-      cache.updateSubset(subset, make(after));
-      checkUpdate([{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 5: 5 }, { 6: 'xxx' }, { 7: 6 }, { 8: 7 }]);
-    });
-
-    it('should insert right (fixRight)', () => {
-      const after = [{ 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'xxx' }];
-      cache.updateSubset(subset, make(after));
-      checkUpdate([{ 0: 1 }, { 1: 2 }, { 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'xxx' }, { 6: 6 }, { 7: 7 }]);
-    });
-
-    it('should insert left & right', () => {
-      const after = [{ 3: 'xxx' }, { 4: 3 }, { 5: 4 }, { 6: 5 }, { 7: 'xxx' }];
-      cache.updateSubset(subset, make(after));
-      checkUpdate([{ 1: 1 }, { 2: 2 }, { 3: 'xxx' }, { 4: 3 }, { 5: 4 }, { 6: 5 }, { 7: 'xxx' }, { 8: 6 }, { 9: 7 }]);
-    });
-
-    it('should insert left & right (fixRight)', () => {
-      const after = [{ 1: 'x' }, { 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'y' }];
-      cache.updateSubset(subset, make(after));
-      checkUpdate([{ '-1': 1 }, { 0: 2 }, { 1: 'x' }, { 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'y' }, { 6: 6 }, { 7: 7 }]);
-    });
+    updateConfigList.forEach(config =>
+      it(config.title, () => {
+        config.action();
+        checkCache(cache, config);
+      })
+    );
   });
 
   describe('Average size', () => {

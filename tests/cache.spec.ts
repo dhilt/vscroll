@@ -3,7 +3,7 @@ import { Item } from '../src/classes/item';
 
 import { Data, Id, IndexIdList, IndexSizeList } from './misc/types';
 import { generateBufferItem, generateBufferItems, generateItem } from './misc/items';
-import { SizeStrategy } from '../src/inputs';
+import { Direction, SizeStrategy } from '../src/inputs';
 
 interface ActionCacheConfig {
   title: string;
@@ -561,6 +561,54 @@ describe('Cache Spec', () => {
         checkConstantOnAdd([{ 1: 10 }, { 2: 10 }], [{ 1: 5 }, { 2: 5 }, { 3: 5 }], itemSize)
       );
     });
+  });
+
+  describe('Insert', () => {
+    const MIN = 1, COUNT = 4;
+    const items = generateBufferItems(MIN, COUNT);
+    let cache: Cache<Data>;
+
+    beforeEach(() => {
+      cache = new Cache(settings as never, loggerMock as never);
+      items.forEach(item => cache.add(item));
+    });
+
+    const make = (idList: Id[]): Data[] =>
+      idList.map(id => generateItem(id));
+
+    const insertConfigList: ActionCacheConfig[] = [{
+      title: 'insert before 3',
+      action: () => cache.insertItems(
+        make(['A', 'B']), 3, Direction.backward, false
+      ),
+      result: [{ 1: 1 }, { 2: 2 }, { 3: 'A' }, { 4: 'B' }, { 5: 3 }, { 6: 4 }]
+    }, {
+      title: 'insert before 3 (fixRight)',
+      action: () => cache.insertItems(
+        make(['A', 'B']), 3, Direction.backward, true
+      ),
+      result: [{ '-1': 1 }, { 0: 2 }, { 1: 'A' }, { 2: 'B' }, { 3: 3 }, { 4: 4 }]
+    }, {
+      title: 'insert after 3',
+      action: () => cache.insertItems(
+        make(['A', 'B']), 3, Direction.forward, false
+      ),
+      result: [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 'A' }, { 5: 'B' }, { 6: 4 }]
+    }, {
+      title: 'insert after 3',
+      action: () => cache.insertItems(
+        make(['A', 'B']), 3, Direction.forward, true
+      ),
+      result: [{ '-1': 1 }, { 0: 2 }, { 1: 3 }, { 2: 'A' }, { 3: 'B' }, { 4: 4 }]
+    },];
+
+    insertConfigList.forEach(config =>
+      it(config.title, () => {
+        config.action();
+        checkCache(cache, config);
+      })
+    );
+
   });
 
 });

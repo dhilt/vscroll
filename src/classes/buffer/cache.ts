@@ -2,7 +2,13 @@ import { DefaultSize } from './defaultSize';
 import { Item } from '../item';
 import { Settings } from '../settings';
 import { Logger } from '../logger';
-import { SizeStrategy } from '../../inputs/index';
+import { SizeStrategy, Direction } from '../../inputs/index';
+
+interface ItemToCache<Data> {
+  $index: number;
+  data: Data;
+  size?: number;
+}
 
 interface ItemUpdate {
   $index: number;
@@ -12,21 +18,18 @@ interface ItemUpdate {
 
 export class ItemCache<Data = unknown> {
   $index: number;
-  nodeId: string;
   data: Data | null;
-  size: number;
+  size?: number;
   position: number;
 
-  constructor(item: Item<Data>, saveData: boolean) {
+  constructor(item: ItemToCache<Data>, saveData: boolean) {
     this.$index = item.$index;
-    this.nodeId = item.nodeId;
     this.data = saveData ? item.data : null;
     this.size = item.size;
   }
 
   changeIndex(value: number): void {
     this.$index = value;
-    this.nodeId = String(value);
   }
 }
 
@@ -73,7 +76,7 @@ export class Cache<Data = unknown> {
 
   getSizeByIndex(index: number): number {
     const item = this.get(index);
-    return item ? item.size : this.defaultSize.get();
+    return item && item.size || this.defaultSize.get();
   }
 
   getDefaultSize(): number {
@@ -102,18 +105,18 @@ export class Cache<Data = unknown> {
       if (this.saveData) {
         itemCache.data = item.data;
       }
-      if (itemCache.size !== item.size) { // size changes
-        if (!isNaN(itemCache.size)) {
-          this.defaultSize.setExisted(itemCache, item);
+      if (itemCache.size !== item.size) {
+        if (itemCache.size) {
+          this.defaultSize.setExisted(itemCache.size, item.size);
         } else {
-          this.defaultSize.setNew(item);
+          this.defaultSize.setNew(item.size);
         }
         itemCache.size = item.size;
       }
     } else {
       itemCache = new ItemCache<Data>(item, this.saveData);
       this.items.set(item.$index, itemCache);
-      this.defaultSize.setNew(itemCache);
+      this.defaultSize.setNew(item.size);
     }
     if (item.$index < this.minIndex) {
       this.minIndex = item.$index;
@@ -122,6 +125,59 @@ export class Cache<Data = unknown> {
       this.maxIndex = item.$index;
     }
     return itemCache;
+  }
+
+  /**
+   * Inserts items to Set, shifts $indexes of items that remain.
+   * Replaces current Set with a new one with new regular $indexes.
+   * Maintains min/max indexes.
+   *
+   * @param {Data[]} toInsert List of non-indexed items to be inserted.
+   * @param {number} index The index before/after which the insertion is performed.
+   * @param {Direction} direction Determines the direction of insertion.
+   * @param {boolean} fixRight Defines indexes shifting strategy.
+   * If false, indexes that are greater than the inserted ones are increased.
+   * If true, indexes that are less than than the inserted ones are decreased.
+   */
+  insertItems(toInsert: Data[], index: number, direction: Direction, fixRight: boolean): void {
+    const items = new Map<number, ItemCache<Data>>();
+    const length = toInsert.length;
+    let min = Infinity, max = -Infinity;
+    const set = (item: ItemCache<Data>) => {
+      items.set(item.$index, item);
+      min = item.$index < min ? item.$index : min;
+      max = item.$index > max ? item.$index : max;
+    };
+    this.items.forEach(item => {
+      let shift = 0;
+      if (direction === Direction.backward) {
+        if (item.$index < index && fixRight) {
+          shift = -length;
+        } else if (item.$index >= index && !fixRight) {
+          shift = length;
+        }
+      } else if (direction === Direction.forward) {
+        if (item.$index <= index && fixRight) {
+          shift = -length;
+        } else if (item.$index > index && !fixRight) {
+          shift = length;
+        }
+      }
+      if (shift) {
+        item.changeIndex(item.$index + shift);
+      }
+      set(item);
+    });
+    if (this.saveData) { // persist data with no sizes
+      toInsert.forEach((data, i) => {
+        const $index = index + i - (fixRight ? length : 0) + (direction === Direction.forward ? 1 : 0);
+        const item = new ItemCache<Data>({ $index, data }, this.saveData);
+        set(item);
+      });
+    }
+    this.items = items;
+    this.minIndex = min;
+    this.maxIndex = max;
   }
 
   /**
@@ -139,8 +195,8 @@ export class Cache<Data = unknown> {
     let min = Infinity, max = -Infinity;
     this.items.forEach(item => {
       if (toRemove.some(index => index === item.$index)) {
-        if (!isNaN(item.size)) {
-          this.defaultSize.setRemoved(item);
+        if (item.size) {
+          this.defaultSize.setRemoved(item.size);
         }
         return;
       }
@@ -200,7 +256,7 @@ export class Cache<Data = unknown> {
     );
     before // to maintain default size on remove
       .filter(item => item.toRemove)
-      .forEach(item => this.defaultSize.setRemoved(item));
+      .forEach(item => this.defaultSize.setRemoved(item.size));
     this.minIndex += leftDiff;
     this.maxIndex += rightDiff;
     this.items = items;

@@ -1,7 +1,10 @@
 import { Buffer } from '../src/classes/buffer';
 
-import { Data, BufferParams, BufferUpdateConfig, BufferUpdateTrackConfig, BufferAppendConfig } from './misc/types';
-import { generateItem as makeItem, generateBufferItem as cb, generateBufferItems } from './misc/items';
+import { Direction } from '../src/inputs';
+import { generateItem as makeItem, generateBufferItem as cb, generateBufferItems, generateItem } from './misc/items';
+import {
+  Data, BufferParams, BufferUpdateConfig, BufferUpdateTrackConfig, BufferAppendConfig, BufferInsertConfig
+} from './misc/types';
 
 const loggerMock = { log: () => null };
 
@@ -93,6 +96,24 @@ const checkAppend = (params: BufferAppendConfig) => () => {
   expect(buffer.absMaxIndex).toEqual(params.absMax + (params.fixRight ? 0 : params.amount));
   expect(buffer.items[0].$index).toEqual(firstIndex + indexShift);
   expect(buffer.items[0].data.id).toEqual(firstId);
+};
+
+const checkInsert = (params: BufferInsertConfig) => () => {
+  const bufferBefore = makeBuffer(params);
+  const buffer = makeBuffer(params);
+  const { result } = params;
+  const items = params.items.map(id => generateItem(id));
+  buffer.insertVirtually(items, params.index, params.direction, params.fixRight);
+
+  buffer.items.forEach((item, i) => {
+    const $index = result ? Number(Object.keys(result.list[i])[0]) : bufferBefore.items[i].$index;
+    const id = result ? result.list[i][$index] : bufferBefore.items[i].data.id;
+    expect(item.$index).toBe($index);
+    expect(item.data.id).toBe(id);
+  });
+
+  expect(buffer.absMinIndex).toEqual(result ? result.absMin : bufferBefore.absMinIndex);
+  expect(buffer.absMaxIndex).toEqual(result ? result.absMax : bufferBefore.absMaxIndex);
 };
 
 describe('Buffer Spec', () => {
@@ -491,6 +512,108 @@ describe('Buffer Spec', () => {
       prepend: true, amount: 10, fixRight: true,
     }]
     .forEach(config => it(config.title, checkAppend(config)))
+  );
+
+  describe('Insert', () => [
+    {
+      title: '[skip] inside buffer, forward',
+      items: ['A', 'B'], index: -1, direction: Direction.forward, fixRight: false
+    }, {
+      title: '[skip] inside buffer, forward + fixRight',
+      items: ['A', 'B'], index: -1, direction: Direction.forward, fixRight: true
+    }, {
+      title: 'at the left border of buffer, backward',
+      items: ['A', 'B'], index: -1, direction: Direction.backward, fixRight: false,
+      result: { list: [{ 1: -1 }, { 2: 0 }, { 3: 1 }], absMin: -100, absMax: 102 }
+    }, {
+      title: '[skip] inside buffer, backward',
+      items: ['A', 'B'], index: 1, direction: Direction.backward, fixRight: false
+    }, {
+      title: '[skip] inside buffer, backward + fixRight',
+      items: ['A', 'B'], index: 1, direction: Direction.backward, fixRight: true
+    }, {
+      title: 'at the right border of buffer, forward',
+      items: ['A', 'B'], index: 1, direction: Direction.forward, fixRight: false,
+      result: { list: [{ '-1': -1 }, { 0: 0 }, { 1: 1 }], absMin: -100, absMax: 102 }
+    }, {
+      title: 'out of the left border, backward',
+      items: ['A', 'B'], index: -50, direction: Direction.backward, fixRight: false,
+      result: { list: [{ 1: -1 }, { 2: 0 }, { 3: 1 }], absMin: -100, absMax: 102 }
+    }, {
+      title: 'out of the left border, backward + fixRight',
+      items: ['A', 'B'], index: -50, direction: Direction.backward, fixRight: true,
+      result: { list: [{ '-1': -1 }, { 0: 0 }, { 1: 1 }], absMin: -102, absMax: 100 }
+    }, {
+      title: 'out of the left border, forward',
+      items: ['A', 'B'], index: -50, direction: Direction.forward, fixRight: false,
+      result: { list: [{ 1: -1 }, { 2: 0 }, { 3: 1 }], absMin: -100, absMax: 102 }
+    }, {
+      title: 'out of the left border, forward + fixRight',
+      items: ['A', 'B'], index: -50, direction: Direction.forward, fixRight: true,
+      result: { list: [{ '-1': -1 }, { 0: 0 }, { 1: 1 }], absMin: -102, absMax: 100 }
+    }, {
+      title: 'out of the right border, backward',
+      items: ['A', 'B'], index: 50, direction: Direction.backward, fixRight: false,
+      result: { list: [{ '-1': -1 }, { 0: 0 }, { 1: 1 }], absMin: -100, absMax: 102 }
+    }, {
+      title: 'out of the right border, backward + fixRight',
+      items: ['A', 'B'], index: 50, direction: Direction.backward, fixRight: true,
+      result: { list: [{ '-3': -1 }, { '-2': 0 }, { '-1': 1 }], absMin: -102, absMax: 100 }
+    }, {
+      title: 'out of the right border, forward',
+      items: ['A', 'B'], index: 50, direction: Direction.forward, fixRight: false,
+      result: { list: [{ '-1': -1 }, { 0: 0 }, { 1: 1 }], absMin: -100, absMax: 102 }
+    }, {
+      title: 'out of the right border, forward + fixRight',
+      items: ['A', 'B'], index: 50, direction: Direction.forward, fixRight: true,
+      result: { list: [{ '-3': -1 }, { '-2': 0 }, { '-1': 1 }], absMin: -102, absMax: 100 }
+    }, {
+      title: 'on the right border, forward + fixRight',
+      items: ['A', 'B'], index: 100, direction: Direction.forward, fixRight: true,
+      result: { list: [{ '-3': -1 }, { '-2': 0 }, { '-1': 1 }], absMin: -102, absMax: 100 }
+    }, {
+      title: 'on the left border, backward',
+      items: ['A', 'B'], index: -100, direction: Direction.backward, fixRight: false,
+      result: { list: [{ 1: -1 }, { 2: 0 }, { 3: 1 }], absMin: -100, absMax: 102 }
+    }, {
+      title: '[skip] out of the right abs border, forward',
+      items: ['A', 'B'], index: 150, direction: Direction.forward, fixRight: false
+    }, {
+      title: '[skip] on the right abs border, forward',
+      items: ['A', 'B'], index: 101, direction: Direction.forward, fixRight: false
+    }, {
+      title: '[skip] on the right abs border, backward',
+      items: ['A', 'B'], index: 101, direction: Direction.backward, fixRight: false
+    }, {
+      title: '[skip] out of the right abs border, forward + fixRight',
+      items: ['A', 'B'], index: 150, direction: Direction.forward, fixRight: true
+    }, {
+      title: '[skip] on the right abs border, forward + fixRight',
+      items: ['A', 'B'], index: 101, direction: Direction.forward, fixRight: true
+    }, {
+      title: '[skip] on the right abs border, backward + fixRight',
+      items: ['A', 'B'], index: 101, direction: Direction.backward, fixRight: true
+    }, {
+      title: '[skip] out of the left abs border, forward',
+      items: ['A', 'B'], index: -150, direction: Direction.forward, fixRight: false
+    }, {
+      title: '[skip] on the left abs border, forward',
+      items: ['A', 'B'], index: -101, direction: Direction.forward, fixRight: false
+    }, {
+      title: '[skip] on the left abs border, backward',
+      items: ['A', 'B'], index: -101, direction: Direction.backward, fixRight: false
+    }, {
+      title: '[skip] out of the left abs border, forward + fixRight',
+      items: ['A', 'B'], index: -150, direction: Direction.forward, fixRight: true
+    }, {
+      title: '[skip] on the left abs border, forward + fixRight',
+      items: ['A', 'B'], index: -101, direction: Direction.forward, fixRight: true
+    }, {
+      title: '[skip] on the left abs border, backward + fixRight',
+      items: ['A', 'B'], index: -101, direction: Direction.backward, fixRight: true
+    }]
+    .map(c => ({ ...c, min: -1, max: 1, absMin: -100, absMax: 100 }))
+    .forEach(config => it(config.title, checkInsert(config)))
   );
 
 });

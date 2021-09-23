@@ -1,3 +1,4 @@
+import { Direction } from '../../src/inputs';
 import { BufferUpdater } from '../../src/interfaces';
 
 export type Id = number | string;
@@ -43,4 +44,17 @@ export interface BufferAppendConfig extends BufferParams {
   prepend: boolean;
   amount: number;
   fixRight: boolean;
+}
+
+export interface BufferInsertConfig extends BufferParams {
+  title: string;
+  items: Id[];
+  index: number;
+  direction: Direction;
+  fixRight: boolean;
+  result?: {
+    list: IndexIdList;
+    absMin: number;
+    absMax: number;
+  };
 }

@@ -1,4 +1,5 @@
 import { Cache } from './buffer/cache';
+import { CheckBufferCall } from './buffer/checkCall';
 import { Item } from './item';
 import { Settings } from './settings';
 import { Logger } from './logger';
@@ -22,6 +23,7 @@ export class Buffer<Data> {
 
   private pristine: boolean;
   private cache: Cache<Data>;
+  private checkCall: CheckBufferCall<Data>;
   private readonly logger: Logger;
 
   constructor(settings: Settings<Data>, onDataChanged: OnDataChanged<Data>, logger: Logger) {
@@ -30,6 +32,7 @@ export class Buffer<Data> {
     this.bof = new Reactive<boolean>(false);
     this.eof = new Reactive<boolean>(false);
     this.cache = new Cache<Data>(settings, logger);
+    this.checkCall = new CheckBufferCall(this, logger);
     this.startIndexUser = settings.startIndex;
     this.minIndexUser = settings.minIndex;
     this.maxIndexUser = settings.maxIndex;
@@ -218,6 +221,25 @@ export class Buffer<Data> {
       this.items = [...this.items];
     }
     this.shiftExtremum(count, fixRight);
+  }
+
+  insertVirtually(items: Data[], index: number, direction: Direction, fixRight: boolean): boolean {
+    if (!this.checkCall.insert(items, index, direction)) {
+      return false;
+    }
+    let shift = 0;
+    if (index <= this.firstIndex && !fixRight) {
+      shift = items.length;
+    } else if (index >= this.lastIndex && fixRight) {
+      shift = -items.length;
+    }
+    if (shift) {
+      this.items.forEach(item => item.updateIndex(item.$index + shift));
+      this.cache.insertItems(items, index, direction, fixRight);
+      this.items = [...this.items];
+    }
+    this.shiftExtremum(items.length, fixRight);
+    return true;
   }
 
   removeVirtually(indexes: number[], fixRight: boolean): void {

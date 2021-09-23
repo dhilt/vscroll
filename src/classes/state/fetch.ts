@@ -179,12 +179,6 @@ export class FetchModel {
     this.isCheck = true;
   }
 
-  remove(): void {
-    this.startSimulate([]);
-    this.doRemove = true;
-    // firstVisibleIndex & delta should be set inside process
-  }
-
   update(index: number, delta: number, items: Item[], itemsToRemove: Item[]): void {
     this.startSimulate(items);
     this.firstVisible.index = index;

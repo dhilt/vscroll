@@ -42,9 +42,6 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     if (!shouldBuffered && !shouldVirtual) {
       return false;
     }
-    if (!isNaN(fetch.firstVisible.index)) {
-      fetch.remove();
-    }
     scroller.logger.stat('after remove');
     return true;
   }

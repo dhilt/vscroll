@@ -1,4 +1,4 @@
 export default {
   name: 'vscroll',
-  version: '1.4.0-alpha'
+  version: '1.4.0-beta'
 };

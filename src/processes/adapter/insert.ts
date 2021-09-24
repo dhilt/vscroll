@@ -1,6 +1,7 @@
 import { Scroller } from '../../scroller';
 import Update from './update';
 import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
+import { Direction } from '../../inputs/index';
 import { AdapterInsertOptions, AdapterUpdateOptions } from '../../interfaces/index';
 
 export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.insert) {
@@ -20,7 +21,9 @@ export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.ins
 
   static doInsert(scroller: Scroller, params: AdapterInsertOptions): boolean {
     if (!Insert.insertInBuffer(scroller, params)) {
-      return false;
+      if (!Insert.insertVirtually(scroller, params)) {
+        return false;
+      }
     }
     return true;
   }
@@ -50,6 +53,38 @@ export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.ins
     };
 
     return Update.doUpdate(scroller, updateOptions);
+  }
+
+  static insertVirtually(scroller: Scroller, params: AdapterInsertOptions): boolean {
+    const { beforeIndex, afterIndex, items, decrease } = params;
+    const { buffer, state: { fetch }, viewport } = scroller;
+    const direction = Number.isInteger(beforeIndex) ? Direction.backward : Direction.forward;
+    const index = (direction === Direction.backward ? beforeIndex : afterIndex) as number;
+
+    if (isNaN(fetch.firstVisible.index)) { // if in-buffer insertion did not set firstVisible
+      const { index, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
+      fetch.firstVisible.index = index;
+      if (!isNaN(index)) {
+        fetch.firstVisible.delta = - buffer.getSizeByIndex(index) + diff;
+      }
+    }
+
+    if (!buffer.insertVirtually(items, index, direction, !!decrease)) {
+      return false;
+    }
+
+    const { firstVisible } = scroller.state.fetch;
+    if (!isNaN(firstVisible.index)) {
+      let shift = 0;
+      if (index < firstVisible.index && !decrease) {
+        shift = items.length;
+      } else if (index > firstVisible.index && decrease) {
+        shift = -items.length;
+      }
+      firstVisible.index += shift;
+    }
+
+    return true;
   }
 
 }

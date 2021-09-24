@@ -577,33 +577,87 @@ describe('Cache Spec', () => {
       idList.map(id => generateItem(id));
 
     const insertConfigList: ActionCacheConfig[] = [{
-      title: 'insert before 3',
+      title: 'not insert, empty case',
+      action: () => cache.insertItems(
+        make([]), 3, Direction.backward, false
+      ),
+      result: [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }]
+    }, {
+      title: 'insert in existed range, before 3',
       action: () => cache.insertItems(
         make(['A', 'B']), 3, Direction.backward, false
       ),
       result: [{ 1: 1 }, { 2: 2 }, { 3: 'A' }, { 4: 'B' }, { 5: 3 }, { 6: 4 }]
     }, {
-      title: 'insert before 3 (fixRight)',
+      title: 'insert in existed range, before 3 (fixRight)',
       action: () => cache.insertItems(
         make(['A', 'B']), 3, Direction.backward, true
       ),
       result: [{ '-1': 1 }, { 0: 2 }, { 1: 'A' }, { 2: 'B' }, { 3: 3 }, { 4: 4 }]
     }, {
-      title: 'insert after 3',
+      title: 'insert in existed range, after 3',
       action: () => cache.insertItems(
         make(['A', 'B']), 3, Direction.forward, false
       ),
       result: [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 'A' }, { 5: 'B' }, { 6: 4 }]
     }, {
-      title: 'insert after 3',
+      title: 'insert in existed range, after 3',
       action: () => cache.insertItems(
         make(['A', 'B']), 3, Direction.forward, true
       ),
       result: [{ '-1': 1 }, { 0: 2 }, { 1: 3 }, { 2: 'A' }, { 3: 'B' }, { 4: 4 }]
-    },];
+    }, {
+      title: 'insert out of existed range, before 10',
+      action: () => cache.insertItems(
+        make(['A', 'B']), 10, Direction.backward, false
+      ),
+      result: [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 10: 'A' }, { 11: 'B' }]
+    }, {
+      title: 'insert out of existed range, before 10 (fixRight)',
+      action: () => cache.insertItems(
+        make(['A', 'B']), 10, Direction.backward, true
+      ),
+      result: [{ '-1': 1 }, { 0: 2 }, { 1: 3 }, { 2: 4 }, { 8: 'A' }, { 9: 'B' }]
+    }, {
+      title: 'insert out of existed range, after 10',
+      action: () => cache.insertItems(
+        make(['A', 'B']), 10, Direction.forward, false
+      ),
+      result: [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 11: 'A' }, { 12: 'B' }]
+    }, {
+      title: 'insert out of existed range, after 10 (fixRight)',
+      action: () => cache.insertItems(
+        make(['A', 'B']), 10, Direction.forward, true
+      ),
+      result: [{ '-1': 1 }, { 0: 2 }, { 1: 3 }, { 2: 4 }, { 9: 'A' }, { 10: 'B' }]
+    }, {
+      title: 'insert out of existed range, before -10',
+      action: () => cache.insertItems(
+        make(['A', 'B']), -10, Direction.backward, false
+      ),
+      result: [{ '-10': 'A' }, { '-9': 'B' }, { 3: 1 }, { 4: 2 }, { 5: 3 }, { 6: 4 }]
+    }, {
+      title: 'insert out of existed range, before -10 (fixRight)',
+      action: () => cache.insertItems(
+        make(['A', 'B']), -10, Direction.backward, true
+      ),
+      result: [{ '-12': 'A' }, { '-11': 'B' }, { 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }]
+    }, {
+      title: 'insert out of existed range, after -10',
+      action: () => cache.insertItems(
+        make(['A', 'B']), -10, Direction.forward, false
+      ),
+      result: [{ '-9': 'A' }, { '-8': 'B' }, { 3: 1 }, { 4: 2 }, { 5: 3 }, { 6: 4 }]
+    }, {
+      title: 'insert out of existed range, after -10 (fixRight)',
+      action: () => cache.insertItems(
+        make(['A', 'B']), -10, Direction.forward, true
+      ),
+      result: [{ '-11': 'A' }, { '-10': 'B' }, { 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }]
+    }];
 
     insertConfigList.forEach(config =>
-      it(config.title, () => {
+      it('should ' + config.title, () => {
         config.action();
         checkCache(cache, config);
       })

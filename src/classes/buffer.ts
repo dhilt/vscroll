@@ -5,7 +5,7 @@ import { Settings } from './settings';
 import { Logger } from './logger';
 import { Reactive } from './reactive';
 import { Direction } from '../inputs/index';
-import { OnDataChanged, BufferUpdater } from '../interfaces/index';
+import { OnDataChanged, BufferUpdater, ItemsPredicate } from '../interfaces/index';
 
 export class Buffer<Data> {
 
@@ -191,6 +191,10 @@ export class Buffer<Data> {
     this.items = this.items.filter(({ toRemove }) => !toRemove);
   }
 
+  getIndexToInsert(predicate?: ItemsPredicate, before?: number, after?: number): number {
+    return this.checkCall.insertInBuffer(predicate, before, after);
+  }
+
   private shiftExtremum(amount: number, fixRight: boolean) {
     if (!fixRight) {
       this.absMaxIndex += amount;
@@ -224,7 +228,7 @@ export class Buffer<Data> {
   }
 
   insertVirtually(items: Data[], index: number, direction: Direction, fixRight: boolean): boolean {
-    if (!this.checkCall.insert(items, index, direction)) {
+    if (!this.checkCall.insertVirtual(items, index, direction)) {
       return false;
     }
     let shift = 0;

@@ -30,18 +30,13 @@ export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.ins
 
   static insertInBuffer(scroller: Scroller, params: AdapterInsertOptions): boolean {
     const { before, after, beforeIndex, afterIndex, items, decrease } = params;
-    const index = Number.isInteger(beforeIndex) ? beforeIndex : (Number.isInteger(afterIndex) ? afterIndex : NaN);
-    const isBackward = Number.isInteger(beforeIndex) || before;
-    const method = before || after;
-    const found = scroller.buffer.items.find(item =>
-      (method && method(item.get())) || (Number.isInteger(index) && index === item.$index)
-    );
-    if (!found) {
-      scroller.logger.log('no item to insert in buffer');
+    const indexToInsert = scroller.buffer.getIndexToInsert(before || after, beforeIndex, afterIndex);
+
+    if (isNaN(indexToInsert)) {
       return false;
     }
+    const isBackward = Number.isInteger(beforeIndex) || before;
 
-    const indexToInsert = found.$index;
     const updateOptions: AdapterUpdateOptions = {
       predicate: ({ $index, data }) => {
         if (indexToInsert === $index) {
@@ -59,29 +54,17 @@ export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.ins
     const { beforeIndex, afterIndex, items, decrease } = params;
     const { buffer, state: { fetch }, viewport } = scroller;
     const direction = Number.isInteger(beforeIndex) ? Direction.backward : Direction.forward;
-    const index = (direction === Direction.backward ? beforeIndex : afterIndex) as number;
+    const indexToInsert = (direction === Direction.backward ? beforeIndex : afterIndex) as number;
 
-    if (isNaN(fetch.firstVisible.index)) { // if in-buffer insertion did not set firstVisible
-      const { index, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
-      fetch.firstVisible.index = index;
-      if (!isNaN(index)) {
-        fetch.firstVisible.delta = - buffer.getSizeByIndex(index) + diff;
-      }
-    }
-
-    if (!buffer.insertVirtually(items, index, direction, !!decrease)) {
+    if (!buffer.insertVirtually(items, indexToInsert, direction, !!decrease)) {
       return false;
     }
 
-    const { firstVisible } = scroller.state.fetch;
-    if (!isNaN(firstVisible.index)) {
-      let shift = 0;
-      if (index < firstVisible.index && !decrease) {
-        shift = items.length;
-      } else if (index > firstVisible.index && decrease) {
-        shift = -items.length;
-      }
-      firstVisible.index += shift;
+    const { index, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
+    fetch.firstVisible.index = index;
+    if (!isNaN(index)) {
+      fetch.simulate = true;
+      fetch.firstVisible.delta = - buffer.getSizeByIndex(index) + diff;
     }
 
     return true;

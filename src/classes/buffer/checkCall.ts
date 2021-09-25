@@ -1,6 +1,7 @@
 import { Buffer } from '../buffer';
 import { Logger } from '../logger';
 import { Direction } from '../../inputs/index';
+import { ItemsPredicate } from '../../interfaces/index';
 
 export class CheckBufferCall<Data> {
   private context: Buffer<Data>;
@@ -11,7 +12,20 @@ export class CheckBufferCall<Data> {
     this.logger = logger;
   }
 
-  insert(items: Data[], index: number, direction: Direction): boolean {
+  insertInBuffer(predicate?: ItemsPredicate, before?: number, after?: number): number {
+    const index = Number.isInteger(before) ? before : (Number.isInteger(after) ? after : NaN);
+    const found = this.context.items.find(item =>
+      (predicate && predicate(item.get())) ||
+      (Number.isInteger(index) && index === item.$index)
+    );
+    if (!found) {
+      this.logger.log('no item to insert in buffer');
+      return NaN;
+    }
+    return found.$index;
+  }
+
+  insertVirtual(items: Data[], index: number, direction: Direction): boolean {
     if (!items.length) {
       this.logger.log('no items to insert virtually; empty list');
       return false;

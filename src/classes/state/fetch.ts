@@ -78,7 +78,6 @@ export class FetchModel {
   cancel: (() => void) | null;
 
   simulate: boolean;
-  isPrepend: boolean;
   isCheck: boolean;
   doRemove: boolean;
 
@@ -103,7 +102,6 @@ export class FetchModel {
     this.direction = null;
     this.cancel = null;
     this.simulate = false;
-    this.isPrepend = false;
     this.isCheck = false;
     this.doRemove = false;
   }
@@ -152,7 +150,6 @@ export class FetchModel {
 
   stopSimulate(): void {
     this.simulate = false;
-    this.isPrepend = false;
     this.isCheck = false;
     this.doRemove = false;
   }
@@ -169,7 +166,6 @@ export class FetchModel {
     this.last.index = items[0].$index;
     this.first.index = items[items.length - 1].$index;
     this.direction = Direction.backward;
-    this.isPrepend = true;
   }
 
   check(items: Item[]): void {

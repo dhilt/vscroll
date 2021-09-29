@@ -269,6 +269,29 @@ export class Buffer<Data> {
     this.cache.removeItems(indexes, fixRight);
   }
 
+  fillEmpty(
+    items: Data[], beforeIndex: number | undefined, afterIndex: number | undefined, fixRight: boolean,
+    generator: (index: number, data: Data) => Item<Data>,
+  ): boolean {
+    if (!this.checkCall.fillEmpty(items, beforeIndex, afterIndex)) {
+      return false;
+    }
+    const before = Number.isInteger(beforeIndex);
+    const index = (before ? beforeIndex : afterIndex) as number;
+    const shift = (fixRight ? items.length : (before ? 1 : 0));
+    this.items = items.map((data, i) =>
+      generator(index + i + (!before ? 1 : 0) - shift, data)
+    );
+    this._absMinIndex = this.items[0].$index;
+    this._absMaxIndex = this.items[this.size - 1].$index;
+    if (this.startIndex <= this.absMinIndex) {
+      this.startIndex = this.absMinIndex;
+    } else if (this.startIndex > this.absMaxIndex) {
+      this.startIndex = this.absMaxIndex;
+    }
+    return true;
+  }
+
   updateItems(
     predicate: BufferUpdater<Data>,
     generator: (index: number, data: Data) => Item<Data>,

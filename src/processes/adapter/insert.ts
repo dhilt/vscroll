@@ -1,6 +1,7 @@
 import { Scroller } from '../../scroller';
 import Update from './update';
 import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
+import { Item } from '../../classes/item';
 import { Direction } from '../../inputs/index';
 import { AdapterInsertOptions, AdapterUpdateOptions } from '../../interfaces/index';
 
@@ -20,11 +21,30 @@ export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.ins
   }
 
   static doInsert(scroller: Scroller, params: AdapterInsertOptions): boolean {
-    if (!Insert.insertInBuffer(scroller, params)) {
-      if (!Insert.insertVirtually(scroller, params)) {
-        return false;
+    if (!Insert.insertEmpty(scroller, params)) {
+      if (!Insert.insertInBuffer(scroller, params)) {
+        if (!Insert.insertVirtually(scroller, params)) {
+          return false;
+        }
       }
     }
+    return true;
+  }
+
+  static insertEmpty(scroller: Scroller, params: AdapterInsertOptions): boolean {
+    const { buffer, routines, state: { fetch } } = scroller;
+    if (buffer.size) {
+      return false;
+    }
+    const { beforeIndex, afterIndex, items, decrease } = params;
+    if (!buffer.fillEmpty(
+      items, beforeIndex, afterIndex, !!decrease,
+      (index, data) => new Item(index, data, routines)
+    )) {
+      return false;
+    }
+    fetch.fill(buffer.items, buffer.startIndex);
+
     return true;
   }
 

@@ -154,6 +154,15 @@ export class FetchModel {
     this.doRemove = false;
   }
 
+  fill(items: Item[], start: number): void {
+    this.startSimulate(items);
+    this.first.index = items[0].$index;
+    this.last.index = items[items.length - 1].$index;
+    this.direction = Direction.forward;
+    this.firstVisible.index = start;
+    this.firstVisible.delta = 0;
+  }
+
   append(items: Item[]): void {
     this.startSimulate(items);
     this.last.index = items[items.length - 1].$index;

@@ -12,6 +12,19 @@ export class CheckBufferCall<Data> {
     this.logger = logger;
   }
 
+  fillEmpty(items: Data[], before?: number, after?: number): boolean {
+    if (!items.length) {
+      this.logger.log('no items to fill the buffer; empty list');
+      return false;
+    }
+    if (!Number.isInteger(before) && !Number.isInteger(after)) {
+      this.logger.log('no items to fill the buffer; wrong indexes');
+      return false;
+    }
+    this.logger.log(() => `going to fill the buffer with ${items.length} item(s)`);
+    return true;
+  }
+
   insertInBuffer(predicate?: ItemsPredicate, before?: number, after?: number): number {
     const index = Number.isInteger(before) ? before : (Number.isInteger(after) ? after : NaN);
     const found = this.context.items.find(item =>
@@ -19,7 +32,7 @@ export class CheckBufferCall<Data> {
       (Number.isInteger(index) && index === item.$index)
     );
     if (!found) {
-      this.logger.log('no item to insert in buffer');
+      this.logger.log('no items to insert in buffer; empty predicate\'s result');
       return NaN;
     }
     return found.$index;

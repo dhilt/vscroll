@@ -209,24 +209,6 @@ export class Buffer<Data> {
     }
   }
 
-  appendVirtually(count: number, fixRight: boolean): void {
-    if (fixRight) {
-      this.items.forEach(item => item.updateIndex(item.$index - count));
-      this.cache.shiftIndexes(-count);
-      this.items = [...this.items];
-    }
-    this.shiftExtremum(count, fixRight);
-  }
-
-  prependVirtually(count: number, fixRight: boolean): void {
-    if (!fixRight) {
-      this.items.forEach(item => item.updateIndex(item.$index + count));
-      this.cache.shiftIndexes(count);
-      this.items = [...this.items];
-    }
-    this.shiftExtremum(count, fixRight);
-  }
-
   insertVirtually(items: Data[], index: number, direction: Direction, fixRight: boolean): boolean {
     if (!this.checkCall.insertVirtual(items, index, direction)) {
       return false;

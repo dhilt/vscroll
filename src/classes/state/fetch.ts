@@ -163,20 +163,6 @@ export class FetchModel {
     this.firstVisible.delta = 0;
   }
 
-  append(items: Item[]): void {
-    this.startSimulate(items);
-    this.last.index = items[items.length - 1].$index;
-    this.first.index = items[0].$index;
-    this.direction = Direction.forward;
-  }
-
-  prepend(items: Item[]): void {
-    this.startSimulate(items);
-    this.last.index = items[0].$index;
-    this.first.index = items[items.length - 1].$index;
-    this.direction = Direction.backward;
-  }
-
   check(items: Item[]): void {
     this.startSimulate(items);
     this.last.index = items[0].$index;

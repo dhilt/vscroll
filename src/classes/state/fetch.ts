@@ -78,7 +78,6 @@ export class FetchModel {
   cancel: (() => void) | null;
 
   simulate: boolean;
-  isPrepend: boolean;
   isCheck: boolean;
   doRemove: boolean;
 
@@ -103,7 +102,6 @@ export class FetchModel {
     this.direction = null;
     this.cancel = null;
     this.simulate = false;
-    this.isPrepend = false;
     this.isCheck = false;
     this.doRemove = false;
   }
@@ -152,24 +150,17 @@ export class FetchModel {
 
   stopSimulate(): void {
     this.simulate = false;
-    this.isPrepend = false;
     this.isCheck = false;
     this.doRemove = false;
   }
 
-  append(items: Item[]): void {
+  fill(items: Item[], start: number): void {
     this.startSimulate(items);
-    this.last.index = items[items.length - 1].$index;
     this.first.index = items[0].$index;
+    this.last.index = items[items.length - 1].$index;
     this.direction = Direction.forward;
-  }
-
-  prepend(items: Item[]): void {
-    this.startSimulate(items);
-    this.last.index = items[0].$index;
-    this.first.index = items[items.length - 1].$index;
-    this.direction = Direction.backward;
-    this.isPrepend = true;
+    this.firstVisible.index = start;
+    this.firstVisible.delta = 0;
   }
 
   check(items: Item[]): void {
@@ -177,12 +168,6 @@ export class FetchModel {
     this.last.index = items[0].$index;
     this.first.index = items[items.length - 1].$index;
     this.isCheck = true;
-  }
-
-  remove(): void {
-    this.startSimulate([]);
-    this.doRemove = true;
-    // firstVisibleIndex & delta should be set inside process
   }
 
   update(index: number, delta: number, items: Item[], itemsToRemove: Item[]): void {

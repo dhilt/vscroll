@@ -52,7 +52,7 @@ export class Logger {
       'vscroll Workflow has been started, ' +
       `core: ${packageInfo.core.name} v${packageInfo.core.version}, ` +
       `consumer: ${packageInfo.consumer.name} v${packageInfo.consumer.version}, ` +
-      `workflow instance: ${settings.instanceIndex}, adapter ` +
+      `scroller instance: ${settings.instanceIndex}, adapter ` +
       (!adapter ? 'is not instantiated' : `instance: ${adapter.id}`)
     );
   }

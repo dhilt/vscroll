@@ -127,32 +127,28 @@ export class DefaultSize {
     return this.get() !== oldValue;
   }
 
-  setExisted(oldItem: ItemSize, newItem: ItemSize): void {
+  setExisted(oldSize: number, newSize: number): void {
     if (this.sizeStrategy !== SizeStrategy.Constant) {
       this.recalculation.oldItems.push({
-        size: oldItem.size,
-        newSize: newItem.size
+        size: oldSize,
+        newSize
       });
     }
   }
 
-  setNew(newItem: ItemSize): void {
+  setNew(size: number): void {
     if (this.sizeStrategy !== SizeStrategy.Constant) {
-      this.recalculation.newItems.push({
-        size: newItem.size
-      });
+      this.recalculation.newItems.push({ size });
     } else {
       if (!this.constantSize) {
-        this.constantSize = newItem.size;
+        this.constantSize = size;
       }
     }
   }
 
-  setRemoved(oldItem: ItemSize): void {
+  setRemoved(size: number): void {
     if (this.sizeStrategy !== SizeStrategy.Constant) {
-      this.recalculation.removed.push({
-        size: oldItem.size
-      });
+      this.recalculation.removed.push({ size });
     }
   }
 }

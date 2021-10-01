@@ -142,13 +142,7 @@ export const runStateMachine = ({
     case CommonProcess.start:
       switch (payload.process) {
         case AdapterProcess.append:
-        case AdapterProcess.check:
         case AdapterProcess.insert:
-          run(Render)();
-          break;
-        case AdapterProcess.remove:
-          run(Adjust)();
-          break;
         case AdapterProcess.replace:
         case AdapterProcess.update:
           if (payload.doRender) {
@@ -156,6 +150,12 @@ export const runStateMachine = ({
           } else {
             run(Adjust)();
           }
+          break;
+        case AdapterProcess.check:
+          run(Render)();
+          break;
+        case AdapterProcess.remove:
+          run(Adjust)();
           break;
         default:
           run(PreFetch)();

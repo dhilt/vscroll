@@ -126,8 +126,11 @@ const onItemList = (value: unknown): ValidatedValue => {
     errors.push(getError(ValidatorType.itemList, ['with at least 1 item']));
   } else if (value.length > 1) {
     const type = typeof value[0];
-    if (value.some((v: unknown) => typeof v !== type)) {
-      errors.push(getError(ValidatorType.itemList, ['of items of the same type']));
+    for (let i = value.length - 1; i >= 0; i--) {
+      if (typeof value[i] !== type) {
+        errors.push(getError(ValidatorType.itemList, ['of items of the same type']));
+        break;
+      }
     }
   }
   return { value: parsedValue as unknown[], isSet: true, isValid: !errors.length, errors };

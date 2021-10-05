@@ -22,6 +22,9 @@
     "url": "https://github.com/dhilt/vscroll/issues"
   },
   "license": "MIT",
+  "engines": {
+    "npm": ">= 7.0.0"
+  },
   "scripts": {
     "lint": "eslint . --ext .ts",
     "jest": "jest",

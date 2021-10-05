@@ -13,6 +13,7 @@ import {
   ItemAdapter,
   IAdapter,
   Item,
+  WorkflowParams,
 } from './interfaces/index';
 
 // export entities
@@ -37,4 +38,5 @@ export {
   ItemAdapter as IAdapterItem,
   IAdapter,
   Item,
+  WorkflowParams
 };

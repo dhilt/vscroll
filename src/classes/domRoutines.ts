@@ -119,6 +119,13 @@ export class Routines {
       (direction === (!opposite ? Direction.forward : Direction.backward) ? this.getSize(element) : 0);
   }
 
+  makeElementVisible(element: HTMLElement): void {
+    this.checkElement(element);
+    element.style.left = '';
+    element.style.top = '';
+    element.style.position = '';
+  }
+
   hideElement(element: HTMLElement): void {
     this.checkElement(element);
     element.style.display = 'none';

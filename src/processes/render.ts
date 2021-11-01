@@ -53,10 +53,7 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
       return false;
     }
     item.element = element as HTMLElement;
-    item.element.style.left = '';
-    item.element.style.top = '';
-    item.element.style.position = '';
-    item.invisible = false;
+    item.makeVisible();
     item.setSize(buffer.getSizeByIndex(item.$index));
     buffer.cacheItem(item);
     return true;

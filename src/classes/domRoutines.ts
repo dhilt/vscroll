@@ -5,16 +5,49 @@ export class Routines {
 
   readonly horizontal: boolean;
   readonly window: boolean;
+  readonly viewport: HTMLElement | null;
 
   constructor(settings: Settings) {
     this.horizontal = settings.horizontal;
     this.window = settings.windowViewport;
+    this.viewport = settings.viewport;
   }
 
   checkElement(element: HTMLElement): void {
     if (!element) {
       throw new Error('HTML element is not defined');
     }
+  }
+
+  getHostElement(element: HTMLElement): HTMLElement {
+    if (this.window) {
+      return document.documentElement as HTMLElement;
+    }
+    if (this.viewport) {
+      return this.viewport;
+    }
+    this.checkElement(element);
+    const parent = element.parentElement as HTMLElement;
+    this.checkElement(parent);
+    return parent;
+  }
+
+  getScrollEventReceiver(element: HTMLElement): HTMLElement | Window {
+    if (this.window) {
+      return window;
+    }
+    return this.getHostElement(element);
+  }
+
+  setupScrollRestoration(): void {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+  }
+
+  dismissOverflowAnchor(element: HTMLElement): void {
+    this.checkElement(element);
+    element.style.overflowAnchor = 'none';
   }
 
   getScrollPosition(element: HTMLElement): number {

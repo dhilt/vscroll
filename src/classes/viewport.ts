@@ -93,7 +93,7 @@ export class Viewport {
   }
 
   findItemElementById(id: string): HTMLElement | null {
-    return this.routines.findElement(this.element, `[data-sid="${id}"]`);
+    return this.routines.findItemElement(this.element, id);
   }
 
   getEdgeVisibleItem(items: Item[], direction: Direction): { item?: Item, index: number, diff: number } {

@@ -50,9 +50,17 @@ export class Routines {
     element.style.overflowAnchor = 'none';
   }
 
-  findElement(element: HTMLElement, selector: string): HTMLElement | null {
+  findElementBySelector(element: HTMLElement, selector: string): HTMLElement | null {
     this.checkElement(element);
     return element.querySelector(selector);
+  }
+
+  findPaddingElement(element: HTMLElement, direction: Direction): HTMLElement | null {
+    return this.findElementBySelector(element, `[data-padding-${direction}]`);
+  }
+
+  findItemElement(element: HTMLElement, id: string): HTMLElement | null {
+    return this.findElementBySelector(element, `[data-sid="${id}"]`);
   }
 
   getScrollPosition(element: HTMLElement): number {

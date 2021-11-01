@@ -48,7 +48,7 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
 
   static processElement(scroller: Scroller, item: Item): boolean {
     const { viewport, buffer } = scroller;
-    const element = viewport.element.querySelector(`[data-sid="${item.nodeId}"]`);
+    const element = viewport.findItemElementById(item.nodeId);
     if (!element) {
       return false;
     }

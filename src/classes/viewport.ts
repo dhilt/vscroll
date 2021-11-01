@@ -92,6 +92,10 @@ export class Viewport {
     }
   }
 
+  findItemElementById(id: string): HTMLElement | null {
+    return this.routines.findElement(this.element, `[data-sid="${id}"]`);
+  }
+
   getEdgeVisibleItem(items: Item[], direction: Direction): { item?: Item, index: number, diff: number } {
     const bwd = direction === Direction.backward;
     const opposite = bwd ? Direction.forward : Direction.backward;

@@ -50,6 +50,11 @@ export class Routines {
     element.style.overflowAnchor = 'none';
   }
 
+  findElement(element: HTMLElement, selector: string): HTMLElement | null {
+    this.checkElement(element);
+    return element.querySelector(selector);
+  }
+
   getScrollPosition(element: HTMLElement): number {
     if (this.window) {
       return window.pageYOffset;

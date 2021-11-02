@@ -5,16 +5,62 @@ export class Routines {
 
   readonly horizontal: boolean;
   readonly window: boolean;
+  readonly viewport: HTMLElement | null;
 
   constructor(settings: Settings) {
     this.horizontal = settings.horizontal;
     this.window = settings.windowViewport;
+    this.viewport = settings.viewport;
   }
 
   checkElement(element: HTMLElement): void {
     if (!element) {
       throw new Error('HTML element is not defined');
     }
+  }
+
+  getHostElement(element: HTMLElement): HTMLElement {
+    if (this.window) {
+      return document.documentElement as HTMLElement;
+    }
+    if (this.viewport) {
+      return this.viewport;
+    }
+    this.checkElement(element);
+    const parent = element.parentElement as HTMLElement;
+    this.checkElement(parent);
+    return parent;
+  }
+
+  getScrollEventReceiver(element: HTMLElement): HTMLElement | Window {
+    if (this.window) {
+      return window;
+    }
+    return this.getHostElement(element);
+  }
+
+  setupScrollRestoration(): void {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+  }
+
+  dismissOverflowAnchor(element: HTMLElement): void {
+    this.checkElement(element);
+    element.style.overflowAnchor = 'none';
+  }
+
+  findElementBySelector(element: HTMLElement, selector: string): HTMLElement | null {
+    this.checkElement(element);
+    return element.querySelector(selector);
+  }
+
+  findPaddingElement(element: HTMLElement, direction: Direction): HTMLElement | null {
+    return this.findElementBySelector(element, `[data-padding-${direction}]`);
+  }
+
+  findItemElement(element: HTMLElement, id: string): HTMLElement | null {
+    return this.findElementBySelector(element, `[data-sid="${id}"]`);
   }
 
   getScrollPosition(element: HTMLElement): number {
@@ -84,6 +130,13 @@ export class Routines {
     // vertical only ?
     return element.offsetTop - (relativeElement ? relativeElement.scrollTop : 0) +
       (direction === (!opposite ? Direction.forward : Direction.backward) ? this.getSize(element) : 0);
+  }
+
+  makeElementVisible(element: HTMLElement): void {
+    this.checkElement(element);
+    element.style.left = '';
+    element.style.top = '';
+    element.style.position = '';
   }
 
   hideElement(element: HTMLElement): void {

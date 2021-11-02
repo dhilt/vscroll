@@ -58,6 +58,11 @@ export class Item<Data = unknown> implements _Item<Data> {
     }
   }
 
+  makeVisible(): void {
+    this.routines.makeElementVisible(this.element);
+    this.invisible = false;
+  }
+
   hide(): void {
     if (this.element) {
       this.routines.hideElement(this.element);

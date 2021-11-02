@@ -20,33 +20,24 @@ export class Viewport {
   readonly hostElement: HTMLElement;
   readonly scrollEventReceiver: HTMLElement | Window;
 
-  private disabled: boolean;
-
   constructor(element: HTMLElement, settings: Settings, routines: Routines, state: State, logger: Logger) {
     this.element = element;
     this.settings = settings;
     this.routines = routines;
     this.state = state;
     this.logger = logger;
-    this.disabled = false;
+
+    this.hostElement = this.routines.getHostElement(this.element);
+    this.scrollEventReceiver = this.routines.getScrollEventReceiver(this.element);
 
     if (settings.windowViewport) {
-      this.hostElement = document.documentElement as HTMLElement;
-      this.scrollEventReceiver = window;
-    } else {
-      this.hostElement = settings.viewport || this.element.parentElement as HTMLElement;
-      this.scrollEventReceiver = this.hostElement;
+      this.routines.setupScrollRestoration();
+    }
+    if (settings.dismissOverflowAnchor) {
+      this.routines.dismissOverflowAnchor(this.hostElement);
     }
 
     this.paddings = new Paddings(this.element, this.routines, settings);
-
-    if (settings.windowViewport && 'scrollRestoration' in history) {
-      history.scrollRestoration = 'manual';
-    }
-
-    if (settings.dismissOverflowAnchor) {
-      this.hostElement.style.overflowAnchor = 'none';
-    }
   }
 
   reset(startIndex: number): void {
@@ -78,23 +69,6 @@ export class Viewport {
     this.setPosition(value);
   }
 
-  disableScrollForOneLoop(): void {
-    if (this.disabled) {
-      return;
-    }
-    const { style } = this.hostElement;
-    if (style.overflowY === 'hidden') {
-      return;
-    }
-    this.disabled = true;
-    const overflow = style.overflowY;
-    setTimeout(() => {
-      this.disabled = false;
-      style.overflowY = overflow;
-    });
-    style.overflowY = 'hidden';
-  }
-
   getSize(): number {
     return this.routines.getSize(this.hostElement, true);
   }
@@ -116,6 +90,10 @@ export class Viewport {
     if (!this.settings.windowViewport) {
       this.offset -= this.routines.getOffset(this.hostElement);
     }
+  }
+
+  findItemElementById(id: string): HTMLElement | null {
+    return this.routines.findItemElement(this.element, id);
   }
 
   getEdgeVisibleItem(items: Item[], direction: Direction): { item?: Item, index: number, diff: number } {

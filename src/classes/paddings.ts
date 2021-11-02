@@ -9,7 +9,9 @@ export class Padding {
   routines: Routines;
 
   constructor(element: HTMLElement, direction: Direction, routines: Routines) {
-    this.element = element.querySelector(`[data-padding-${direction}]`) as HTMLElement;
+    const found = routines.findPaddingElement(element, direction);
+    routines.checkElement(found as HTMLElement);
+    this.element = found as HTMLElement;
     this.direction = direction;
     this.routines = routines;
   }

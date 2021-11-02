@@ -48,15 +48,12 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
 
   static processElement(scroller: Scroller, item: Item): boolean {
     const { viewport, buffer } = scroller;
-    const element = viewport.element.querySelector(`[data-sid="${item.nodeId}"]`);
+    const element = viewport.findItemElementById(item.nodeId);
     if (!element) {
       return false;
     }
     item.element = element as HTMLElement;
-    item.element.style.left = '';
-    item.element.style.top = '';
-    item.element.style.position = '';
-    item.invisible = false;
+    item.makeVisible();
     item.setSize(buffer.getSizeByIndex(item.$index));
     buffer.cacheItem(item);
     return true;

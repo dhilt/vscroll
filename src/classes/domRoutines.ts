@@ -154,4 +154,14 @@ export class Routines {
     element.scrollIntoView(argument);
   }
 
+  render(cb: () => void): () => void {
+    const timeoutId = setTimeout(() => cb());
+    return () => clearTimeout(timeoutId);
+  }
+
+  animate(cb: () => void): () => void {
+    const animationFrameId = requestAnimationFrame(() => cb());
+    return () => cancelAnimationFrame(animationFrameId);
+  }
+
 }

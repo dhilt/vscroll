@@ -5,13 +5,13 @@ import { Item } from '../classes/item';
 export default class Render extends BaseProcessFactory(CommonProcess.render) {
 
   static run(scroller: Scroller): void {
-    const { workflow, state: { cycle, render, scrollState }, viewport } = scroller;
+    const { workflow, state: { cycle, render, scrollState }, viewport, routines } = scroller;
     scroller.logger.stat('before new items render');
     if (scrollState.positionBeforeAsync === null) {
       scrollState.positionBeforeAsync = viewport.scrollPosition;
     }
-    render.renderTimer = setTimeout(() => {
-      render.renderTimer = null;
+    render.cancel = routines.render(() => {
+      render.cancel = null;
       if (Render.doRender(scroller)) {
         workflow.call({
           process: Render.process,
@@ -25,7 +25,7 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
           payload: { error: 'Can\'t associate item with element' }
         });
       }
-    }, 0);
+    });
   }
 
   static doRender(scroller: Scroller): boolean {

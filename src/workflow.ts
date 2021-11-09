@@ -24,7 +24,7 @@ export class Workflow<ItemData = unknown> {
   interruptionCount: number;
   errors: WorkflowError[];
 
-  private disposeScrollEventHandler: () => void;
+  private offScroll: () => void;
   readonly propagateChanges: WorkflowParams<ItemData>['run'];
   readonly stateMachineMethods: StateMachineMethods<ItemData>;
 
@@ -37,7 +37,7 @@ export class Workflow<ItemData = unknown> {
     this.cyclesDone = 0;
     this.interruptionCount = 0;
     this.errors = [];
-    this.disposeScrollEventHandler = () => null;
+    this.offScroll = () => null;
     this.propagateChanges = run;
     this.stateMachineMethods = {
       run: this.runProcess(),
@@ -69,16 +69,14 @@ export class Workflow<ItemData = unknown> {
     });
 
     // set up scroll event listener
-    const { scrollEventReceiver } = this.scroller.viewport;
+    const { viewport: { scrollEventReceiver }, routines } = this.scroller;
     const onScrollHandler: EventListener =
       event => this.callWorkflow({
         process: CommonProcess.scroll,
         status: Status.start,
         payload: { event }
       });
-    scrollEventReceiver.addEventListener('scroll', onScrollHandler);
-    this.disposeScrollEventHandler = () =>
-      scrollEventReceiver.removeEventListener('scroll', onScrollHandler);
+    this.offScroll = routines.onScroll(scrollEventReceiver, onScrollHandler);
   }
 
   changeItems(items: Item<ItemData>[]): void {
@@ -182,7 +180,7 @@ export class Workflow<ItemData = unknown> {
     if (this.initTimer) {
       clearTimeout(this.initTimer);
     }
-    this.disposeScrollEventHandler();
+    this.offScroll();
     this.adapterRun$.dispose();
     this.scroller.dispose(true);
     Object.getOwnPropertyNames(this).forEach(prop => {

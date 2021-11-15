@@ -108,14 +108,15 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
   }
 
   static setPosition(scroller: Scroller, position: number, done: () => void): void {
-    const { state: { scrollState }, viewport } = scroller;
+    const { state: { scrollState }, viewport, routines } = scroller;
     if (!scrollState.hasPositionChanged(position)) {
       return done();
     }
     scrollState.syntheticPosition = position;
     scrollState.syntheticFulfill = false;
 
-    scrollState.animationFrameId = requestAnimationFrame(() => {
+    scrollState.cancelAnimation = routines.animate(() => {
+      scrollState.cancelAnimation = null;
       const inertiaDiff = (scrollState.positionAfterAdjust as number) - viewport.scrollPosition;
       let diffLog = '';
       if (inertiaDiff > 0) {

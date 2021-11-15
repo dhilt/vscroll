@@ -11,7 +11,7 @@ export class ScrollState implements IScrollState {
 
   syntheticPosition: number | null;
   syntheticFulfill: boolean;
-  animationFrameId: number;
+  cancelAnimation: (() => void) | null;
   positionBeforeAsync: number | null;
   positionBeforeAdjust: number | null;
   positionAfterAdjust: number | null;
@@ -28,17 +28,17 @@ export class ScrollState implements IScrollState {
     this.positionBeforeAsync = null;
     this.positionBeforeAdjust = null;
     this.positionAfterAdjust = null;
-    this.cleanupTimers();
+    this.stop();
   }
 
-  cleanupTimers(): void {
+  stop(): void {
     if (this.scrollTimer) {
       clearTimeout(this.scrollTimer);
       this.scrollTimer = null;
     }
-    if (this.animationFrameId) {
-      cancelAnimationFrame(this.animationFrameId);
-      this.animationFrameId = 0;
+    if (this.cancelAnimation) {
+      this.cancelAnimation();
+      this.cancelAnimation = null;
     }
   }
 

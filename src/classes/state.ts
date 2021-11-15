@@ -46,9 +46,9 @@ export class State implements IState {
       fetch.cancel();
       fetch.cancel = null;
     }
-    if (render.renderTimer) {
-      clearTimeout(render.renderTimer);
-      render.renderTimer = null;
+    if (render.cancel) {
+      render.cancel();
+      render.cancel = null;
     }
     cycle.innerLoop.done();
   }
@@ -76,7 +76,7 @@ export class State implements IState {
   dispose(): void {
     this.cycle.dispose();
     this.endInnerLoop();
-    this.scrollState.cleanupTimers();
+    this.scrollState.stop();
   }
 
 }

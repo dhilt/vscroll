@@ -14,7 +14,7 @@ export default class Reload extends BaseAdapterProcessFactory(AdapterProcess.rel
 
     const payload: ProcessPayload = {};
     if (state.cycle.busy.get()) {
-      state.scrollState.cleanupTimers();
+      state.scrollState.stop();
       payload.finalize = true;
       state.cycle.interrupter = Reload.process;
     }

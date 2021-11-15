@@ -21,7 +21,7 @@ export class Routines {
 
   getHostElement(element: HTMLElement): HTMLElement {
     if (this.window) {
-      return document.documentElement as HTMLElement;
+      return document.documentElement;
     }
     if (this.viewport) {
       return this.viewport;
@@ -152,6 +152,21 @@ export class Routines {
   scrollTo(element: HTMLElement, argument?: boolean | ScrollIntoViewOptions): void {
     this.checkElement(element);
     element.scrollIntoView(argument);
+  }
+
+  render(cb: () => void): () => void {
+    const timeoutId = setTimeout(() => cb());
+    return () => clearTimeout(timeoutId);
+  }
+
+  animate(cb: () => void): () => void {
+    const animationFrameId = requestAnimationFrame(() => cb());
+    return () => cancelAnimationFrame(animationFrameId);
+  }
+
+  onScroll(element: HTMLElement | Window, handler: EventListener): () => void {
+    element.addEventListener('scroll', handler);
+    return () => element.removeEventListener('scroll', handler);
   }
 
 }

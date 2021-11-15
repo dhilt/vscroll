@@ -16,16 +16,16 @@ export interface ScrollState {
   current: ScrollEventData | null;
 
   scrollTimer: ReturnType<typeof setTimeout> | null;
+  cancelAnimation: (() => void) | null;
 
   syntheticPosition: number | null;
   syntheticFulfill: boolean;
-  animationFrameId: number;
   positionBeforeAsync: number | null;
   positionBeforeAdjust: number | null;
   positionAfterAdjust: number | null;
 
   reset: () => void;
-  cleanupTimers: () => void;
+  stop: () => void;
   hasPositionChanged: (position: number) => boolean;
 }
 

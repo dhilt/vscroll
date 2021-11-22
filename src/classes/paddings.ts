@@ -8,8 +8,8 @@ export class Padding {
   direction: Direction;
   routines: Routines;
 
-  constructor(element: HTMLElement, direction: Direction, routines: Routines) {
-    const found = routines.findPaddingElement(element, direction);
+  constructor(direction: Direction, routines: Routines) {
+    const found = routines.findPaddingElement(direction);
     routines.checkElement(found as HTMLElement);
     this.element = found as HTMLElement;
     this.direction = direction;
@@ -35,10 +35,10 @@ export class Paddings {
   forward: Padding;
   backward: Padding;
 
-  constructor(element: HTMLElement, routines: Routines, settings: Settings) {
+  constructor(routines: Routines, settings: Settings) {
     this.settings = settings;
-    this.forward = new Padding(element, Direction.forward, routines);
-    this.backward = new Padding(element, Direction.backward, routines);
+    this.forward = new Padding(Direction.forward, routines);
+    this.backward = new Padding(Direction.backward, routines);
   }
 
   byDirection(direction: Direction, opposite?: boolean): Padding {

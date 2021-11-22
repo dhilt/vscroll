@@ -15,7 +15,7 @@ export class Logger {
   readonly getWorkflowCycleData: () => string;
   readonly getLoopId: () => string;
   readonly getLoopIdNext: () => string;
-  readonly getScrollPosition: (element: HTMLElement) => number;
+  readonly getScrollPosition: () => number;
   private logs: unknown[][] = [];
 
   constructor(scroller: Scroller, packageInfo: IPackages, adapter?: { id: number }) {
@@ -47,7 +47,7 @@ export class Logger {
     this.getLoopIdNext = (): string => scroller.state.cycle.loopIdNext;
     this.getWorkflowCycleData = (): string =>
       `${settings.instanceIndex}-${scroller.state.cycle.count}`;
-    this.getScrollPosition = (element: HTMLElement) => scroller.routines.getScrollPosition(element);
+    this.getScrollPosition = () => scroller.routines.getScrollPosition();
     this.log(() =>
       'vscroll Workflow has been started, ' +
       `core: ${packageInfo.core.name} v${packageInfo.core.version}, ` +
@@ -109,7 +109,7 @@ export class Logger {
 
   prepareForLog(data: unknown): unknown {
     return data instanceof Event && data.target
-      ? this.getScrollPosition(data.target as HTMLElement)
+      ? this.getScrollPosition()
       : data;
   }
 

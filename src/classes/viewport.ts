@@ -11,33 +11,17 @@ export class Viewport {
   offset: number;
   paddings: Paddings;
 
-  readonly element: HTMLElement;
   readonly settings: Settings;
   readonly routines: Routines;
   readonly state: State;
   readonly logger: Logger;
 
-  readonly hostElement: HTMLElement;
-  readonly scrollEventReceiver: HTMLElement | Window;
-
-  constructor(element: HTMLElement, settings: Settings, routines: Routines, state: State, logger: Logger) {
-    this.element = element;
+  constructor(settings: Settings, routines: Routines, state: State, logger: Logger) {
     this.settings = settings;
     this.routines = routines;
     this.state = state;
     this.logger = logger;
-
-    this.hostElement = this.routines.getHostElement(this.element);
-    this.scrollEventReceiver = this.routines.getScrollEventReceiver(this.element);
-
-    if (settings.windowViewport) {
-      this.routines.setupScrollRestoration();
-    }
-    if (settings.dismissOverflowAnchor) {
-      this.routines.dismissOverflowAnchor(this.hostElement);
-    }
-
-    this.paddings = new Paddings(this.element, this.routines, settings);
+    this.paddings = new Paddings(this.routines, settings);
   }
 
   reset(startIndex: number): void {
@@ -53,7 +37,7 @@ export class Viewport {
       this.logger.log(() => ['setting scroll position at', value, '[cancelled]']);
       return value;
     }
-    this.routines.setScrollPosition(this.hostElement, value);
+    this.routines.setScrollPosition(value);
     const position = this.scrollPosition;
     this.logger.log(() => [
       'setting scroll position at', position, ...(position !== value ? [`(${value})`] : [])
@@ -62,7 +46,7 @@ export class Viewport {
   }
 
   get scrollPosition(): number {
-    return this.routines.getScrollPosition(this.hostElement);
+    return this.routines.getScrollPosition();
   }
 
   set scrollPosition(value: number) {
@@ -70,11 +54,11 @@ export class Viewport {
   }
 
   getSize(): number {
-    return this.routines.getSize(this.hostElement, true);
+    return this.routines.getViewportSize();
   }
 
   getScrollableSize(): number {
-    return this.routines.getSize(this.element);
+    return this.routines.getScrollerSize();
   }
 
   getBufferPadding(): number {
@@ -82,18 +66,15 @@ export class Viewport {
   }
 
   getEdge(direction: Direction): number {
-    return this.routines.getEdge(this.hostElement, direction, true);
+    return this.routines.getViewportEdge(direction);
   }
 
   setOffset(): void {
-    this.offset = this.routines.getOffset(this.element);
-    if (!this.settings.windowViewport) {
-      this.offset -= this.routines.getOffset(this.hostElement);
-    }
+    this.offset = this.routines.getOffset();
   }
 
   findItemElementById(id: string): HTMLElement | null {
-    return this.routines.findItemElement(this.element, id);
+    return this.routines.findItemElement(id);
   }
 
   getEdgeVisibleItem(items: Item[], direction: Direction): { item?: Item, index: number, diff: number } {

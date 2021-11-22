@@ -1,13 +1,10 @@
 import { Settings } from './settings';
 import { Direction } from '../inputs/index';
+import { IRoutines } from '../interfaces/index';
 
-export class Routines {
+export class Routines implements IRoutines {
 
-  readonly settings: {
-    viewport: HTMLElement | null;
-    horizontal: boolean;
-    window: boolean;
-  };
+  readonly settings: IRoutines['settings'];
   readonly element: HTMLElement;
   readonly viewport: HTMLElement;
 

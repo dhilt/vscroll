@@ -3,23 +3,20 @@ import { WorkflowCycleModel } from './state/cycle';
 import { FetchModel } from './state/fetch';
 import { ClipModel } from './state/clip';
 import { RenderModel } from './state/render';
-import { ScrollState } from './state/scroll';
-import { State as IState, IPackages, ScrollState as IScrollState, ProcessName } from '../interfaces/index';
+import { ScrollModel } from './state/scroll';
+import { State as IState, IPackages, ProcessName } from '../interfaces/index';
 
 export class State implements IState {
 
   readonly packageInfo: IPackages;
   private settings: Settings;
-
   initTime: number;
 
   cycle: WorkflowCycleModel;
-
   fetch: FetchModel;
   clip: ClipModel;
   render: RenderModel;
-
-  scrollState: IScrollState;
+  scroll: ScrollModel;
 
   get time(): number {
     return Number(new Date()) - this.initTime;
@@ -28,16 +25,13 @@ export class State implements IState {
   constructor(packageInfo: IPackages, settings: Settings, state?: IState) {
     this.packageInfo = packageInfo;
     this.settings = settings;
-
     this.initTime = Number(new Date());
 
     this.cycle = new WorkflowCycleModel(this.settings.instanceIndex, state ? state.cycle : void 0);
-
     this.fetch = new FetchModel(settings.directionPriority);
     this.clip = new ClipModel();
     this.render = new RenderModel();
-
-    this.scrollState = new ScrollState();
+    this.scroll = new ScrollModel();
   }
 
   endInnerLoop(): void {
@@ -54,7 +48,7 @@ export class State implements IState {
   }
 
   startInnerLoop(): { process?: ProcessName, doRender?: boolean } {
-    const { cycle, scrollState: scroll, fetch, render, clip } = this;
+    const { cycle, scroll: scroll, fetch, render, clip } = this;
 
     cycle.innerLoop.start();
     scroll.positionBeforeAsync = null;
@@ -76,7 +70,7 @@ export class State implements IState {
   dispose(): void {
     this.cycle.dispose();
     this.endInnerLoop();
-    this.scrollState.stop();
+    this.scroll.stop();
   }
 
 }

@@ -5,10 +5,10 @@ import { Item } from '../classes/item';
 export default class Render extends BaseProcessFactory(CommonProcess.render) {
 
   static run(scroller: Scroller): void {
-    const { workflow, state: { cycle, render, scrollState }, viewport, routines } = scroller;
+    const { workflow, state: { cycle, render, scroll }, viewport, routines } = scroller;
     scroller.logger.stat('before new items render');
-    if (scrollState.positionBeforeAsync === null) {
-      scrollState.positionBeforeAsync = viewport.scrollPosition;
+    if (scroll.positionBeforeAsync === null) {
+      scroll.positionBeforeAsync = viewport.scrollPosition;
     }
     render.cancel = routines.render(() => {
       render.cancel = null;

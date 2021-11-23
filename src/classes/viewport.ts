@@ -44,7 +44,7 @@ export class Viewport {
     this.setOffset();
     this.paddings.reset(this.getSize(), startIndex, this.offset);
     this.scrollPosition = this.paddings.backward.size || 0;
-    this.state.scrollState.reset();
+    this.state.scroll.reset();
   }
 
   setPosition(value: number): number {

@@ -4,11 +4,11 @@ import { Scroller } from '../scroller';
 export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
 
   static run(scroller: Scroller): void {
-    const { workflow, viewport, state: { scrollState } } = scroller;
+    const { workflow, viewport, state: { scroll } } = scroller;
 
-    scrollState.positionBeforeAdjust = viewport.scrollPosition;
+    scroll.positionBeforeAdjust = viewport.scrollPosition;
     Adjust.setPaddings(scroller);
-    scrollState.positionAfterAdjust = viewport.scrollPosition;
+    scroll.positionAfterAdjust = viewport.scrollPosition;
 
     // scroll position adjustments
     const position = Adjust.calculatePosition(scroller);
@@ -66,7 +66,7 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
   }
 
   static calculatePosition(scroller: Scroller): number {
-    const { viewport, buffer, state: { fetch, render, scrollState } } = scroller;
+    const { viewport, buffer, state: { fetch, render, scroll, cycle } } = scroller;
     let position = viewport.paddings.backward.size;
 
     // increase the position to meet the expectation of the first visible item
@@ -91,8 +91,8 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
     }
 
     // slow fetch/render case
-    if (scrollState.positionBeforeAsync !== null) {
-      const diff = render.positionBefore - scrollState.positionBeforeAsync;
+    if (scroll.positionBeforeAsync !== null) {
+      const diff = render.positionBefore - scroll.positionBeforeAsync;
       if (diff !== 0) {
         scroller.logger.log(`shift position due to fetch-render difference (${diff})`);
         position += diff;
@@ -108,23 +108,23 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
   }
 
   static setPosition(scroller: Scroller, position: number, done: () => void): void {
-    const { state: { scrollState }, viewport, routines } = scroller;
-    if (!scrollState.hasPositionChanged(position)) {
+    const { state: { scroll }, viewport, routines } = scroller;
+    if (!scroll.hasPositionChanged(position)) {
       return done();
     }
-    scrollState.syntheticPosition = position;
-    scrollState.syntheticFulfill = false;
+    scroll.syntheticPosition = position;
+    scroll.syntheticFulfill = false;
 
-    scrollState.cancelAnimation = routines.animate(() => {
-      scrollState.cancelAnimation = null;
-      const inertiaDiff = (scrollState.positionAfterAdjust as number) - viewport.scrollPosition;
+    scroll.cancelAnimation = routines.animate(() => {
+      scroll.cancelAnimation = null;
+      const inertiaDiff = (scroll.positionAfterAdjust as number) - viewport.scrollPosition;
       let diffLog = '';
       if (inertiaDiff > 0) {
         position -= inertiaDiff;
-        scrollState.syntheticPosition = position;
+        scroll.syntheticPosition = position;
         diffLog = ` (-${inertiaDiff})`;
       }
-      scrollState.syntheticFulfill = true;
+      scroll.syntheticFulfill = true;
       viewport.scrollPosition = position;
       scroller.logger.stat('after scroll adjustment' + diffLog);
       done();

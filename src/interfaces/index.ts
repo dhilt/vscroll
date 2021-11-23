@@ -44,7 +44,7 @@ import {
   IAdapter,
 } from './adapter';
 import { Settings, DevSettings } from './settings';
-import { ScrollEventData, ScrollState, State } from './state';
+import { ScrollEventData, State } from './state';
 import {
   ProcessName,
   ProcessClass,
@@ -106,7 +106,6 @@ export {
   Settings,
   DevSettings,
   ScrollEventData,
-  ScrollState,
   State,
   ProcessName,
   ProcessClass,

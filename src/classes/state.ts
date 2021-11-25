@@ -34,17 +34,12 @@ export class State implements IState {
     this.scroll = new ScrollModel();
   }
 
-  endInnerLoop(): void {
-    const { fetch, render, cycle } = this;
-    if (fetch.cancel) {
-      fetch.cancel();
-      fetch.cancel = null;
-    }
-    if (render.cancel) {
-      render.cancel();
-      render.cancel = null;
-    }
-    cycle.innerLoop.done();
+  startWorkflowCycle(isInitial: boolean, initiator: ProcessName): void {
+    this.cycle.start(isInitial, initiator);
+  }
+
+  endWorkflowCycle(count: number): void {
+    this.cycle.end(count);
   }
 
   startInnerLoop(): { process?: ProcessName, doRender?: boolean } {
@@ -67,10 +62,25 @@ export class State implements IState {
     };
   }
 
+  endInnerLoop(): void {
+    const { fetch, clip, render, cycle } = this;
+    fetch.stopSimulate();
+    clip.reset(true);
+    if (fetch.cancel) {
+      fetch.cancel();
+      fetch.cancel = null;
+    }
+    if (render.cancel) {
+      render.cancel();
+      render.cancel = null;
+    }
+    cycle.innerLoop.done();
+  }
+
   dispose(): void {
+    this.scroll.stop();
     this.cycle.dispose();
     this.endInnerLoop();
-    this.scroll.stop();
   }
 
 }

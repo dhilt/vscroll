@@ -18,6 +18,7 @@ class InnerLoopModel {
   }
 
   done() {
+    this.isInitial = false;
     this.count++;
     this.total++;
     this.busy.set(false);
@@ -57,13 +58,7 @@ export class WorkflowCycleModel {
     this.innerLoop = new InnerLoopModel(loopCount);
     this.interrupter = null;
     this.busy = new Reactive<boolean>(false);
-    this.done(cycleCount);
-  }
-
-  done(count: number): void {
-    this.count = count;
-    this.isInitial = false;
-    this.busy.set(false);
+    this.end(cycleCount);
   }
 
   start(isInitial: boolean, initiator: ProcessName): void {
@@ -73,6 +68,12 @@ export class WorkflowCycleModel {
     this.innerLoop.count = 0;
     this.interrupter = null;
     this.busy.set(true);
+  }
+
+  end(count: number): void {
+    this.count = count;
+    this.isInitial = false;
+    this.busy.set(false);
   }
 
   dispose(forever?: boolean): void {

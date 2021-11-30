@@ -172,7 +172,7 @@ export class Workflow<ItemData = unknown> {
     const { state, logger } = this.scroller;
     this.cyclesDone++;
     logger.logCycle(false);
-    state.cycle.done(this.cyclesDone + 1);
+    state.endWorkflowCycle(this.cyclesDone + 1);
     this.finalize();
   }
 

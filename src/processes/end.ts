@@ -22,7 +22,8 @@ export default class End extends BaseProcessFactory(CommonProcess.end) {
       return;
     }
 
-    const next = End.finalizeInnerLoop(scroller, error);
+    const next = End.shouldContinueRun(scroller, error);
+    scroller.state.endInnerLoop();
 
     workflow.call({
       process: End.process,
@@ -50,27 +51,26 @@ export default class End extends BaseProcessFactory(CommonProcess.end) {
     }
   }
 
-  static finalizeInnerLoop(scroller: Scroller, error: unknown): boolean {
-    const { state, state: { cycle, clip, fetch } } = scroller;
-    const next = !!cycle.interrupter || (error ? false : End.getNext(scroller));
-    cycle.innerLoop.isInitial = false;
-    fetch.stopSimulate();
-    clip.reset(true);
-    state.endInnerLoop();
-    return next;
-  }
-
-  static getNext(scroller: Scroller): boolean {
-    const { state: { fetch, render } } = scroller;
-    if (fetch.simulate && fetch.isCheck && !render.noSize) { // Adapter.check
+  static shouldContinueRun(scroller: Scroller, error: unknown): boolean {
+    const { cycle, fetch, render } = scroller.state;
+    // Adapter.reload or Adapter.reset
+    if (cycle.interrupter) {
       return true;
     }
-    if (fetch.simulate && fetch.doRemove) { // Adapter.remove or Adapter.update with clip
+    // critical error
+    if (error) {
+      return false;
+    }
+    // Adapter.check
+    if (fetch.simulate && fetch.isCheck && !render.noSize) {
       return true;
     }
-    if ( // common inner loop (App start, Scroll, Adapter.clip) accompanied by fetch
-      !fetch.simulate && ((fetch.hasNewItems && !render.noSize) || fetch.hasAnotherPack)
-    ) {
+    // Adapter.remove or Adapter.update with clip
+    if (fetch.simulate && fetch.doRemove) {
+      return true;
+    }
+    // common inner loop (App start, scroll, Adapter.clip) with full fetch
+    if (!fetch.simulate && ((fetch.hasNewItems && !render.noSize) || fetch.hasAnotherPack)) {
       return true;
     }
     return false;

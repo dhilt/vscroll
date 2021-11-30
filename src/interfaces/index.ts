@@ -45,7 +45,7 @@ import {
 } from './adapter';
 import { Settings, DevSettings } from './settings';
 import { IRoutines } from './routines';
-import { ScrollEventData, ScrollState, State } from './state';
+import { ScrollEventData, State } from './state';
 import {
   ProcessName,
   ProcessClass,
@@ -108,7 +108,6 @@ export {
   DevSettings,
   IRoutines,
   ScrollEventData,
-  ScrollState,
   State,
   ProcessName,
   ProcessClass,

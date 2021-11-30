@@ -1,5 +1,6 @@
 import { BaseProcessFactory, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
+import End from './end';
 
 export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
 
@@ -12,6 +13,9 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
 
     // scroll position adjustments
     const position = Adjust.calculatePosition(scroller);
+
+    // additional adjustment if the position can't be reached during the initial cycle
+    Adjust.setAdditionalForwardPadding(scroller, position);
 
     // set new position using animation frame
     Adjust.setPosition(scroller, position, () =>
@@ -47,7 +51,8 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
 
     // lack of items case
     const bufferSize = viewport.getScrollableSize() - forward.size - backward.size;
-    const viewportSizeDiff = viewport.getSize() - (bwdSize + bufferSize + fwdSize);
+    const scrollSize = bwdSize + bufferSize + fwdSize;
+    const viewportSizeDiff = viewport.getSize() - scrollSize;
     if (viewportSizeDiff > 0) {
       if (inverse) {
         bwdSize += viewportSizeDiff;
@@ -66,7 +71,7 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
   }
 
   static calculatePosition(scroller: Scroller): number {
-    const { viewport, buffer, state: { fetch, render, scroll, cycle } } = scroller;
+    const { viewport, buffer, state: { fetch, render, scroll } } = scroller;
     let position = viewport.paddings.backward.size;
 
     // increase the position to meet the expectation of the first visible item
@@ -105,6 +110,31 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
     }
 
     return Math.round(position);
+  }
+
+  static setAdditionalForwardPadding(scroller: Scroller, position: number): void {
+    const { viewport, buffer, state: { cycle } } = scroller;
+    if (!cycle.isInitial || !End.shouldContinueRun(scroller, null)) {
+      return;
+    }
+    const diff = position - viewport.getMaxScrollPosition();
+    if (diff <= 0) {
+      return;
+    }
+    const last = buffer.getLastVisibleItem();
+    if (!last) {
+      return;
+    }
+    let size = 0;
+    let index = last.$index + 1;
+    while (size <= diff && index <= buffer.absMaxIndex) {
+      size += buffer.getSizeByIndex(index++);
+    }
+    const shift = Math.min(size, diff);
+    if (shift) {
+      viewport.paddings.forward.size += shift;
+      scroller.logger.log(`increase fwd padding due to lack of items (${diff} -> ${shift})`);
+    }
   }
 
   static setPosition(scroller: Scroller, position: number, done: () => void): void {

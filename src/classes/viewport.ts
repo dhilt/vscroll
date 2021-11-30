@@ -44,7 +44,7 @@ export class Viewport {
     this.setOffset();
     this.paddings.reset(this.getSize(), startIndex, this.offset);
     this.scrollPosition = this.paddings.backward.size || 0;
-    this.state.scrollState.reset();
+    this.state.scroll.reset();
   }
 
   setPosition(value: number): number {
@@ -75,6 +75,10 @@ export class Viewport {
 
   getScrollableSize(): number {
     return this.routines.getSize(this.element);
+  }
+
+  getMaxScrollPosition(): number {
+    return this.getScrollableSize() - this.getSize();
   }
 
   getBufferPadding(): number {

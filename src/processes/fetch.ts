@@ -53,9 +53,9 @@ export default class Fetch extends BaseProcessFactory(CommonProcess.fetch) {
         box.fail(error);
       }
     } else {
-      const { state: { scrollState, fetch }, viewport } = scroller;
-      if (scrollState.positionBeforeAsync === null) {
-        scrollState.positionBeforeAsync = viewport.scrollPosition;
+      const { state: { scroll, fetch }, viewport } = scroller;
+      if (scroll.positionBeforeAsync === null) {
+        scroll.positionBeforeAsync = viewport.scrollPosition;
       }
       fetch.cancel = () => {
         box.success = () => null;

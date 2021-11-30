@@ -1,9 +1,6 @@
-import {
-  ScrollEventData as IScrollEventData,
-  ScrollState as IScrollState
-} from '../../interfaces/index';
+import { ScrollEventData as IScrollEventData } from '../../interfaces/index';
 
-export class ScrollState implements IScrollState {
+export class ScrollModel {
   previous: IScrollEventData | null;
   current: IScrollEventData | null;
 

@@ -140,17 +140,18 @@ This obliges the Datasource.get method to deal with _Data_ items and also provid
 A callback that is called every time the Workflow decides that the UI needs to be changed. Its argument is a list of items to be present in the UI. This is a consumer responsibility to detect changes and display them in the UI.
 
 ```js
-run: items => {
-  // assume currentItems contains a list of items currently presented in the UI
-  if (!items.length && !currentItems.length) {
+run: (newItems) => {
+  // assume oldItems contains a list of items that are currently present in the UI
+  if (!newItems.length && !oldItems.length) {
     return;
   }
-  displayNewItemsInsteadCurrentOnes(items, currentItems);
-  currentItems = items;
-}
+  // make newItems to be present in the UI instead of oldItems
+  processItems(newItems, oldItems);
+  oldItems = newItems;
+};
 ```
 
-Each item is an instance of the [Item class](https://github.com/dhilt/vscroll/blob/v1.0.0/src/classes/item.ts) implementing the [Item interface](https://github.com/dhilt/vscroll/blob/v1.0.0/src/interfaces/item.ts), whose props can be used for proper implementation of the `run` callback:
+Each item (in both `newItems` and `oldItems` lists) is an instance of the [Item class](https://github.com/dhilt/vscroll/blob/v1.0.0/src/classes/item.ts) implementing the [Item interface](https://github.com/dhilt/vscroll/blob/v1.0.0/src/interfaces/item.ts), whose props can be used for proper implementation of the `run` callback:
 
 |Name|Type|Description|
 |:--|:--|:----|
@@ -162,19 +163,19 @@ Each item is an instance of the [Item class](https://github.com/dhilt/vscroll/bl
 
 `Run` callback is the most complex and environment-specific part of the `vscroll` API, which is fully depends on the environment for which the consumer is being created. Framework specific consumer should rely on internal mechanism of the framework to provide runtime DOM modifications.
 
-There are some requirements on how the `items` should be processed by `run(items)` call:
- - after the `run(items)` callback is completed, there must be `items.length` elements in the DOM between backward and forward padding elements;
- - old items that are not in the list should be removed from DOM; use `currentItems[].element` reference for this purpose;
- - old items that are in the list should  not be removed and recreated, as it may lead to an unwanted shift of the scroll position; just don't touch them;
- - new items elements should be rendered in accordance with `items[].$index` comparable to `$index` of elements that remain: `$index` must increase continuously and the directions of increase must persist across the `run` calls; Scroller maintains `$index` internally, so you only need to properly inject the `items[].element` into the DOM;
- - new elements should be rendered but not visible, and this should be achieved by "fixed" positioning and "left"/"top" coordinates placing the item element out of view; the Workflow will take care of visibility after calculations; an additional attribute `items[].invisible` can be used to determine if a given element should be hidden;
- - new items elements should have "data-sid" attribute, which value should reflect `items[].$index`;
+There are some requirements on how the items should be processed by `run` call:
+ - after the `run` callback is completed, there must be `newItems.length` elements in the DOM between backward and forward padding elements;
+- old items that are not in the new item list should be removed from DOM; use `oldItems[].element` references for this purpose;
+ - old items that are in the list should not be removed and recreated, as it may lead to an unwanted shift of the scroll position; just don't touch them;
+ - new items elements should be rendered in accordance with `newItems[].$index` comparable to `$index` of elements that remain: `$index` must increase continuously and the directions of increase must persist across the `run` calls; Scroller maintains `$index` internally, so you only need to properly inject a set of `newItems[].element` into the DOM;
+ - new elements should be rendered but not visible, and this should be achieved by "fixed" positioning and "left"/"top" coordinates placing the item element out of view; the Workflow will take care of visibility after calculations; an additional attribute `newItems[].invisible` can be used to determine if a given element should be hidden;
+ - new items elements should have "data-sid" attribute, which value should reflect `newItems[].$index`;
 
 ## Live
 
 This repository has a minimal demonstration of the App-consumer implementation considering all of the requirements listed above: https://dhilt.github.io/vscroll/. This is all-in-one HTML demo with `vscroll` taken from CDN. The source code of the demo is [here](https://github.com/dhilt/vscroll/blob/main/demo/index.html). The approach is rough and non-optimized, if you are seeking for more general solution for native JavaScript applications, please take a look at [vscroll-native](https://github.com/dhilt/vscroll-native) project. It is relatively new and has no good documentation, but its [source code](https://github.com/dhilt/vscroll-native/tree/main/src) and [demo](https://github.com/dhilt/vscroll-native/tree/main/demo) may shed light on `vscroll` usage in no-framework environment.
 
-Another example is [ngx-ui-scroll](https://github.com/dhilt/ngx-ui-scroll). Before 2021 `vscroll` was part of `ngx-ui-scroll`, and its [demo page](https://dhilt.github.io/ngx-ui-scroll/#/) contains well-documented samples that can be used to get an idea on the API and functionality offered by `vscroll`. The code of the [UiScrollComponent](https://github.com/dhilt/ngx-ui-scroll/blob/v2.0.0-rc.1/src/ui-scroll.component.ts) clearly demonstrates the `Workflow` instantiation in the context of Angular. Also, since ngx-ui-scroll is the intermediate layer between `vscroll` and the end Application, the Datasource is being provided from the outside. Method `makeDatasource` is used to provide `Datasource` class to the end Application.
+Another example is [ngx-ui-scroll](https://github.com/dhilt/ngx-ui-scroll). Before 2021 `vscroll` was part of `ngx-ui-scroll`, and its [demo page](https://dhilt.github.io/ngx-ui-scroll/#/) contains well-documented samples that can be used to get an idea on the API and functionality offered by `vscroll`. The code of the [UiScrollComponent](https://github.com/dhilt/ngx-ui-scroll/blob/v2.2.0/src/ui-scroll.component.ts) clearly demonstrates the `Workflow` instantiation in the context of Angular. Also, since ngx-ui-scroll is the intermediate layer between `vscroll` and the end Application, the Datasource is being provided from the outside. Method `makeDatasource` is used to provide `Datasource` class to the end Application.
 
 ## Adapter API
 
@@ -223,4 +224,4 @@ VScroll will receive its own Adapter API documentation later, but for now please
 
  __________
 
-2021 &copy; [Denis Hilt](https://github.com/dhilt)
+2022 &copy; [Denis Hilt](https://github.com/dhilt)

@@ -36,16 +36,16 @@ export class Scroller<Data = unknown> {
     }
 
     const packageInfo = scroller ? scroller.state.packageInfo : ({ consumer, core } as IPackages);
-    element = scroller ? scroller.viewport.element : (element as HTMLElement);
+    element = scroller ? scroller.routines.element : (element as HTMLElement);
     workflow = scroller ? scroller.workflow : (workflow as ScrollerWorkflow<Data>);
 
     this.workflow = workflow;
     this.settings = new Settings<Data>(datasource.settings, datasource.devSettings, ++instanceCount);
     this.logger = new Logger(this as Scroller, packageInfo, datasource.adapter);
-    this.routines = new Routines(this.settings);
+    this.routines = new Routines(element, this.settings);
     this.state = new State(packageInfo, this.settings, scroller ? scroller.state : void 0);
     this.buffer = new Buffer<Data>(this.settings, workflow.onDataChanged, this.logger);
-    this.viewport = new Viewport(element, this.settings, this.routines, this.state, this.logger);
+    this.viewport = new Viewport(this.settings, this.routines, this.state, this.logger);
     this.logger.object('vscroll settings object', this.settings, true);
 
     this.initDatasource(datasource, scroller);

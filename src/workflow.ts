@@ -69,14 +69,14 @@ export class Workflow<ItemData = unknown> {
     });
 
     // set up scroll event listener
-    const { viewport: { scrollEventReceiver }, routines } = this.scroller;
+    const { routines } = this.scroller;
     const onScrollHandler: EventListener =
       event => this.callWorkflow({
         process: CommonProcess.scroll,
         status: Status.start,
         payload: { event }
       });
-    this.offScroll = routines.onScroll(scrollEventReceiver, onScrollHandler);
+    this.offScroll = routines.onScroll(onScrollHandler);
   }
 
   changeItems(items: Item<ItemData>[]): void {

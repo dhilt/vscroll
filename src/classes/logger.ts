@@ -172,7 +172,7 @@ export class Logger {
       })
       .join(', ');
     this.log(`adapter: ${methodName}(${params || ''})${add || ''}`);
-  }
+  };
 
   log(...args: any[]): void {
     if (this.debug) {

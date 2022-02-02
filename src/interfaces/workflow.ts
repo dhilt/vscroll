@@ -2,6 +2,7 @@ import { ProcessClass, ProcessName, ProcessPayload, ProcessSubject } from './pro
 import { IDatasource } from './datasource';
 import { IPackage } from './adapter';
 import { Item } from '../classes/item';
+import { CustomRoutinesClass } from './routines';
 import { Scroller } from '../scroller';
 
 export type OnDataChanged<Data> = (items: Item<Data>[]) => void;
@@ -11,6 +12,7 @@ export interface WorkflowParams<ItemData> {
   consumer: IPackage;
   element: HTMLElement;
   run: OnDataChanged<ItemData>;
+  Routines?: CustomRoutinesClass;
 }
 
 interface CallWorkflow {
@@ -28,6 +30,7 @@ export interface ScrollerParams<ItemData> {
   consumer?: IPackage;
   element?: HTMLElement;
   workflow?: ScrollerWorkflow<ItemData>;
+  Routines?: CustomRoutinesClass;
   scroller?: Scroller<ItemData>; // for re-instantiation
 }
 

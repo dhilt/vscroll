@@ -1,11 +1,14 @@
 'use strict';
 
-const shell = require('shelljs');
-const chalk = require('chalk');
-const config = require('./package.json');
+import { readFileSync } from 'fs';
+import shell from 'shelljs';
+import chalk from 'chalk';
 
 const DIST_DIR = 'dist';
 const CONF_DIR = 'build';
+
+const configJsonString = readFileSync('./package.json', { encoding: 'utf8' });
+const config = JSON.parse(configJsonString);
 
 // Package version 
 shell.echo('Setup package version');

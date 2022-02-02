@@ -8,6 +8,7 @@ import { Direction, SizeStrategy } from './inputs/index';
 import {
   IDatasource,
   IDatasourceConstructed,
+  IRoutines,
   IReactivePropConfig,
   IAdapterConfig,
   ItemAdapter,
@@ -32,6 +33,7 @@ export {
 export {
   IDatasource,
   IDatasourceConstructed,
+  IRoutines,
   IReactivePropConfig,
   IAdapterConfig,
   ItemAdapter as IAdapterItem,

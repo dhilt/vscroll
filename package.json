@@ -9,6 +9,7 @@
   "fesm5": "dist/bundles/vscroll.esm5.js",
   "fesm2015": "dist/bundles/vscroll.esm6.js",
   "types": "dist/typings/index.d.ts",
+  "type": "module",
   "files": [
     "dist"
   ],

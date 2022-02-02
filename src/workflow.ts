@@ -30,7 +30,7 @@ export class Workflow<ItemData = unknown> {
 
   scroller: Scroller<ItemData>;
 
-  constructor({ element, datasource, consumer, run }: WorkflowParams<ItemData>) {
+  constructor({ element, datasource, consumer, run, Routines }: WorkflowParams<ItemData>) {
     this.isInitialized = false;
     this.initTimer = null;
     this.adapterRun$ = new Reactive();
@@ -46,7 +46,9 @@ export class Workflow<ItemData = unknown> {
       onError: this.onError.bind(this)
     };
 
-    this.scroller = new Scroller<ItemData>({ element, datasource, consumer, workflow: this.getUpdater() });
+    this.scroller = new Scroller<ItemData>({
+      element, datasource, consumer, workflow: this.getUpdater(), Routines
+    });
 
     if (this.scroller.settings.initializeDelay) {
       this.initTimer = setTimeout(() => {

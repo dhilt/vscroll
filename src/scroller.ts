@@ -29,7 +29,9 @@ export class Scroller<Data = unknown> {
   public state: State;
   public adapter: Adapter<Data>;
 
-  constructor({ datasource, consumer, element, workflow, scroller }: ScrollerParams<Data>) {
+  constructor({
+    datasource, consumer, element, workflow, Routines: CustomRoutines, scroller
+  }: ScrollerParams<Data>) {
     const { params: { get } } = validate(datasource, DATASOURCE);
     if (!get.isValid) {
       throw new Error(`${INVALID_DATASOURCE_PREFIX} ${get.errors[0]}`);
@@ -42,7 +44,7 @@ export class Scroller<Data = unknown> {
     this.workflow = workflow;
     this.settings = new Settings<Data>(datasource.settings, datasource.devSettings, ++instanceCount);
     this.logger = new Logger(this as Scroller, packageInfo, datasource.adapter);
-    this.routines = new Routines(element, this.settings);
+    this.routines = new Routines(element, this.settings, CustomRoutines);
     this.state = new State(packageInfo, this.settings, scroller ? scroller.state : void 0);
     this.buffer = new Buffer<Data>(this.settings, workflow.onDataChanged, this.logger);
     this.viewport = new Viewport(this.settings, this.routines, this.state, this.logger);

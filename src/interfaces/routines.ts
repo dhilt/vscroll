@@ -183,3 +183,5 @@ export interface IRoutines {
   onScroll: (handler: EventListener) => () => void;
 
 }
+
+export type CustomRoutinesClass = { new(element: HTMLElement, settings: IRoutinesSettings): Partial<IRoutines>; };

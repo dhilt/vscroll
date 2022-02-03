@@ -3,98 +3,59 @@
   <head>
     <title>vscroll demo</title>
     <meta charset="utf-8">
-    <style>
-      #viewport {
-        height: 300px;
-        overflow-y: scroll;
-      }
-      #viewport .item span {
-        font-size: small;
-      }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/vscroll@1.0.0/dist/bundles/vscroll.umd.js"></script>
+    <link rel="stylesheet" href="./assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/vscroll/dist/bundles/vscroll.umd.js"></script>
   </head>
   <body>
     
-    <h3>VScroll Demo (CDN)</h3>
-    
-    <div id="viewport">
-      <div id="vscroll">
-        <div data-padding-backward></div>
-        <div data-padding-forward></div>
+    <div id="header_wrap" class="outer">
+      <header class="inner">
+        <h1 id="project_title">VScroll Demo</h1>
+        <h2 id="project_tagline">
+          <a
+            href="https://www.npmjs.com/package/vscroll-native"
+          ><img 
+            width="65" src="./assets/npm-logo.png"
+          ></a>
+          <a
+            href="https://github.com/dhilt/vscroll-native"
+          ><img
+            width="100" src="./assets/github-logo.png"
+          ></a>
+        </h2>
+      </header>
+  </div>
+
+  <div id="main_content_wrap" class="outer">
+    <section id="main_content" class="inner">
+      <div class="row">
+        <div class="column">
+          <div class="viewport">
+            <div id="vscroll">
+              <div data-padding-backward></div>
+              <div data-padding-forward></div>
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          This is a minimal working demo of a virtual scroll list
+          rendering an unlimited data in runtime.
+          Created with the vscroll module.
+          Its full source code can be taken from
+          <a href="https://github.com/dhilt/vscroll/blob/main/demo/index-minimal.html"
+          >index-minimal.html</a>.
+        </div>
       </div>
-    </div>
-    
-    <script>
-(() => {
-const element = document.getElementById('vscroll');
-const forwardPadding = element.querySelector('[data-padding-forward]');
-const consumer = { name: 'VScroll Demo (CDN)', version: 'not published' };
-const datasource = {
-  get: (index, count, success) => {
-    const data = [];
-    for (let i = index; i <= index + count - 1; i++) {
-      data.push({ id: i, text: 'item #' + i });
-    }
-    success(data);
-  },
-  devSettings: {
-    debug: false
-  }
-};
-const rowTemplate = (index, { text }) =>
-  `<div class="item"><span>${index}</span>) ${text}</div>`;
+    </section>
+  </div>
 
-const storage = { items: [] };
+  <div id="footer_wrap" class="outer">
+    <footer class="inner">
+      <p class="copyright">2022 © <a href="https://github.com/dhilt">Denis Hilt</a></p>
+    </footer>
+  </div>
+  
+  <script src="./index.js"></script>
 
-const vscrollWorkflow = new VScroll.Workflow({
-  consumer,
-  element,
-  datasource,
-  run: (items) => {
-    if (!items.length && !storage.items.length) {
-      return;
-    }
-    onItemsChanged(items);
-    storage.items = items;
-  }
-});
-
-const onItemsChanged = items => {
-  // remove elements not present
-  storage.items
-    .filter(item => !items.includes(item))
-    .forEach(item => item.element.remove());
-  // create and insert new elements
-  const elements = [];
-  let beforeElement = forwardPadding;
-  for (let i = items.length - 1; i >= 0; i--) {
-    if (storage.items.includes(items[i])) {
-      if (!elements.length) {
-        beforeElement = items[i].element;
-        continue;
-      } else {
-        break;
-      }
-    }
-    elements.unshift(createItemElement(items[i]));
-  }
-  elements.forEach(elt => beforeElement.insertAdjacentElement('beforebegin', elt));
-};
-
-const createItemElement = item => {
-  const element = document.createElement('div');
-  element.setAttribute('data-sid', item.nodeId);
-  if (item.invisible) {
-    element.style.position = 'fixed';
-    element.style.top = '-99px';
-  }
-  element.innerHTML = rowTemplate(item.$index, item.data);
-  return element;
-}
-
-})();
-    </script>
-    
   </body>
 </html>

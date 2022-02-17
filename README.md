@@ -3,6 +3,20 @@
 
 # VScroll
 
+- [Overview](#overview)
+- [Getting started](#getting-started)
+- [Usage](#usage)
+  - [Consumer](#1-consumer)
+  - [Element](#2-element)
+  - [Datasource](#3-datasource)
+  - [Run](#4-run)
+  - [Routines](#5-routines)
+- [Live](#live)
+- [Adapter API](#adapter-api)
+- [Thanks](#thanks)
+
+## Overview
+
 VScroll is a JavaScript library providing virtual scroll engine. Can be seen as a core for platform-specific solutions designed to represent unlimited datasets using virtualization technique. Below is the diagram of how the VScroll engine is being distributed to the end user.
 
 <br>
@@ -10,10 +24,11 @@ VScroll is a JavaScript library providing virtual scroll engine. Can be seen as 
   <img src="https://user-images.githubusercontent.com/4365660/104845671-ad1d4b80-58e7-11eb-9cc9-4a00ebcbc9e8.png">
 </p>
 
-Basically, the consumer layer can be omitted and the end Application developers can use VScroll directly. Currently there exist two consumer implementations built on top of VScroll:
+Basically, the consumer layer can be omitted and the end Application developers can use VScroll directly. This repository has a [minimal demo page](https://dhilt.github.io/vscroll/) of direct use of the VScroll library in a non-specific environment. There are also several consumer implementations built on top of VScroll:
 
   - [ngx-ui-scroll](https://github.com/dhilt/ngx-ui-scroll), Angular virtual scroll directive
   - [vscroll-native](https://github.com/dhilt/vscroll-native), virtual scroll module for native JavaScript applications
+  - [Vue integration sample](https://stackblitz.com/edit/vscroll-vue-integration?file=src%2Fcomponents%2FVScroll.vue), very rough implementation for Vue
 
 ## Getting started
 
@@ -22,7 +37,7 @@ Basically, the consumer layer can be omitted and the end Application developers 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/vscroll"></script>
 <script>
-  const workflow = new VScroll.Workflow({...});
+  const workflow = new VScroll.Workflow(...);
 </script>
 ```
 
@@ -35,12 +50,18 @@ npm install vscroll
 ```js
 import { Workflow } from 'vscroll';
 
-const workflow = new Workflow({...});
+const workflow = new Workflow(...);
 ```
 
 ## Usage
 
-The main entity distributed via `vscroll` is the `Workflow` class. Its instantiating runs the virtual scroll engine. The constructor of the `Workflow` class requires an argument of the following type:
+The main entity distributed via `vscroll` is the `Workflow` class. Its instantiating runs the virtual scroll engine.
+
+```js
+new Workflow({ consumer, element, datasource, run });
+```
+
+The constructor of the `Workflow` class requires an argument of the following type:
 
 ```typescript
 interface WorkflowParams<ItemData> {
@@ -58,10 +79,10 @@ This is a TypeScript definition, but speaking of JavaScript, an argument object 
 A simple data object that provides information about a consumer. It is not critical to omit this, but if the result solution is going to be published as a separate 3d-party library ("consumer"), the name and the version of the result package should be passed as follows:
 
 ```js
-consumer: {
+const consumer = {
   name: 'my-vscroll-consumer',
   version: 'v1.0.0-alpha.1'
-},
+};
 ```
 
 ### 2. Element
@@ -69,7 +90,7 @@ consumer: {
 An HTML element the `Workflow` should use as a scrollable part of the viewport. It should be present in DOM before instantiating the `Workflow`.
 
 ```js
-element: document.getElementById('vscroll'),
+const element = document.getElementById('vscroll');
 ```
 
 This element should be wrapped with another container with constrained height and overflow scroll/auto. And it also must have two special padding elements marked with special attributes for the virtualization purpose.
@@ -92,48 +113,37 @@ This element should be wrapped with another container with constrained height an
 
 ### 3. Datasource
 
-This is a special object, providing dataset items in runtime. Basically, a consumer app should expose a Datasource factory to be used by the end App, but in the simplest case it can be defined as follows:
+This is a special object, providing dataset items in runtime. There are two ways of how the datasource can be defined. First, as an object literal:
 
 ```js
-datasource: {
+const datasource = {
   get: (index, count, success) => {
     const data = [];
-    for (let i = index; i <= index + count - 1; i++) {
+    for (let i = index; i < index + count; i++) {
       data.push({ id: i, text: 'item #' + i });
     }
     success(data);
   }
-},
+};
 ```
 
-The `Workflow` will request data via `get` method. This particular Datasource sample implements an unlimited synchronous stream of data generated in runtime, but depends on the end App needs it can be limited or partially limited, asynchronous, index-inverted, powered with cache, Promise- or even Observable-based (instead of Callback-based) etc.
-
-Along with the `Workflow`, VScroll exposes method `makeDatasource` which can be used for creating Datasource factory, so the end Datasource might be instantiated via operator `new`:
+Second, as an instance of Datasource class which can be obtained through a special factory method. Along with the `Workflow` class, VScroll exposes the `makeDatasource` method which can be used for creating Datasource class, so the end datasource object can be instantiated via operator `new`:
 
 ```js
-const Datasource = VScroll.makeDatasource();
-...
-datasource: new Datasource({
-  get: (index, count, success) => ...
-}),
+import { makeDatasource } from 'vscroll';
+const Datasource = makeDatasource();
+
+const datasource = new Datasource({
+  get: (index, length, success) =>
+    success(Array.from({ length }).map((_, i) =>
+      ({ id: index + i, text: 'item #' + (index + i) })
+    ))
+});
 ```
 
-This option also makes the [Adapter API](#adapter-api) available via `datasource.adapter` property after the Datasource is instantiated. It provides massive functionality to assess and manipulate Scroller's data at runtime.
+The argument of the Datasource class is the same object literal as in the first case. It has one mandatory field which is the core of the App-Scroller integration: method `get`. The `Workflow` requests data via the `Datasource.get` method in runtime.
 
-Using TypeScript, the above example should be written as follows:
-
-```typescript
-interface Data {
-  id: number;
-  text: string;
-  ...
-}
-
-const Datasource = VScroll.makeDatasource();
-const datasource = new Datasource<Data>(...);
-```
-
-This obliges the Datasource.get method to deal with _Data_ items and also provides strong typing for Adapter API props and methods.
+For more solid understanding the concept of the Datasource with examples, please, refer to [the Datasource doc](https://github.com/dhilt/vscroll/wiki/Datasource).
 
 ### 4. Run
 
@@ -169,13 +179,13 @@ There are some requirements on how the items should be processed by `run` call:
  - old items that are in the list should not be removed and recreated, as it may lead to an unwanted shift of the scroll position; just don't touch them;
  - new items elements should be rendered in accordance with `newItems[].$index` comparable to `$index` of elements that remain: `$index` must increase continuously and the directions of increase must persist across the `run` calls; Scroller maintains `$index` internally, so you only need to properly inject a set of `newItems[].element` into the DOM;
  - new elements should be rendered but not visible, and this should be achieved by "fixed" positioning and "left"/"top" coordinates placing the item element out of view; the Workflow will take care of visibility after calculations; an additional attribute `newItems[].invisible` can be used to determine if a given element should be hidden;
- - new items elements should have "data-sid" attribute, which value should reflect `newItems[].$index`;
+ - new items elements should have "data-sid" attribute, which value should reflect `newItems[].$index`.
 
 ## Live
 
-This repository has a minimal demonstration of the App-consumer implementation considering all of the requirements listed above: https://dhilt.github.io/vscroll/. This is all-in-one HTML demo with `vscroll` taken from CDN. The source code of the demo is [here](https://github.com/dhilt/vscroll/blob/main/demo/index.html). The approach is rough and non-optimized, if you are seeking for more general solution for native JavaScript applications, please take a look at [vscroll-native](https://github.com/dhilt/vscroll-native) project. It is relatively new and has no good documentation, but its [source code](https://github.com/dhilt/vscroll-native/tree/main/src) and [demo](https://github.com/dhilt/vscroll-native/tree/main/demo) may shed light on `vscroll` usage in no-framework environment.
+This repository has a minimal demonstration of the App-consumer implementation considering all of the requirements listed above: https://dhilt.github.io/vscroll/. This is all-in-one HTML demo with `vscroll` taken from CDN. The source code of the demo is [here](https://github.com/dhilt/vscroll/blob/main/demo/index.html). The approach is rough and non-optimized, if you are seeking for more general solution for native JavaScript applications, please have a look at [vscroll-native](https://github.com/dhilt/vscroll-native) project. It is relatively new and has no good documentation, but its [source code](https://github.com/dhilt/vscroll-native/tree/main/src) and its [demo](https://github.com/dhilt/vscroll-native/tree/main/demo) may shed light on `vscroll` usage in no-framework environment.
 
-Another example is [ngx-ui-scroll](https://github.com/dhilt/ngx-ui-scroll). Before 2021 `vscroll` was part of `ngx-ui-scroll`, and its [demo page](https://dhilt.github.io/ngx-ui-scroll/#/) contains well-documented samples that can be used to get an idea on the API and functionality offered by `vscroll`. The code of the [UiScrollComponent](https://github.com/dhilt/ngx-ui-scroll/blob/v2.2.0/src/ui-scroll.component.ts) clearly demonstrates the `Workflow` instantiation in the context of Angular. Also, since ngx-ui-scroll is the intermediate layer between `vscroll` and the end Application, the Datasource is being provided from the outside. Method `makeDatasource` is used to provide `Datasource` class to the end Application.
+Another example is [ngx-ui-scroll](https://github.com/dhilt/ngx-ui-scroll). Before 2021 `vscroll` was part of `ngx-ui-scroll`, and its [demo page](https://dhilt.github.io/ngx-ui-scroll/#/) contains well-documented samples that can be used to get an idea on the API and functionality offered by `vscroll`. The code of the [UiScrollComponent](https://github.com/dhilt/ngx-ui-scroll/blob/v2.3.1/src/ui-scroll.component.ts) clearly demonstrates the `Workflow` instantiation in the context of Angular. Also, since ngx-ui-scroll is the intermediate layer between `vscroll` and the end Application, the Datasource is being provided from the outside. Method `makeDatasource` is used to provide `Datasource` class to the end Application.
 
 ## Adapter API
 
@@ -192,7 +202,7 @@ myDatasource.adapter.bof$.on(value =>
 );
 ```
 
-Adapter API becomes available as `Datasource.adapter` property after the Datasource is instantiated via operator "new". In terms of "vscroll" you need to get a Datasource class by calling `makeDatasource` method, then you can instantiate it. `makeDatasource` accepts 1 argument, which is an Adapter custom configuration. Currently this config can only be used to redefine the just mentioned Adapter reactive props. Here's an example of how simple Reactive props can be overridden with RxJs Subject and BehaviorSubject entities: [ui-scroll.datasource.ts](https://github.com/dhilt/ngx-ui-scroll/blob/v2.2.0/src/ui-scroll.datasource.ts). 
+Adapter API becomes available as `Datasource.adapter` property after the Datasource is instantiated via operator "new". In terms of "vscroll" you need to get a Datasource class by calling `makeDatasource` method, then you can instantiate it. `makeDatasource` accepts 1 argument, which is an Adapter custom configuration. Currently this config can only be used to redefine the just mentioned Adapter reactive props. Here's an example of how simple Reactive props can be overridden with RxJs Subject and BehaviorSubject entities: [ui-scroll.datasource.ts](https://github.com/dhilt/ngx-ui-scroll/blob/v2.3.1/src/ui-scroll.datasource.ts). 
 
 An important note is that the Adapter getting ready breaks onto 2 parts: instantiation (which is synchronous with the Datasource instantiation) and initialization (which occurs during the Workflow instantiating). Adapter gets all necessary props and methods during the first phase, but this starts work only when the second phase is done. Practically this means 
  - you may arrange any Adapter reactive subscriptions in your app/consumer right after the Datasource is instantiated, 
@@ -201,7 +211,7 @@ An important note is that the Adapter getting ready breaks onto 2 parts: instant
 
 If there is some logic that could potentially run before the Adapter initialization and you don't want this to happen, the following approach can be applied:
 
-```
+```js
 myDatasource = new VScroll.makeDatasource()({...});
 myDatasource.adapter.init$.once(() => {
   console.log('The Adapter is initialized'); // 2nd output

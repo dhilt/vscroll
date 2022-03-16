@@ -69,6 +69,7 @@ interface WorkflowParams<ItemData> {
   element: HTMLElement;
   datasource: IDatasource<ItemData>;
   run: OnDataChanged<ItemData>;
+  Routines?: CustomRoutinesClass;
 }
 ```
 
@@ -113,7 +114,9 @@ This element should be wrapped with another container with constrained height an
 
 ### 3. Datasource
 
-This is a special object, providing dataset items in runtime. There are two ways of how the datasource can be defined. First, as an object literal:
+This is a special object, providing dataset items in runtime. There is a separate wiki document describing the Datasource: [github.com/dhilt/vscroll/wiki/Datasource](https://github.com/dhilt/vscroll/wiki/Datasource). Below is a short version.
+
+The Datasource can be defined in two ways. First, as an object literal:
 
 ```js
 const datasource = {
@@ -161,15 +164,15 @@ run: (newItems) => {
 };
 ```
 
-Each item (in both `newItems` and `oldItems` lists) is an instance of the [Item class](https://github.com/dhilt/vscroll/blob/v1.0.0/src/classes/item.ts) implementing the [Item interface](https://github.com/dhilt/vscroll/blob/v1.0.0/src/interfaces/item.ts), whose props can be used for proper implementation of the `run` callback:
+Each item (in both `newItems` and `oldItems` lists) is an instance of the [Item class](https://github.com/dhilt/vscroll/blob/v1.5.0/src/classes/item.ts) implementing the [Item interface](https://github.com/dhilt/vscroll/blob/v1.5.0/src/interfaces/item.ts), whose props can be used for proper implementation of the `run` callback:
 
 |Name|Type|Description|
 |:--|:--|:----|
 |element|_HTMLElement_|HTML element associated with the item|
 |$index|_number_|Integer index of the item in the Datasource. Correlates with the first argument of the Datasource.get method|
 |data|_Data_|Data (contents) of the item. This is what the Datasource.get passes to the Scroller via success-callback as an array of data-items typed as Data[]|
-|invisible|_boolean_|A flag that determines whether the item should be hidden (if _true_) or visible (if _false_) when the _run_ method is called|
-|get|_()&nbsp;=>&nbsp;ItemAdapter&lt;Data&gt;_|A shortcut method returning { element, $index, data } object|
+|invisible|_boolean_|Flag that determines whether the item should be hidden (if _true_) or visible (if _false_) when the _run_ method is called|
+|get|_()&nbsp;=>&nbsp;ItemAdapter&lt;Data&gt;_|Shortcut method returning { element, $index, data } object|
 
 `Run` callback is the most complex and environment-specific part of the `vscroll` API, which is fully depends on the environment for which the consumer is being created. Framework specific consumer should rely on internal mechanism of the framework to provide runtime DOM modifications.
 
@@ -178,8 +181,37 @@ There are some requirements on how the items should be processed by `run` call:
 - old items that are not in the new item list should be removed from DOM; use `oldItems[].element` references for this purpose;
  - old items that are in the list should not be removed and recreated, as it may lead to an unwanted shift of the scroll position; just don't touch them;
  - new items elements should be rendered in accordance with `newItems[].$index` comparable to `$index` of elements that remain: `$index` must increase continuously and the directions of increase must persist across the `run` calls; Scroller maintains `$index` internally, so you only need to properly inject a set of `newItems[].element` into the DOM;
- - new elements should be rendered but not visible, and this should be achieved by "fixed" positioning and "left"/"top" coordinates placing the item element out of view; the Workflow will take care of visibility after calculations; an additional attribute `newItems[].invisible` can be used to determine if a given element should be hidden;
+ - new elements should be rendered but not visible, and this should be achieved by "fixed" positioning and "left"/"top" coordinates placing the item element out of view; the Workflow will take care of visibility after calculations; an additional attribute `newItems[].invisible` can be used to determine if a given element should be hidden; this requirement can be changed by the `Routines` class setting, see below;
  - new items elements should have "data-sid" attribute, which value should reflect `newItems[].$index`.
+
+### 5. Routines
+
+A special class allowing to override the default behavior related to the DOM. All DOM-specific operations are implemented as the [DOM Routines class](https://github.com/dhilt/vscroll/blob/v1.5.0/src/classes/domRoutines.ts) methods inside core. When the `Routines` class setting is passed among the Workflow arguments, its methods override the base class methods. The Routines methods description can be taken from  the [IRoutines interface](https://github.com/dhilt/vscroll/blob/v1.5.0/src/interfaces/routines.ts) sources. For example, there is a method that throws an error if its argument is not an HTML element:
+
+```typescript
+checkElement(element: HTMLElement): void {
+  if (!element) {
+    throw new Error('HTML element is not defined');
+  }
+}
+```
+
+With the `Routines` class setting it can be overridden as follows:
+
+```js
+new Workflow({ 
+  consumer, element, datasource, run,
+  Routines: class {
+    checkElement(element) {
+      if (!element || typeof element.querySelector !== 'function') {
+        throw new Error('Fatal: expecting HTML element');
+      }
+    }
+  }
+});
+```
+
+Various DOM calculations, setting/getting the scroll position, render process and other logic can be adjusted, improved or completely replaced by custom methods of the `Routines` class setting.
 
 ## Live
 
@@ -189,7 +221,9 @@ Another example is [ngx-ui-scroll](https://github.com/dhilt/ngx-ui-scroll). Befo
 
 ## Adapter API
 
-Adapter API is a powerful feature of the `vscroll` engine. Please refer to ngx-ui-scroll [Adapter API doc](https://github.com/dhilt/ngx-ui-scroll#adapter-api) as it can be applied to `vscroll` case with only one important difference: vscroll does not have RxJs entities, it has [Reactive](https://github.com/dhilt/vscroll/blob/main/src/classes/reactive.ts) ones instead. It means, for example, `eof$` has no "subscribe" method, but "on":
+Adapter API is a powerful feature of the `vscroll` engine allowing to collect the statistics and provide runtime manipulations with the viewport: adding, removing, updating items. This API is very useful when building the real-time interactive applications when data can change over time by not only scrolling (like chats).
+
+Please refer to the ngx-ui-scroll [Adapter API doc](https://github.com/dhilt/ngx-ui-scroll#adapter-api) as it can be applied to `vscroll` case with only one important difference: vscroll does not have RxJs entities, it has [Reactive](https://github.com/dhilt/vscroll/blob/main/src/classes/reactive.ts) ones instead. It means, for example, `eof$` has no "subscribe" method, but "on":
 
 ```js
 // ngx-ui-scroll
@@ -202,9 +236,9 @@ myDatasource.adapter.bof$.on(value =>
 );
 ```
 
-Adapter API becomes available as `Datasource.adapter` property after the Datasource is instantiated via operator "new". In terms of "vscroll" you need to get a Datasource class by calling `makeDatasource` method, then you can instantiate it. `makeDatasource` accepts 1 argument, which is an Adapter custom configuration. Currently this config can only be used to redefine the just mentioned Adapter reactive props. Here's an example of how simple Reactive props can be overridden with RxJs Subject and BehaviorSubject entities: [ui-scroll.datasource.ts](https://github.com/dhilt/ngx-ui-scroll/blob/v2.3.1/src/ui-scroll.datasource.ts). 
+Adapter API becomes available as the `Datasource.adapter` property after the Datasource is instantiated via operator "new". In terms of "vscroll" you need to get a Datasource class by calling the `makeDatasource` method, then you can instantiate it. `makeDatasource` accepts 1 argument, which is an Adapter custom configuration. Currently this config can only be used to redefine the just mentioned Adapter reactive props. Here's an example of how simple Reactive props can be overridden with RxJs Subject and BehaviorSubject entities: [ui-scroll.datasource.ts](https://github.com/dhilt/ngx-ui-scroll/blob/v2.3.1/src/ui-scroll.datasource.ts). 
 
-An important note is that the Adapter getting ready breaks onto 2 parts: instantiation (which is synchronous with the Datasource instantiation) and initialization (which occurs during the Workflow instantiating). Adapter gets all necessary props and methods during the first phase, but this starts work only when the second phase is done. Practically this means 
+An important note is that the Adapter getting ready breaks onto 2 parts: instantiation (which is synchronous with the Datasource instantiation) and initialization (which occurs during the Workflow instantiating). Adapter gets all necessary props and methods during the first phase, but they start work only when the second phase is done. Practically this means 
  - you may arrange any Adapter reactive subscriptions in your app/consumer right after the Datasource is instantiated, 
  - some of the initial (default) values can be unusable, like `Adapter.bufferInfo.minIndex` = NaN (because Scroller's Buffer is empty before the very first `Datasource.get` call),
  - Adapter methods do nothing when called before phase 2, they immediately resolve some default "good" value (`{ immediate: true, success: true, ... }`).
@@ -228,7 +262,9 @@ VScroll will receive its own Adapter API documentation later, but for now please
 
  \- to [Joshua Toenyes](https://github.com/JoshuaToenyes) as he transferred ownership to the "vscroll" npm repository which he owned but did not use,
 
- \- to all contributors of related repositories ([link](https://github.com/angular-ui/ui-scroll/graphs/contributors), [link](https://github.com/dhilt/ngx-ui-scroll/graphs/contributors)).
+ \- to all contributors of related repositories ([link](https://github.com/angular-ui/ui-scroll/graphs/contributors), [link](https://github.com/dhilt/ngx-ui-scroll/graphs/contributors)),
+
+ \- to all donators as their great support does increase motivation.
 
  <br>
 

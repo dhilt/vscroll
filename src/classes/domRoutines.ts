@@ -2,6 +2,8 @@ import { Settings } from './settings';
 import { Direction } from '../inputs/index';
 import { IRoutines, CustomRoutinesClass } from '../interfaces/index';
 
+type MethodContainer = { [key: string]: (...args: unknown[]) => void };
+
 export class Routines implements IRoutines {
 
   readonly settings: IRoutines['settings'];
@@ -17,15 +19,16 @@ export class Routines implements IRoutines {
     };
     // provide custom overrides for IRoutines methods
     if (CustomRoutines) {
+      const self = (this as unknown as MethodContainer);
       const routines = new CustomRoutines(element, this.settings);
       Object.getOwnPropertyNames(Object.getPrototypeOf(routines))
         .filter(method =>
           method !== 'constructor' &&
           typeof routines[method] === 'function' &&
-          typeof this[method] === 'function'
+          typeof self[method] === 'function'
         )
         .forEach(method =>
-          this[method] = (...args: unknown[]) =>
+          self[method] = (...args: unknown[]) =>
             routines[method].apply(this, args)
         );
     }

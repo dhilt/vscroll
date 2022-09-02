@@ -385,16 +385,12 @@ export class Buffer<Data> {
 
   getFirstVisibleItem(): Item<Data> | undefined {
     const index = this.getFirstVisibleItemIndex();
-    if (index >= 0) {
-      return this.items[index];
-    }
+    return index >= 0 ? this.items[index] : void 0;
   }
 
   getLastVisibleItem(): Item<Data> | undefined {
     const index = this.getLastVisibleItemIndex();
-    if (index >= 0) {
-      return this.items[index];
-    }
+    return index >= 0 ? this.items[index] : void 0;
   }
 
   getEdgeVisibleItem(direction: Direction, opposite?: boolean): Item<Data> | undefined {

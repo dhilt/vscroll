@@ -46,8 +46,8 @@ const checkCache = (cache: Cache<Data>, config: ActionCacheConfig) => {
     }
     const id = current[$index];
     const item = cache.get($index);
-    expect(item.$index).toEqual($index);
-    expect(item.data.id).toEqual(id);
+    expect(item?.$index).toEqual($index);
+    expect(item?.data?.id).toEqual(id);
   });
 };
 
@@ -140,7 +140,7 @@ describe('Cache Spec', () => {
     const updateConfigList: ActionCacheConfig[] = [{
       title: 'should not change',
       action: () => {
-        const after = [{ 3: 3 }, { 4: 4 }, { 5: 5 }];
+        const after: IndexIdList = [{ 3: 3 }, { 4: 4 }, { 5: 5 }];
         cache.updateSubset(subset, make(after));
       },
       result: [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 5: 5 }, { 6: 6 }, { 7: 7 }]
@@ -159,28 +159,28 @@ describe('Cache Spec', () => {
     }, {
       title: 'should remove left',
       action: () => {
-        const after = [{ 3: 4 }, { 4: 5 }];
+        const after: IndexIdList = [{ 3: 4 }, { 4: 5 }];
         cache.updateSubset(subset, make(after));
       },
       result: [{ 1: 1 }, { 2: 2 }, { 3: 4 }, { 4: 5 }, { 5: 6 }, { 6: 7 }]
     }, {
       title: 'should remove left (fixRight)',
       action: () => {
-        const after = [{ 4: 4 }, { 5: 5 }];
+        const after: IndexIdList = [{ 4: 4 }, { 5: 5 }];
         cache.updateSubset(subset, make(after));
       },
       result: [{ 2: 1 }, { 3: 2 }, { 4: 4 }, { 5: 5 }, { 6: 6 }, { 7: 7 }]
     }, {
       title: 'should remove right',
       action: () => {
-        const after = [{ 3: 3 }, { 4: 4 }];
+        const after: IndexIdList = [{ 3: 3 }, { 4: 4 }];
         cache.updateSubset(subset, make(after));
       },
       result: [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 5: 6 }, { 6: 7 }]
     }, {
       title: 'should remove right (fixRight)',
       action: () => {
-        const after = [{ 4: 3 }, { 5: 4 }];
+        const after: IndexIdList = [{ 4: 3 }, { 5: 4 }];
         cache.updateSubset(subset, make(after));
       },
       result: [{ 2: 1 }, { 3: 2 }, { 4: 3 }, { 5: 4 }, { 6: 6 }, { 7: 7 }]
@@ -201,42 +201,42 @@ describe('Cache Spec', () => {
     }, {
       title: 'should insert left',
       action: () => {
-        const after = [{ 3: 'xxx' }, { 4: 3 }, { 5: 4 }, { 6: 5 }];
+        const after: IndexIdList = [{ 3: 'xxx' }, { 4: 3 }, { 5: 4 }, { 6: 5 }];
         cache.updateSubset(subset, make(after));
       },
       result: [{ 1: 1 }, { 2: 2 }, { 3: 'xxx' }, { 4: 3 }, { 5: 4 }, { 6: 5 }, { 7: 6 }, { 8: 7 }]
     }, {
       title: 'should insert left (fixRight)',
       action: () => {
-        const after = [{ 2: 'xxx' }, { 3: 3 }, { 4: 4 }, { 5: 5 }];
+        const after: IndexIdList = [{ 2: 'xxx' }, { 3: 3 }, { 4: 4 }, { 5: 5 }];
         cache.updateSubset(subset, make(after));
       },
       result: [{ 0: 1 }, { 1: 2 }, { 2: 'xxx' }, { 3: 3 }, { 4: 4 }, { 5: 5 }, { 6: 6 }, { 7: 7 }]
     }, {
       title: 'should insert right',
       action: () => {
-        const after = [{ 3: 3 }, { 4: 4 }, { 5: 5 }, { 6: 'xxx' }];
+        const after: IndexIdList = [{ 3: 3 }, { 4: 4 }, { 5: 5 }, { 6: 'xxx' }];
         cache.updateSubset(subset, make(after));
       },
       result: [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 5: 5 }, { 6: 'xxx' }, { 7: 6 }, { 8: 7 }]
     }, {
       title: 'should insert right (fixRight)',
       action: () => {
-        const after = [{ 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'xxx' }];
+        const after: IndexIdList = [{ 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'xxx' }];
         cache.updateSubset(subset, make(after));
       },
       result: [{ 0: 1 }, { 1: 2 }, { 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'xxx' }, { 6: 6 }, { 7: 7 }]
     }, {
       title: 'should insert left & right',
       action: () => {
-        const after = [{ 3: 'xxx' }, { 4: 3 }, { 5: 4 }, { 6: 5 }, { 7: 'xxx' }];
+        const after: IndexIdList = [{ 3: 'xxx' }, { 4: 3 }, { 5: 4 }, { 6: 5 }, { 7: 'xxx' }];
         cache.updateSubset(subset, make(after));
       },
       result: [{ 1: 1 }, { 2: 2 }, { 3: 'xxx' }, { 4: 3 }, { 5: 4 }, { 6: 5 }, { 7: 'xxx' }, { 8: 6 }, { 9: 7 }]
     }, {
       title: 'should insert left & right (fixRight)',
       action: () => {
-        const after = [{ 1: 'x' }, { 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'y' }];
+        const after: IndexIdList = [{ 1: 'x' }, { 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'y' }];
         cache.updateSubset(subset, make(after));
       },
       result: [{ '-1': 1 }, { 0: 2 }, { 1: 'x' }, { 2: 3 }, { 3: 4 }, { 4: 5 }, { 5: 'y' }, { 6: 6 }, { 7: 7 }]
@@ -285,7 +285,7 @@ describe('Cache Spec', () => {
       const cache = new Cache(averageSizeSettings as never, loggerMock as never);
       const items = generateBufferItems(1, length);
       items.forEach(item => {
-        item.toRemove = toRemove && toRemove.includes(item.$index);
+        item.toRemove = !!toRemove?.includes(item.$index);
         cache.add(item);
       });
       cache.recalculateDefaultSize();
@@ -337,7 +337,7 @@ describe('Cache Spec', () => {
       it('should maintain average size on remove via update', () => {
         const toRemove = [5, 8, 10];
         const { items, cache, average } = prepareAverage({ length: 10, toRemove });
-        const listAfter = [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 5: 6 }, { 6: 7 }, { 7: 9 }];
+        const listAfter: IndexIdList = [{ 1: 1 }, { 2: 2 }, { 3: 3 }, { 4: 4 }, { 5: 6 }, { 6: 7 }, { 7: 9 }];
         const subset = items.slice(toRemove[0], toRemove[toRemove.length - 1] + 1);
 
         expect(cache.getDefaultSize()).toBe(average.before);
@@ -406,8 +406,13 @@ describe('Cache Spec', () => {
         sizeStrategy: SizeStrategy.Frequent,
         cacheSize: list.length,
         itemSize: before,
-        setItemSize: (item, defaultSize) => item.size =
-          list.reduce((a, i) => item.$index === Number(Object.keys(i)[0]) ? Object.values(i)[0] : a, defaultSize),
+        setItemSize: (item, defaultSize) =>
+          item.size = list.reduce((a, i) =>
+            item.$index === Number(Object.keys(i)[0])
+              ? Object.values(i)[0]
+              : a,
+            defaultSize as number
+          ),
         updateCache: () => null,
         before,
         after
@@ -521,8 +526,13 @@ describe('Cache Spec', () => {
         sizeStrategy: SizeStrategy.Constant,
         cacheSize: list.length,
         itemSize,
-        setItemSize: (item, defaultSize) => item.size =
-          list.reduce((a, i) => item.$index === Number(Object.keys(i)[0]) ? Object.values(i)[0] : a, defaultSize),
+        setItemSize: (item, defaultSize) =>
+          item.size = list.reduce((a, i) =>
+            item.$index === Number(Object.keys(i)[0])
+              ? Object.values(i)[0]
+              : a,
+            defaultSize as number
+          ),
         updateCache,
         before: itemSize || Object.values(list[0])[0]
       });

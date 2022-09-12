@@ -27,7 +27,7 @@ describe('Routines', () => {
     it('should not instantiate if settings is not correct', () => {
       let routines;
       try {
-        routines = new Routines(element, null);
+        routines = new Routines(element, null as unknown as Settings);
       } catch (e) {
         // "Cannot read property 'viewport' of null"
         expect(e instanceof TypeError).toBe(true);

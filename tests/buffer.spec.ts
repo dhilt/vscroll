@@ -10,8 +10,8 @@ const loggerMock = { log: () => null };
 
 const makeBuffer = (params: BufferParams): Buffer<Data> => {
   const { min, max, minCache, maxCache, absMin, absMax, start } = params;
-  const _minCache = Number.isInteger(minCache) ? minCache : min;
-  const _maxCache = Number.isInteger(maxCache) ? maxCache : max;
+  const _minCache = (Number.isInteger(minCache) ? minCache : min) as number;
+  const _maxCache = (Number.isInteger(maxCache) ? maxCache : max) as number;
   const _absMin = Number.isInteger(absMin) ? absMin : _minCache;
   const _absMax = Number.isInteger(absMax) ? absMax : _maxCache;
   const buffer = new Buffer<Data>({
@@ -28,7 +28,7 @@ const makeBuffer = (params: BufferParams): Buffer<Data> => {
 
 const checkUpdate = ({ min, max, predicate, fixRight, list }: BufferUpdateConfig) => () => {
   const buffer = makeBuffer({ min, max });
-  buffer.updateItems(predicate, cb, void 0, fixRight);
+  buffer.updateItems(predicate, cb, NaN, fixRight);
   // console.log(buffer.items.map(i => i.get()));
   expect(buffer.size).toEqual(list.length);
   list.forEach((current, index) => {
@@ -271,7 +271,7 @@ describe('Buffer Spec', () => {
       },
       list: [{ 0: 0 }, { 1: 1 }, { 2: 2 }, { 3: 4 }, { 4: 5 }, { 5: 6 }],
     }]
-    .forEach(config => it(config.title, checkUpdate(config)))
+    .forEach(config => it(config.title, checkUpdate(config as BufferUpdateConfig)))
   );
 
   describe('Index tracking on Update', () => [
@@ -570,7 +570,7 @@ describe('Buffer Spec', () => {
       items: ['A', 'B'], index: -101, direction: Direction.backward, fixRight: true
     }]
     .map(c => ({ ...c, min: -1, max: 1, absMin: -100, absMax: 100 }))
-    .forEach(config => it(config.title, checkInsert(config)))
+    .forEach(config => it(config.title, checkInsert(config as BufferInsertConfig)))
   );
 
 });

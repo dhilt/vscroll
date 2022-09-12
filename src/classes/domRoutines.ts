@@ -20,7 +20,7 @@ export class Routines implements IRoutines {
     // provide custom overrides for IRoutines methods
     if (CustomRoutines) {
       const self = (this as unknown as MethodContainer);
-      const routines = new CustomRoutines(element, this.settings);
+      const routines = new CustomRoutines(element, this.settings) as MethodContainer;
       Object.getOwnPropertyNames(Object.getPrototypeOf(routines))
         .filter(method =>
           method !== 'constructor' &&

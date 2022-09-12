@@ -165,7 +165,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
             const scalarWanted = ADAPTER_PROPS_STUB.find(
               ({ wanted, reactive }) => wanted && reactive === name
             );
-            if (scalarWanted) {
+            if (scalarWanted && this.externalContext) {
               this.wanted[scalarWanted.name] = true;
             }
             return this.source[name];
@@ -198,7 +198,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
             }
           },
           get: () => {
-            if (wanted) {
+            if (wanted && this.externalContext) {
               this.wanted[name] = true;
             }
             return this.box[name];

@@ -7,6 +7,7 @@ export type ProcessName = CommonProcess | AdapterProcess;
 
 export interface ProcessClass {
   process: ProcessName;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   run: (scroller: Scroller, ...args: any[]) => void;
   name: string;
 }

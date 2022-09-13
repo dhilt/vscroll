@@ -124,7 +124,7 @@ export class Workflow<ItemData = unknown> {
 
   runProcess() {
     return ({ run, process, name }: ProcessClass) =>
-      (...args: any[]): void => {
+      (...args: unknown[]): void => {
         if (this.scroller.settings.logProcessRun) {
           this.scroller.logger.log(() => [
             '%crun%c', ...['color: #333399;', 'color: #000000;'],

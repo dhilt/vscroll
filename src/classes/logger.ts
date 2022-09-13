@@ -174,7 +174,7 @@ export class Logger {
     this.log(`adapter: ${methodName}(${params || ''})${add || ''}`);
   };
 
-  log(...args: any[]): void {
+  log(...args: unknown[]): void {
     if (this.debug) {
       if (typeof args[0] === 'function') {
         args = args[0]();
@@ -197,7 +197,7 @@ export class Logger {
     }
   }
 
-  // logNow(...args: any[]) {
+  // logNow(...args: unknown[]) {
   //   const immediateLog = this.immediateLog;
   //   const debug = this.debug;
   //   (this as any).debug = true;

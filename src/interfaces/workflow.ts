@@ -50,7 +50,7 @@ export interface InterruptParams<ItemData> {
 }
 
 export interface StateMachineMethods<ItemData> {
-  run: (process: ProcessClass) => (...args: any[]) => void;
+  run: (process: ProcessClass) => (...args: unknown[]) => void;
   interrupt: (params: InterruptParams<ItemData>) => void;
   done: () => void;
   onError: (process: ProcessName, payload: ProcessPayload) => void;

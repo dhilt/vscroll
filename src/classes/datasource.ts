@@ -25,7 +25,7 @@ export class DatasourceGeneric<Data> implements IDatasourceConstructed<Data> {
       this.devSettings = datasource.devSettings;
     }
     const adapterContext = new AdapterContext(config || { mock: false });
-    this.adapter = adapterContext as IAdapter<Data>;
+    this.adapter = adapterContext as unknown as IAdapter<Data>;
   }
 
   dispose(): void { // todo: should it be published?

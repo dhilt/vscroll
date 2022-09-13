@@ -2,7 +2,7 @@ import { Logger } from './logger';
 import { Buffer } from './buffer';
 import { Reactive } from './reactive';
 import {
-  AdapterPropName, AdapterPropType, getDefaultAdapterProps, methodPreResult, reactiveConfigStorage
+  AdapterPropName, AdapterPropType, EMPTY_ITEM, getDefaultAdapterProps, methodPreResult, reactiveConfigStorage
 } from './adapter/props';
 import { AdapterProcess, ProcessStatus } from '../processes/index';
 import {
@@ -27,8 +27,10 @@ import {
   State,
   ProcessSubject,
 } from '../interfaces/index';
+import { Viewport } from './viewport';
+import { Direction } from '../inputs';
 
-type MethodResolver = (...args: any[]) => Promise<AdapterMethodResult>;
+type MethodResolver = (...args: unknown[]) => Promise<AdapterMethodResult>;
 
 const ADAPTER_PROPS_STUB = getDefaultAdapterProps();
 
@@ -60,7 +62,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   private source: { [key: string]: Reactive<unknown> } = {}; // for Reactive props
   private box: { [key: string]: unknown } = {}; // for Scalars over Reactive props
   private demand: { [key: string]: unknown } = {}; // for Scalars on demand
-  public wanted: { [key: string]: boolean } = {};
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  setFirstOrLastVisible = (_: { first?: boolean, last?: boolean, workflow?: ScrollerWorkflow }) => { };
 
   get workflow(): ScrollerWorkflow<Item> {
     return this.getWorkflow();
@@ -98,7 +102,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   private relaxRun: Promise<AdapterMethodResult> | null;
 
   private getPromisifiedMethod(method: MethodResolver, defaultMethod: MethodResolver) {
-    return (...args: any[]): Promise<AdapterMethodResult> =>
+    return (...args: unknown[]): Promise<AdapterMethodResult> =>
       this.relax$
         ? new Promise(resolve => {
           if (this.relax$) {
@@ -247,7 +251,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     this.externalContext = context;
   }
 
-  initialize(buffer: Buffer<Item>, state: State, logger: Logger, adapterRun$?: Reactive<ProcessSubject>): void {
+  initialize(
+    buffer: Buffer<Item>, state: State, viewport: Viewport, logger: Logger, adapterRun$?: Reactive<ProcessSubject>
+  ): void {
     // buffer
     Object.defineProperty(this.demand, AdapterPropName.itemsCount, {
       get: () => buffer.getVisibleItemsCount()
@@ -276,6 +282,23 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     state.cycle.innerLoop.busy.on(busy => this.loopPending = busy);
     this.isLoading = state.cycle.busy.get();
     state.cycle.busy.on(busy => this.isLoading = busy);
+
+    //viewport
+    this.setFirstOrLastVisible = ({ first, last, workflow }) => {
+      if ((!first && !last) || workflow?.call?.interrupted) {
+        return;
+      }
+      const token = first ? AdapterPropName.firstVisible : AdapterPropName.lastVisible;
+      if (buffer.items.some(({ element }) => !element)) {
+        logger.log('skipping first/lastVisible set because not all buffered items are rendered at this moment');
+        return;
+      }
+      const direction = first ? Direction.backward : Direction.forward;
+      const { item } = viewport.getEdgeVisibleItem(buffer.items, direction);
+      if (!item || item.element !== this[token].element) {
+        this[token] = (item ? item.get() : EMPTY_ITEM) as ItemAdapter<Item>;
+      }
+    };
 
     // logger
     this.logger = logger;

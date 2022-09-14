@@ -20,6 +20,11 @@ export type IReactivePropsStore = {
   [key in AdapterPropName]?: IReactivePropStore;
 };
 
+export interface IWanted {
+  box: { [key: string]: boolean };
+  block: boolean;
+}
+
 export interface IAdapterConfig {
   mock: boolean;
   reactive?: IReactivePropsConfig;

@@ -256,12 +256,14 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
   {
     type: Type.Reactive,
     name: Name.firstVisible$,
-    value: new Reactive<ItemAdapter>(EMPTY_ITEM, { emitOnSubscribe: true })
+    value: new Reactive<ItemAdapter>(EMPTY_ITEM, { emitOnSubscribe: true }),
+    wanted: true
   },
   {
     type: Type.Reactive,
     name: Name.lastVisible$,
-    value: new Reactive<ItemAdapter>(EMPTY_ITEM, { emitOnSubscribe: true })
+    value: new Reactive<ItemAdapter>(EMPTY_ITEM, { emitOnSubscribe: true }),
+    wanted: true
   },
   {
     type: Type.Reactive,

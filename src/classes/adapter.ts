@@ -4,6 +4,9 @@ import { Reactive } from './reactive';
 import {
   AdapterPropName, AdapterPropType, EMPTY_ITEM, getDefaultAdapterProps, methodPreResult, reactiveConfigStorage
 } from './adapter/props';
+import { wantedUtils } from './adapter/wanted';
+import { Viewport } from './viewport';
+import { Direction } from '../inputs/index';
 import { AdapterProcess, ProcessStatus } from '../processes/index';
 import {
   WorkflowGetter,
@@ -27,8 +30,6 @@ import {
   State,
   ProcessSubject,
 } from '../interfaces/index';
-import { Viewport } from './viewport';
-import { Direction } from '../inputs';
 
 type MethodResolver = (...args: unknown[]) => Promise<AdapterMethodResult>;
 
@@ -119,9 +120,14 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     this.relax$ = null;
     this.relaxRun = null;
     this.reloadCounter = 0;
+    const contextId = context?.id || -1;
 
-    // public context (if exists) should provide access Reactive props configuration by id
+    // public context (if exists) should provide access to Reactive props config by id
     const reactivePropsStore = context && reactiveConfigStorage.get(context.id) || {};
+
+    // the Adapter initialization should not trigger "wanted" props setting;
+    // after the initialization is completed, "wanted" functionality must be unblocked
+    wantedUtils.setBlock(true, contextId);
 
     // make array of the original values from public context if present
     const adapterProps = context
@@ -156,37 +162,38 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         })
       );
 
-    // Reactive props
-    // 1) store original values in "source" container, to avoid extra .get() calls on scalar twins set
-    // 2) "wanted" container is bound with scalars; get() updates it
+    // Reactive props: store original values in "source" container, to avoid extra .get() calls on scalar twins set
     adapterProps
       .filter(prop => prop.type === AdapterPropType.Reactive)
       .forEach(({ name, value }: IAdapterProp) => {
         this.source[name] = value as Reactive<unknown>;
         Object.defineProperty(this, name, {
           configurable: true,
-          get: () => {
-            const scalarWanted = ADAPTER_PROPS_STUB.find(
-              ({ wanted, reactive }) => wanted && reactive === name
-            );
-            if (scalarWanted && this.externalContext) {
-              this.wanted[scalarWanted.name] = true;
-            }
-            return this.source[name];
-          }
+          get: () => this.source[name]
         });
       });
 
+    // for "wanted" props that can be explicitly requested for the first time after the Adapter initialization,
+    // an implicit calculation of the initial value is required;
+    // so this method should be called when accessing the "wanted" props through one of the following getters
+    const processWanted = (prop: IAdapterProp) => {
+      if (wantedUtils.setBox(prop, contextId)) {
+        if ([AdapterPropName.firstVisible, AdapterPropName.firstVisible$].some(n => n === prop.name)) {
+          this.setFirstOrLastVisible({ first: true });
+        } else if ([AdapterPropName.lastVisible, AdapterPropName.lastVisible$].some(n => n === prop.name)) {
+          this.setFirstOrLastVisible({ last: true });
+        }
+      }
+    };
+
     // Scalar props that have Reactive twins
-    // 1) scalars should use "box" container
-    // 2) "wanted" should be updated on get
-    // 3) reactive props (from "source") are triggered on set
+    // 1) reactive props (from "source") should be triggered on set
+    // 2) scalars should use "box" container on get
+    // 3) "wanted" scalars should also run wanted-related logic on get
     adapterProps
       .filter(prop => prop.type === AdapterPropType.Scalar && !!prop.reactive)
-      .forEach(({ name, value, reactive, wanted }: IAdapterProp) => {
-        if (wanted) {
-          this.wanted[name] = false;
-        }
+      .forEach((prop: IAdapterProp) => {
+        const { name, value, reactive } = prop;
         this.box[name] = value;
         Object.defineProperty(this, name, {
           configurable: true,
@@ -202,9 +209,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
             }
           },
           get: () => {
-            if (wanted && this.externalContext) {
-              this.wanted[name] = true;
-            }
+            processWanted(prop);
             return this.box[name];
           }
         });
@@ -229,7 +234,8 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
     // Adapter public context augmentation
     adapterProps
-      .forEach(({ name, type, value: defaultValue, permanent }: IAdapterProp) => {
+      .forEach((prop: IAdapterProp) => {
+        const { name, type, value: defaultValue, permanent } = prop;
         let value = (this as IAdapter)[name];
         if (type === AdapterPropType.Function) {
           value = (value as () => void).bind(this);
@@ -240,15 +246,21 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         } else if (name === AdapterPropName.augmented) {
           value = true;
         }
+        const nonPermanentScalar = !permanent && type === AdapterPropType.Scalar;
         Object.defineProperty(context, name, {
           configurable: true,
-          get: () => !permanent && type === AdapterPropType.Scalar
-            ? (this as IAdapter)[name] // non-permanent Scalars should be taken in runtime
-            : value // Reactive props and methods (Functions/WorkflowRunners) can be defined once
+          get: () => {
+            processWanted(prop); // consider accessing "wanted" Reactive props
+            if (nonPermanentScalar) {
+              return (this as IAdapter)[name]; // non-permanent Scalars should be taken in runtime
+            }
+            return value; // other props (Reactive/Functions/WorkflowRunners) can be defined once
+          }
         });
       });
 
     this.externalContext = context;
+    wantedUtils.setBlock(false, contextId);
   }
 
   initialize(
@@ -289,6 +301,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         return;
       }
       const token = first ? AdapterPropName.firstVisible : AdapterPropName.lastVisible;
+      if (!wantedUtils.getBox(this.externalContext?.id)?.[token]) {
+        return;
+      }
       if (buffer.items.some(({ element }) => !element)) {
         logger.log('skipping first/lastVisible set because not all buffered items are rendered at this moment');
         return;
@@ -346,7 +361,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   }
 
   resetContext(): void {
-    const reactiveStore = reactiveConfigStorage.get(this.externalContext.id);
+    const reactiveStore = reactiveConfigStorage.get(this.externalContext?.id);
     ADAPTER_PROPS_STUB
       .forEach(({ type, permanent, name, value }) => {
         // assign initial values to non-reactive non-permanent props

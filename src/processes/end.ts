@@ -1,7 +1,5 @@
 import { BaseProcessFactory, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
-import { Direction } from '../inputs/index';
-import { EMPTY_ITEM } from '../classes/adapter/props';
 import { ScrollerWorkflow } from '../interfaces/index';
 
 const isInterrupted = ({ call }: ScrollerWorkflow): boolean => !!call.interrupted;
@@ -13,7 +11,7 @@ export default class End extends BaseProcessFactory(CommonProcess.end) {
 
     if (!error && !interrupter) {
       // set out params accessible via Adapter
-      End.calculateParams(scroller, workflow);
+      End.calculateParams(scroller);
     }
 
     // explicit interruption for we don't want to go through the inner loop finalizing
@@ -32,23 +30,11 @@ export default class End extends BaseProcessFactory(CommonProcess.end) {
     });
   }
 
-  static calculateParams(scroller: Scroller, workflow: ScrollerWorkflow): void {
-    const { adapter, viewport, buffer: { items } } = scroller;
+  static calculateParams(scroller: Scroller): void {
+    const { adapter, workflow } = scroller;
 
-    if (adapter.wanted.firstVisible) {
-      const { item } = viewport.getEdgeVisibleItem(items, Direction.backward);
-      if (!item || item.element !== adapter.firstVisible.element) {
-        adapter.firstVisible = item ? item.get() : EMPTY_ITEM;
-      }
-    }
-
-    // the workflow can be interrupter on firstVisible change
-    if (adapter.wanted.lastVisible && !isInterrupted(workflow)) {
-      const { item } = viewport.getEdgeVisibleItem(items, Direction.forward);
-      if (!item || item.element !== adapter.lastVisible.element) {
-        adapter.lastVisible = item ? item.get() : EMPTY_ITEM;
-      }
-    }
+    adapter.setFirstOrLastVisible({ first: true, workflow });
+    adapter.setFirstOrLastVisible({ last: true, workflow });
   }
 
   static shouldContinueRun(scroller: Scroller, error: unknown): boolean {

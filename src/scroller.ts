@@ -79,7 +79,7 @@ export class Scroller<Data = unknown> {
   init(adapterRun$?: Reactive<ProcessSubject>): void {
     this.viewport.reset(this.buffer.startIndex);
     this.logger.stat('initialization');
-    this.adapter.initialize(this.buffer, this.state, this.logger, adapterRun$);
+    this.adapter.initialize(this.buffer, this.state, this.viewport, this.logger, adapterRun$);
   }
 
   dispose(forever?: boolean): void {

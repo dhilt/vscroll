@@ -136,7 +136,7 @@ const onItemList = (value: unknown): ValidatedValue => {
   return { value: parsedValue as unknown[], isSet: true, isValid: !errors.length, errors };
 };
 
-type Func = (...args: any[]) => void;
+type Func = (...args: unknown[]) => void;
 
 const onFunction = (value: unknown): ValidatedValue => {
   const errors = [];

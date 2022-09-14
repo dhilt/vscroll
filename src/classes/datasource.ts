@@ -1,5 +1,6 @@
 import { AdapterContext } from './adapter/context';
 import { reactiveConfigStorage } from './adapter/props';
+import { wantedStorage } from './adapter/wanted';
 import {
   IDatasource,
   IDatasourceConstructed,
@@ -25,11 +26,12 @@ export class DatasourceGeneric<Data> implements IDatasourceConstructed<Data> {
       this.devSettings = datasource.devSettings;
     }
     const adapterContext = new AdapterContext(config || { mock: false });
-    this.adapter = adapterContext as IAdapter<Data>;
+    this.adapter = adapterContext as unknown as IAdapter<Data>;
   }
 
   dispose(): void { // todo: should it be published?
     reactiveConfigStorage.delete(this.adapter.id);
+    wantedStorage.delete(this.adapter.id);
   }
 }
 

@@ -199,7 +199,7 @@ export class Routines implements IRoutines {
 
   onScroll(handler: EventListener): () => void {
     const eventReceiver = this.settings.window ? window : this.viewport;
-    eventReceiver.addEventListener('scroll', handler);
+    eventReceiver.addEventListener('scroll', handler, { passive: true });
     return () => eventReceiver.removeEventListener('scroll', handler);
   }
 

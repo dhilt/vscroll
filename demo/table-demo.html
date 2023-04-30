@@ -1,0 +1,153 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>vscroll table demo</title>
+  <meta charset="utf-8">
+  <style>
+    #viewport {
+      height: 350px;
+      width: 300px;
+      overflow-y: scroll;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th {
+      background: #f0f0f0;
+      position: sticky;
+      text-align: left;
+      top: 0;
+      padding: 5px;
+    }
+
+    th:first-child {
+      width: 50px;
+    }
+
+    td {
+      padding: 2px;
+    }
+
+    .num {
+      font-size: smaller;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/vscroll/dist/bundles/vscroll.umd.js"></script>
+</head>
+
+<body>
+  <h3>VScroll Table Demo (CDN)</h3>
+  <div id="viewport">
+    <table>
+      <thead>
+        <tr>
+          <th>Num</th>
+          <th>Text</th>
+        </tr>
+      </thead>
+      <tbody id="vscroll">
+        <tr data-padding-backward>
+          <td colspan="2"></td>
+        </tr>
+        <!-- vscroll rows -->
+        <tr data-padding-forward>
+          <td colspan="2"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <script>
+    (() => {
+      const Datasource = VScroll.makeDatasource();
+
+      // datasource, generates items in runtime
+      const datasource = new Datasource({
+        get: (index, count, success) => {
+          const data = [];
+          for (let i = index; i <= index + count - 1; i++) {
+            data.push({ id: i, text: 'item #' + i });
+          }
+          success(data);
+        },
+        settings: {
+          minIndex: 1,
+          viewportElement: () => document.getElementById('viewport'),
+        },
+      });
+
+      const workflowParams = {
+        consumer: {
+          name: 'VScroll Table Demo (CDN)',
+          version: 'not published',
+        },
+        element: document.getElementById('vscroll'),
+        datasource,
+        run: (newItems) => {
+          if (!newItems.length && !oldItems.length) {
+            return;
+          }
+          processItems(newItems, oldItems);
+          oldItems = newItems;
+        },
+        // DOM routines override, to provide table-header offset
+        Routines: class {
+          getOffset() {
+            return document.querySelector('#viewport thead')?.offsetHeight || 0;
+          }
+        },
+      };
+
+      // old items storage
+      let oldItems = [];
+
+      // renderer, detects change and provides consistent view
+      const processItems = (newItems, oldItems) => {
+        // remove elements not present
+        oldItems
+          .filter((item) => !newItems.includes(item))
+          .forEach((item) => item.element.remove());
+        // create and insert new elements
+        const elements = [];
+        let beforeElement = workflowParams.element.querySelector(
+          '[data-padding-forward]'
+        );
+        for (let i = newItems.length - 1; i >= 0; i--) {
+          if (oldItems.includes(newItems[i])) {
+            if (!elements.length) {
+              beforeElement = newItems[i].element;
+              continue;
+            } else {
+              break;
+            }
+          }
+          elements.unshift(createItemElement(newItems[i]));
+        }
+        elements.forEach((elt) =>
+          beforeElement.insertAdjacentElement('beforebegin', elt)
+        );
+      };
+
+      // creates and returns single item HTML element
+      const createItemElement = (item) => {
+        const element = document.createElement('tr');
+        element.setAttribute('data-sid', item.nodeId);
+        if (item.invisible) {
+          element.style.position = 'fixed';
+          element.style.top = '-99px';
+        }
+        element.innerHTML = `<td class="num">${item.$index}</td><td>${item.data.text}</td>`;
+        return element;
+      };
+
+      // run the VScroll Workflow
+      new VScroll.Workflow(workflowParams);
+
+    })();
+  </script>
+</body>
+
+</html>

@@ -211,6 +211,16 @@ new Workflow({
 });
 ```
 
+Another example is the table layout case where we need to specify the offset of the table header:
+
+```js
+const Routines = class {
+  getOffset() {
+    return document.querySelector('#viewport thead')?.offsetHeight || 0;
+  }
+}
+```
+
 Various DOM calculations, setting/getting the scroll position, render process and other logic can be adjusted, improved or completely replaced by custom methods of the `Routines` class setting.
 
 ## Live
@@ -270,4 +280,4 @@ VScroll will receive its own Adapter API documentation later, but for now please
 
  __________
 
-2022 &copy; [Denis Hilt](https://github.com/dhilt)
+2023 &copy; [Denis Hilt](https://github.com/dhilt)

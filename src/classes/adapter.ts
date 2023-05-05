@@ -32,6 +32,14 @@ import {
 } from '../interfaces/index';
 
 type MethodResolver = (...args: unknown[]) => Promise<AdapterMethodResult>;
+type InitializationParams<Item> = {
+  buffer: Buffer<Item>,
+  state: State,
+  viewport: Viewport,
+  logger: Logger,
+  adapterRun$?: Reactive<ProcessSubject>,
+  getWorkflow?: WorkflowGetter<Item>
+}
 
 const ADAPTER_PROPS_STUB = getDefaultAdapterProps();
 
@@ -264,7 +272,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   }
 
   initialize(
-    buffer: Buffer<Item>, state: State, viewport: Viewport, logger: Logger, adapterRun$?: Reactive<ProcessSubject>
+    { buffer, state, viewport, logger, adapterRun$, getWorkflow }: InitializationParams<Item>
   ): void {
     // buffer
     Object.defineProperty(this.demand, AdapterPropName.itemsCount, {
@@ -342,6 +350,11 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
           });
         }
       });
+    }
+
+    // workflow getter
+    if (getWorkflow) {
+      this.getWorkflow = getWorkflow;
     }
 
     // init

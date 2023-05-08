@@ -32,6 +32,14 @@ import {
 } from '../interfaces/index';
 
 type MethodResolver = (...args: unknown[]) => Promise<AdapterMethodResult>;
+type InitializationParams<Item> = {
+  buffer: Buffer<Item>,
+  state: State,
+  viewport: Viewport,
+  logger: Logger,
+  adapterRun$?: Reactive<ProcessSubject>,
+  getWorkflow?: WorkflowGetter<Item>
+}
 
 const ADAPTER_PROPS_STUB = getDefaultAdapterProps();
 
@@ -63,6 +71,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   private source: { [key: string]: Reactive<unknown> } = {}; // for Reactive props
   private box: { [key: string]: unknown } = {}; // for Scalars over Reactive props
   private demand: { [key: string]: unknown } = {}; // for Scalars on demand
+  private disposed: boolean;
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setFirstOrLastVisible = (_: { first?: boolean, last?: boolean, workflow?: ScrollerWorkflow }) => { };
@@ -264,7 +273,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   }
 
   initialize(
-    buffer: Buffer<Item>, state: State, viewport: Viewport, logger: Logger, adapterRun$?: Reactive<ProcessSubject>
+    { buffer, state, viewport, logger, adapterRun$, getWorkflow }: InitializationParams<Item>
   ): void {
     // buffer
     Object.defineProperty(this.demand, AdapterPropName.itemsCount, {
@@ -344,6 +353,11 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       });
     }
 
+    // workflow getter
+    if (getWorkflow) {
+      this.getWorkflow = getWorkflow;
+    }
+
     // init
     this.init = true;
   }
@@ -358,6 +372,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     Object.getOwnPropertyNames(this).forEach(prop => {
       delete (this as Record<string, unknown>)[prop];
     });
+    this.disposed = true;
   }
 
   resetContext(): void {
@@ -511,8 +526,15 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         resolve(false);
       });
     }).then(immediate => {
+      if (this.disposed) {
+        return {
+          immediate,
+          success: false,
+          details: 'Adapter was disposed'
+        };
+      }
       const success = reloadId === this.reloadId;
-      this.logger.log(() => !success ? `relax promise cancelled due to ${reloadId} != ${this.reloadId}` : void 0);
+      this.logger?.log?.(() => !success ? `relax promise cancelled due to ${reloadId} != ${this.reloadId}` : void 0);
       return {
         immediate,
         success,

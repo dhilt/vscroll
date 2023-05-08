@@ -152,7 +152,7 @@ export class Workflow<ItemData = unknown> {
       const { workflow, logger } = this.scroller;
       // we are going to create a new reference for the scroller.workflow object
       // calling the old version of the scroller.workflow by any outstanding async processes will be skipped
-      workflow.call = (p: ProcessSubject) => // eslint-disable-line @typescript-eslint/no-unused-vars
+      workflow.call = (_: ProcessSubject) => // eslint-disable-line @typescript-eslint/no-unused-vars
         logger.log('[skip wf call]');
       workflow.call.interrupted = true;
       this.scroller.workflow = this.getUpdater();
@@ -160,13 +160,19 @@ export class Workflow<ItemData = unknown> {
       logger.log(() => `workflow had been interrupted by the ${process} process (${this.interruptionCount})`);
     }
     if (datasource) { // Scroller re-initialization case
-      this.scroller.adapter.relax(() => {
+      const reInit = () => {
         this.scroller.logger.log('new Scroller instantiation');
         const scroller = new Scroller<ItemData>({ datasource, scroller: this.scroller });
         this.scroller.dispose();
         this.scroller = scroller;
         this.scroller.init();
-      });
+      };
+      if (this.scroller.state.cycle.busy.get()) {
+        // todo: think about immediate re-initialization even is there are pending processes
+        this.scroller.adapter.relax(reInit.bind(this));
+      } else {
+        reInit();
+      }
     }
   }
 

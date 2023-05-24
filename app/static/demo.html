@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>vscroll demo</title>
+  <meta charset="utf-8">
+  <style>
+    .viewport {
+      height: 240px;
+      width: 150px;
+      overflow-y: scroll;
+    }
+
+    .viewport .item {
+      height: 24px;
+    }
+
+    .viewport .item span {
+      font-size: small;
+    }
+  </style>
+  <script>window.__vscroll__ = {};</script>
+  <script src="vscroll.js"></script>
+  <script src="./scroller.js"></script>
+  <!-- datasource -->
+</head>
+
+<body>
+  <h3>VScroll App</h3>
+  <div class="viewport">
+    <div id="vscroll">
+      <div data-padding-backward></div>
+      <div data-padding-forward></div>
+    </div>
+  </div>
+  <script>
+    const { Scroller, datasource } = window.__vscroll__;
+    window.__vscroll__.scroller = new Scroller(datasource);
+  </script>
+</body>
+
+</html>

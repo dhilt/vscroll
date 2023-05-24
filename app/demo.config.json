@@ -1,0 +1,18 @@
+[
+  {
+    "route": "/scene1",
+    "title": {
+      "head": "scene 1",
+      "body": "Scene 1"
+    },
+    "ds": "./datasource.js"
+  },
+  {
+    "route": "/scene2",
+    "title": {
+      "head": "scene 2",
+      "body": "Scene 2"
+    },
+    "ds": "./datasource.js"
+  }
+]

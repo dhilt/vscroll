@@ -1,9 +1,13 @@
-const path = require('path');
-const express = require('express');
-const { readFile } = require('fs');
-const CONF = require('./demo.config.json');
+import path from 'path';
+import { fileURLToPath } from 'url';
+import express from 'express';
+import { readFile, readFileSync } from 'fs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const PORT = 3000;
+let CONF;
 let indexHtml;
 let demoHtml;
 
@@ -12,6 +16,14 @@ const app = express();
 const init = () => new Promise((resolve, reject) => {
   let resolved = 0;
   const _resolve = () => ++resolved === 2 ? resolve() : void 0;
+
+  try {
+    CONF = JSON.parse(
+      readFileSync(path.join(__dirname, './demo.config.json'), { encoding: 'utf8' })
+    );
+  } catch (err) {
+    reject(err);
+  }
 
   readFile(path.join(__dirname, '/static/index.html'), { encoding: 'utf8' }, (e, i) => {
     if (e) {
@@ -66,4 +78,8 @@ app.get('/*', (req, res) => {
 
 init().then(
   app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`))
-).catch(e => console.log('Can\'t run server', e));
+).catch(e => {
+  console.log('Can\'t run server!\n');
+  console.log(e);
+  process.exit();
+});

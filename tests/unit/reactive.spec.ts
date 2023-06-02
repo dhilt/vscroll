@@ -1,4 +1,4 @@
-import { Reactive } from '../src/classes/reactive';
+import { Reactive } from '../../src/classes/reactive';
 
 describe('Reactive', () => {
 

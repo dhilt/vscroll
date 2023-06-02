@@ -1,5 +1,5 @@
-import { ValidatorType, VALIDATORS, validateOne, validate } from '../src/inputs';
-import { IValidator } from '../src/interfaces';
+import { ValidatorType, VALIDATORS, validateOne, validate } from '../../src/inputs';
+import { IValidator } from '../../src/interfaces';
 
 const {
   INTEGER,

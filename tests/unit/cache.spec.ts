@@ -1,9 +1,9 @@
-import { Cache } from '../src/classes/buffer/cache';
-import { Item } from '../src/classes/item';
+import { Cache } from '../../src/classes/buffer/cache';
+import { Item } from '../../src/classes/item';
 
-import { Data, Id, IndexIdList, IndexSizeList } from './misc/types';
-import { generateBufferItem, generateBufferItems, generateItem } from './misc/items';
-import { Direction, SizeStrategy } from '../src/inputs';
+import { Data, Id, IndexIdList, IndexSizeList } from '../misc/types';
+import { generateBufferItem, generateBufferItems, generateItem } from '../misc/items';
+import { Direction, SizeStrategy } from '../../src/inputs';
 
 interface ActionCacheConfig {
   title: string;

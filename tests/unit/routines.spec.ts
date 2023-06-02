@@ -1,5 +1,5 @@
-import { Routines } from '../src/classes/domRoutines';
-import { Settings } from '../src/classes/settings';
+import { Routines } from '../../src/classes/domRoutines';
+import { Settings } from '../../src/classes/settings';
 
 const settings = new Settings(void 0, void 0, 0);
 const element = { parentElement: { style: {} } } as unknown as HTMLElement;

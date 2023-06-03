@@ -5,7 +5,13 @@
   <title>vscroll demo<!-- head-title --></title>
   <meta charset="utf-8">
   <style>
+    h2 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
     .viewport {
+      margin-top: 10px;
       height: 240px;
       width: 150px;
       overflow-y: scroll;
@@ -26,17 +32,19 @@
 </head>
 
 <body>
-  <h3>VScroll Demo<!-- body-title --></h3>
-  <div class="viewport">
-    <div id="vscroll">
-      <div data-padding-backward></div>
-      <div data-padding-forward></div>
-    </div>
-  </div>
-  <script>
-    const { Scroller, datasource } = window.__vscroll__;
-    window.__vscroll__.scroller = new Scroller(datasource);
-  </script>
+  <h2>VScroll Demo<!-- body-title --></h3>
+    <!-- body-description -->
+    <!-- template -->
+    <script>
+      (() => {
+        if (!window.__vscroll__.needRun) {
+          const { Scroller, datasource } = window.__vscroll__;
+          if (datasource) {
+            window.__vscroll__.scroller = new Scroller(datasource);
+          }
+        }
+      })();
+    </script>
 </body>
 
 </html>

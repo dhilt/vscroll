@@ -9,7 +9,7 @@
       }
       success(data);
     },
-    devSettings: { debug: true }
+    // devSettings: { debug: true }
   });
 
   window.__vscroll__.datasource = datasource;

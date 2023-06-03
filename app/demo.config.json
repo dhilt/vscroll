@@ -1,18 +1,29 @@
 [
   {
-    "route": "/scene1",
+    "route": "/common",
     "title": {
-      "head": "scene 1",
-      "body": "Scene 1"
+      "head": "common",
+      "body": "Common"
     },
-    "ds": "./datasource.js"
+    "description": "Common demo with minimal functionality",
+    "ds": "./datasources/common.js"
   },
   {
-    "route": "/scene2",
+    "route": "/no-datasource",
     "title": {
-      "head": "scene 2",
-      "body": "Scene 2"
+      "head": "no datasource",
+      "body": "No datasource"
     },
-    "ds": "./datasource.js"
+    "description": "Need to make the datasource and run the scroller"
+  },
+  {
+    "route": "/need-run",
+    "title": {
+      "head": "need run",
+      "body": "Need run"
+    },
+    "description": "Need to run the scroller",
+    "ds": "./datasources/common.js",
+    "needRun": true
   }
 ]

@@ -63,16 +63,42 @@ app.get('/', (_, res) => res.send(indexHtml));
 
 app.use(express.static(path.join(__dirname, './static')));
 
+const templates = new Map();
+const TEMPLATE_DEFAULT = './templates/common.html';
+
 app.get('/*', (req, res) => {
   console.log(req.originalUrl);
   const conf = CONF.find(c => c.route === req.originalUrl);
   if (!conf) {
     return res.sendStatus(404);
   }
-  const html = demoHtml
+  let html = demoHtml
     .replace('<!-- head-title -->', ` ${conf.title.head}`)
-    .replace('<!-- body-title -->', ` ${conf.title.body}`)
-    .replace('<!-- datasource -->', `<script src="${conf.ds}"></script>`);
+    .replace('<!-- body-title -->', ` ${conf.title.body}`);
+  if (conf.description) {
+    html = html.replace('<!-- body-description -->', ` ${conf.description}`);
+  }
+
+  let template = templates.get(conf.route);
+  if (!template) {
+    try {
+      const templatePath = path.join(__dirname, './static', conf.template || TEMPLATE_DEFAULT);
+      template = readFileSync(templatePath, { encoding: 'utf8' });
+      templates.get(conf.route, template);
+    } catch (err) {
+      console.log(err);
+      return res.sendStatus(400);
+    }
+  }
+  html = html.replace('<!-- template -->', ` ${template}`);
+
+  if (conf.ds) {
+    let dsScript = `<script src="${conf.ds}"></script>`;
+    if (conf.needRun) {
+      dsScript += '<script>window.__vscroll__.needRun = true</script>';
+    }
+    html = html.replace('<!-- datasource -->', dsScript);
+  }
   return res.send(html);
 });
 

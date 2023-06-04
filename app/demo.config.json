@@ -25,5 +25,16 @@
     "description": "Need to run the scroller",
     "ds": "./datasources/common.js",
     "runner": "./runners/empty.js"
+  },
+  {
+    "route": "/multiple",
+    "title": {
+      "head": "multiple",
+      "body": "Multiple"
+    },
+    "description": "Multiple scrollers",
+    "ds": "./datasources/multiple.js",
+    "runner": "./runners/multiple.js",
+    "template": "./templates/multiple.html"
   }
 ]

@@ -74,5 +74,6 @@
     }
   }
 
+  window.__vscroll__.Dom = Dom;
   window.__vscroll__.Scroller = Scroller;
 })();

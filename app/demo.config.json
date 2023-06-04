@@ -24,6 +24,6 @@
     },
     "description": "Need to run the scroller",
     "ds": "./datasources/common.js",
-    "needRun": true
+    "runner": "./runners/empty.js"
   }
 ]

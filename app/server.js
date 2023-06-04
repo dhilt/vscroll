@@ -78,7 +78,7 @@ const loadEntity = ({ key, map, file }) => {
       map.get(key, result);
     } catch (err) {
       console.log(err);
-      return false;
+      return null;
     }
   }
   return result;
@@ -97,8 +97,8 @@ const makeHtml = ({ conf }) => {
     map: templates,
     file: conf.template || TEMPLATE_DEFAULT
   });
-  if (!template) {
-    return false;
+  if (template === null) {
+    return null;
   }
   html = html.replace('<!-- template -->', ` ${template}`);
 
@@ -107,8 +107,8 @@ const makeHtml = ({ conf }) => {
     map: runners,
     file: conf.runner || RUNNER_DEFAULT
   });
-  if (!runner) {
-    return false;
+  if (runner === null) {
+    return null;
   }
   html = html.replace('<!-- runner -->', `<script>${runner}</script>`);
 

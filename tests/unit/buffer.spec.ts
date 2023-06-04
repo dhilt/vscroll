@@ -1,10 +1,10 @@
 import { Buffer } from '../../src/classes/buffer';
 
 import { Direction } from '../../src/inputs';
-import { generateItem as makeItem, generateBufferItem as cb, generateBufferItems, generateItem } from '../misc/items';
+import { generateItem as makeItem, generateBufferItem as cb, generateBufferItems, generateItem } from './misc/items';
 import {
   Data, BufferParams, BufferUpdateConfig, BufferUpdateTrackConfig, BufferInsertConfig
-} from '../misc/types';
+} from './misc/types';
 
 const loggerMock = { log: () => null };
 

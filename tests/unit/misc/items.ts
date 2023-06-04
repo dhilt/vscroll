@@ -1,5 +1,5 @@
-import { Item } from '../../src/classes/item';
-import { ItemCache } from '../../src/classes/buffer/cache';
+import { Item } from '../../../src/classes/item';
+import { ItemCache } from '../../../src/classes/buffer/cache';
 import { Id, Data } from './types';
 
 const MIN_SIZE = 1;

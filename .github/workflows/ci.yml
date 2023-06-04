@@ -1,4 +1,4 @@
-name: vscroll build
+name: ci
 
 on:
   push:
@@ -14,15 +14,15 @@ on:
         default: "Manual triggering"
 
 jobs:
-  vscroll_build:
-    name: VScroll Build
+  vscroll_ci:
+    name: VScroll CI
     runs-on: ubuntu-latest
     steps:
       - name: Dispatched?
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           echo "This is dispatched"
-          echo "Build reason: ${{ github.event.inputs.cause }}"
+          echo "Reason: ${{ github.event.inputs.cause }}"
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,3 +40,14 @@ jobs:
 
       - name: Unit tests
         run: npm test
+
+      - name: E2e tests
+        run: |
+          npx playwright install
+          npx playwright test initialization.spec.ts
+
+      - name: Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist

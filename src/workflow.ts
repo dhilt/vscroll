@@ -18,6 +18,7 @@ import {
 export class Workflow<ItemData = unknown> {
 
   isInitialized: boolean;
+  disposed: boolean;
   initTimer: ReturnType<typeof setTimeout> | null;
   adapterRun$: Reactive<ProcessSubject>;
   cyclesDone: number;
@@ -32,6 +33,7 @@ export class Workflow<ItemData = unknown> {
 
   constructor({ element, datasource, consumer, run, Routines }: WorkflowParams<ItemData>) {
     this.isInitialized = false;
+    this.disposed = false;
     this.initTimer = null;
     this.adapterRun$ = new Reactive();
     this.cyclesDone = 0;
@@ -62,13 +64,6 @@ export class Workflow<ItemData = unknown> {
 
   init(): void {
     this.scroller.init(this.adapterRun$);
-    this.isInitialized = true;
-
-    // run the Workflow
-    this.callWorkflow({
-      process: CommonProcess.init,
-      status: Status.start
-    });
 
     // set up scroll event listener
     const { routines } = this.scroller;
@@ -79,6 +74,13 @@ export class Workflow<ItemData = unknown> {
         payload: { event }
       });
     this.offScroll = routines.onScroll(onScrollHandler);
+
+    // run the Workflow
+    this.isInitialized = true;
+    this.callWorkflow({
+      process: CommonProcess.init,
+      status: Status.start
+    });
   }
 
   changeItems(items: Item<ItemData>[]): void {
@@ -194,6 +196,7 @@ export class Workflow<ItemData = unknown> {
     Object.getOwnPropertyNames(this).forEach(prop => {
       delete (this as Record<string, unknown>)[prop];
     });
+    this.disposed = true;
   }
 
   finalize(): void {

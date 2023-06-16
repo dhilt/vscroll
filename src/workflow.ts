@@ -187,6 +187,7 @@ export class Workflow<ItemData = unknown> {
   }
 
   dispose(): void {
+    this.scroller.logger.log(() => 'disposing workflow');
     if (this.initTimer) {
       clearTimeout(this.initTimer);
     }

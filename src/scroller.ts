@@ -89,6 +89,7 @@ export class Scroller<Data = unknown> {
   }
 
   dispose(forever?: boolean): void {
+    this.logger.log(() => 'disposing scroller' + (forever ? ' (forever)' : ''));
     if (forever) { // Adapter is not re-instantiated on reset
       this.adapter.dispose();
     }

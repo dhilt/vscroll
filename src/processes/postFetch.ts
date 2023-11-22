@@ -56,8 +56,9 @@ export default class PostFetch extends BaseProcessFactory(CommonProcess.postFetc
       if (cycle.innerLoop.isInitial) {
         // let's treat initial poor fetch as startIndex-bof
         fetchIndex = buffer.startIndex;
-      } else if (fetch.first.index < buffer.minIndex) { // normal bof
-        fetchIndex = buffer.minIndex - items.length;
+      } else if (fetch.first.index < buffer.minIndex) {
+        // normal bof
+        fetchIndex = buffer.firstIndex - items.length;
       }
     }
     fetch.items = items.map((item, index: number) =>

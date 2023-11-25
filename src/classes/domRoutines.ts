@@ -1,8 +1,6 @@
 import { Settings } from './settings';
 import { Direction } from '../inputs/index';
-import { IRoutines, CustomRoutinesClass } from '../interfaces/index';
-
-type MethodContainer = { [key: string]: (...args: unknown[]) => void };
+import { IRoutines } from '../interfaces/index';
 
 export class Routines implements IRoutines {
 
@@ -10,28 +8,13 @@ export class Routines implements IRoutines {
   readonly element: HTMLElement;
   readonly viewport: HTMLElement;
 
-  constructor(element: HTMLElement, settings: Settings, CustomRoutines?: CustomRoutinesClass) {
+  constructor(element: HTMLElement, settings: Settings) {
     this.element = element;
     this.settings = {
       viewport: settings.viewport,
       horizontal: settings.horizontal,
       window: settings.windowViewport
     };
-    // provide custom overrides for IRoutines methods
-    if (CustomRoutines) {
-      const self = (this as unknown as MethodContainer);
-      const routines = new CustomRoutines(element, this.settings) as MethodContainer;
-      Object.getOwnPropertyNames(Object.getPrototypeOf(routines))
-        .filter(method =>
-          method !== 'constructor' &&
-          typeof routines[method] === 'function' &&
-          typeof self[method] === 'function'
-        )
-        .forEach(method =>
-          self[method] = (...args: unknown[]) =>
-            routines[method].apply(this, args)
-        );
-    }
     // initialization
     this.viewport = this.getViewportElement();
     this.onInit(settings);

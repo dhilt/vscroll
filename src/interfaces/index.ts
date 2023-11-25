@@ -46,7 +46,7 @@ import {
   IAdapter,
 } from './adapter';
 import { Settings, DevSettings } from './settings';
-import { IRoutines, CustomRoutinesClass } from './routines';
+import { IRoutines, RoutinesClassType } from './routines';
 import { ScrollEventData, State } from './state';
 import {
   ProcessName,
@@ -111,7 +111,7 @@ export {
   Settings,
   DevSettings,
   IRoutines,
-  CustomRoutinesClass,
+  RoutinesClassType,
   ScrollEventData,
   State,
   ProcessName,

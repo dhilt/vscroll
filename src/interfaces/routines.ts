@@ -1,3 +1,4 @@
+import { Routines } from '../classes/domRoutines';
 import { Settings } from '../classes/settings';
 import { Direction } from '../inputs/index';
 
@@ -184,4 +185,4 @@ export interface IRoutines {
 
 }
 
-export type CustomRoutinesClass = { new(element: HTMLElement, settings: IRoutinesSettings): Partial<IRoutines>; };
+export type RoutinesClassType = new (...args: ConstructorParameters<typeof Routines>) => Routines;

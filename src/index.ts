@@ -1,5 +1,6 @@
 import { Workflow } from './workflow';
 import { makeDatasource } from './classes/datasource';
+import { Routines } from './classes/domRoutines';
 import packageInfo from './version';
 import { INVALID_DATASOURCE_PREFIX } from './scroller';
 import { AdapterPropName, EMPTY_ITEM, getDefaultAdapterProps } from './classes/adapter/props';
@@ -20,6 +21,7 @@ import {
 export {
   Workflow,
   makeDatasource,
+  Routines,
   packageInfo,
   INVALID_DATASOURCE_PREFIX,
   AdapterPropName,

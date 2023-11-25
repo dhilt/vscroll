@@ -1,6 +1,7 @@
 import {
   ObservableLike,
   DatasourceGet,
+  IDatasourceParams,
   IDatasourceOptional,
   IDatasource,
   IDatasourceConstructed,
@@ -68,6 +69,7 @@ import {
 export {
   ObservableLike,
   DatasourceGet,
+  IDatasourceParams,
   IDatasourceOptional,
   IDatasource,
   IDatasourceConstructed,

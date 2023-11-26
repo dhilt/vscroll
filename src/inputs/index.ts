@@ -3,6 +3,7 @@ import { ValidatorType, VALIDATORS, validateOne, validate } from './validation';
 import { DatasourceProps, DATASOURCE } from './datasource';
 import { SETTINGS, DEV_SETTINGS } from './settings';
 import { AdapterMethods, ADAPTER_METHODS } from './adapter';
+import { WORKFLOW } from './workflow';
 
 export {
   Direction,
@@ -17,4 +18,5 @@ export {
   DEV_SETTINGS,
   AdapterMethods,
   ADAPTER_METHODS,
+  WORKFLOW,
 };

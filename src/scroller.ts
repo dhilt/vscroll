@@ -41,6 +41,18 @@ export class Scroller<Data = unknown> {
     element = scroller ? scroller.routines.element : (element as HTMLElement);
     workflow = scroller ? scroller.workflow : (workflow as ScrollerWorkflow<Data>);
 
+    // In general, custom Routines must extend the original Routines. If not, we provide implicit extending.
+    // This is undocumented feature. It should be removed in vscroll v2.
+    if (CustomRoutines && !(CustomRoutines.prototype instanceof Routines)) {
+      class __Routines extends Routines { }
+      Object.getOwnPropertyNames(CustomRoutines.prototype)
+        .filter(method => method !== 'constructor')
+        .forEach(method =>
+          (__Routines.prototype as unknown as Record<string, unknown>)[method] = CustomRoutines?.prototype[method]
+        );
+      CustomRoutines = __Routines;
+    }
+
     this.workflow = workflow;
     this.settings = new Settings<Data>(datasource.settings, datasource.devSettings, ++instanceCount);
     this.logger = new Logger(this as Scroller, packageInfo, datasource.adapter);

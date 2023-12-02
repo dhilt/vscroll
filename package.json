@@ -31,7 +31,7 @@
     "test": "npm run lint && npm run jest",
     "prepack": "npm run build",
     "checkGit": "sh ./uncommited.sh",
-    "prepublishOnly": "npm run checkGit && npm run test && npm run build"
+    "prepublishOnly": "npm run checkGit && npm run test && npm run build && npm run checkGit"
   },
   "dependencies": {
     "tslib": "^2.3.1"

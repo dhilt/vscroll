@@ -29,8 +29,9 @@
     "watch": "jest --watch",
     "build": "node build",
     "test": "npm run lint && npm run jest",
-    "prepublishOnly": "npm run test",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "checkGit": "sh ./uncommited.sh",
+    "prepublishOnly": "npm run checkGit && npm run test && npm run build"
   },
   "dependencies": {
     "tslib": "^2.3.1"

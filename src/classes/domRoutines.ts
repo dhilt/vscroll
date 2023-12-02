@@ -1,6 +1,6 @@
 import { Settings } from './settings';
 import { Direction } from '../inputs/index';
-import { IRoutines } from '../interfaces/index';
+import { IRoutines, ItemAdapter } from '../interfaces/index';
 
 export class Routines implements IRoutines {
 
@@ -61,6 +61,10 @@ export class Routines implements IRoutines {
 
   findItemElement(id: string): HTMLElement | null {
     return this.findElementBySelector(this.element, `[data-sid="${id}"]`);
+  }
+
+  findItemChildBySelector(id: string, selector: string): HTMLElement | null {
+    return this.findElementBySelector(this.element, `[data-sid="${id}"] ${selector}`);
   }
 
   getScrollPosition(): number {
@@ -170,7 +174,8 @@ export class Routines implements IRoutines {
     element.scrollIntoView(argument);
   }
 
-  render(cb: () => void): () => void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  render(cb: () => void, params: { items: ItemAdapter[] }): () => void {
     const timeoutId = setTimeout(() => cb());
     return () => clearTimeout(timeoutId);
   }

@@ -1,6 +1,7 @@
 import { Routines } from '../classes/domRoutines';
 import { Settings } from '../classes/settings';
 import { Direction } from '../inputs/index';
+import { ItemAdapter } from './adapter';
 
 interface IRoutinesSettings {
   /** The scroller's viewport element defined by the app settings.
@@ -75,6 +76,13 @@ export interface IRoutines {
    * @returns {HTMLElement | null} HTML item element, or null.
    */
   findItemElement: (id: string) => HTMLElement | null;
+
+  /** Finds element by CSS selector among the child elements of an element that matches the item's id.
+   * @param {string} id Id of the parent item.
+   * @param {string} selector CSS selector of the child element to search.
+   * @returns {HTMLElement | null} HTML item element, or null.
+   */
+  findItemChildBySelector: (id: string, selector: string) => HTMLElement | null;
 
   /** Gets scroll position of the viewport. Internal settings should be taken into account.
    * @returns {number} Scroll position value.
@@ -165,11 +173,12 @@ export interface IRoutines {
    */
   scrollTo: (element: HTMLElement, argument?: boolean | ScrollIntoViewOptions) => void;
 
-  /** Wraps rendering. Runs render process and calls the argument function when it is done.
-   * @param {function} cb
+  /** Wraps rendering. Runs the rendering process and calls the "cb" function when it is done.
+   * @param {function} cb A callback function that should be invoked after the rendering process has completed.
+   * @param {ItemAdapter[]} items An array of items to be rendered.
    * @returns {function} Callback to dismiss render and prevent the argument function to be invoked.
    */
-  render: (cb: () => void) => () => void;
+  render: (cb: () => void, { items }: { items: ItemAdapter[] }) => () => void;
 
   /** Wraps animation. Runs animations process and calls the argument function when it is done.
    * @param {function} cb

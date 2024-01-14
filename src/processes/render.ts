@@ -5,7 +5,7 @@ import { Item } from '../classes/item';
 export default class Render extends BaseProcessFactory(CommonProcess.render) {
 
   static run(scroller: Scroller): void {
-    const { workflow, state: { cycle, render, scroll }, viewport, routines } = scroller;
+    const { workflow, state: { cycle, render, scroll, fetch }, viewport, routines } = scroller;
     scroller.logger.stat('before new items render');
     if (scroll.positionBeforeAsync === null) {
       scroll.positionBeforeAsync = viewport.scrollPosition;
@@ -25,7 +25,7 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
           payload: { error: 'Can\'t associate item with element' }
         });
       }
-    });
+    }, { items: fetch.items.map(i => i.get()) });
   }
 
   static doRender(scroller: Scroller): boolean {

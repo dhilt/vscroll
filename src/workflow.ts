@@ -3,6 +3,7 @@ import { runStateMachine } from './workflow-transducer';
 import { Reactive } from './classes/reactive';
 import { Item } from './classes/item';
 import { CommonProcess, ProcessStatus as Status, } from './processes/index';
+import { WORKFLOW, validate } from './inputs/index';
 import {
   WorkflowParams,
   ProcessName,
@@ -31,7 +32,14 @@ export class Workflow<ItemData = unknown> {
 
   scroller: Scroller<ItemData>;
 
-  constructor({ element, datasource, consumer, run, Routines }: WorkflowParams<ItemData>) {
+  constructor(params: WorkflowParams<ItemData>) {
+    const { element, datasource, consumer, run, Routines } = params;
+
+    const validationResult = validate(params, WORKFLOW);
+    if (!validationResult.isValid) {
+      throw new Error(`Invalid Workflow params: ${validationResult.errors.join(', ')}.`);
+    }
+
     this.isInitialized = false;
     this.disposed = false;
     this.initTimer = null;

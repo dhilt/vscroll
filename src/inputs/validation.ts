@@ -102,7 +102,7 @@ const onBoolean = (value: unknown): ValidatedValue => {
 
 const onObject = (value: unknown): ValidatedValue => {
   const errors = [];
-  if (Object.prototype.toString.call(value) !== '[object Object]') {
+  if (!value || Object.prototype.toString.call(value) !== '[object Object]') {
     errors.push(ValidatorType.object);
   }
   return { value, isSet: true, isValid: !errors.length, errors };
@@ -110,7 +110,7 @@ const onObject = (value: unknown): ValidatedValue => {
 
 const onHtmlElement = (value: unknown): ValidatedValue => {
   const errors = [];
-  if (!(value instanceof Element) && !(value instanceof HTMLDocument)) {
+  if (!(value instanceof Element) && !(value instanceof Document)) {
     errors.push(ValidatorType.element);
   }
   return { value, isSet: true, isValid: !errors.length, errors };

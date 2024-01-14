@@ -1,4 +1,5 @@
 import { Settings } from './settings';
+import { Reactive } from './reactive';
 import { WorkflowCycleModel } from './state/cycle';
 import { FetchModel } from './state/fetch';
 import { ClipModel } from './state/clip';
@@ -11,6 +12,7 @@ export class State implements IState {
   readonly packageInfo: IPackages;
   private settings: Settings;
   initTime: number;
+  paused: Reactive<boolean>;
 
   cycle: WorkflowCycleModel;
   fetch: FetchModel;
@@ -26,6 +28,7 @@ export class State implements IState {
     this.packageInfo = packageInfo;
     this.settings = settings;
     this.initTime = Number(new Date());
+    this.paused = new Reactive(false);
 
     this.cycle = new WorkflowCycleModel(this.settings.instanceIndex, state ? state.cycle : void 0);
     this.fetch = new FetchModel(settings.directionPriority);
@@ -80,6 +83,7 @@ export class State implements IState {
   dispose(): void {
     this.scroll.stop();
     this.cycle.dispose();
+    this.paused.dispose();
     this.endInnerLoop();
   }
 

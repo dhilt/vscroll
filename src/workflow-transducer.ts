@@ -13,6 +13,7 @@ import {
   Insert,
   Replace,
   Update,
+  Pause,
   Fix,
   Start,
   PreFetch,
@@ -128,6 +129,14 @@ export const runStateMachine = ({
         run(Update)(options);
       }
       if (status === Status.next) {
+        run(Init)(process);
+      }
+      break;
+    case AdapterProcess.pause:
+      if (status === Status.start) {
+        run(Pause)(options);
+      }
+      if (status === Status.done) {
         run(Init)(process);
       }
       break;

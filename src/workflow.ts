@@ -2,7 +2,7 @@ import { Scroller } from './scroller';
 import { runStateMachine } from './workflow-transducer';
 import { Reactive } from './classes/reactive';
 import { Item } from './classes/item';
-import { CommonProcess, ProcessStatus as Status, } from './processes/index';
+import { AdapterProcess, CommonProcess, ProcessStatus as Status, } from './processes/index';
 import { WORKFLOW, validate } from './inputs/index';
 import {
   WorkflowParams,
@@ -100,6 +100,11 @@ export class Workflow<ItemData = unknown> {
       return;
     }
     const { process, status } = processSubject;
+    // if the scroller is paused, any process other than "pause" and "reset" should be blocked
+    if (this.scroller.state.paused.get() && process !== AdapterProcess.pause && process !== AdapterProcess.reset) {
+      this.scroller.logger.log('scroller is paused: ' + process + ' process is ignored');
+      return;
+    }
     if (process && process.startsWith('adapter') && status !== Status.next) {
       this.adapterRun$.set(processSubject);
     }

@@ -237,6 +237,7 @@ export const AdapterMethods: AdapterProcessMap<{ [key: string]: string }> = {
   [Process.insert]: AdapterInsertParams,
   [Process.replace]: AdapterReplaceParams,
   [Process.update]: AdapterUpdateParams,
+  [Process.pause]: AdapterNoParams,
   [Process.fix]: AdapterFixParams,
 };
 
@@ -251,5 +252,6 @@ export const ADAPTER_METHODS: AdapterProcessMap<ICommonProps<PropertyKey>> = {
   [Process.insert]: INSERT_METHOD_PARAMS,
   [Process.replace]: REPLACE_METHOD_PARAMS,
   [Process.update]: UPDATE_METHOD_PARAMS,
+  [Process.pause]: NO_METHOD_PARAMS,
   [Process.fix]: FIX_METHOD_PARAMS,
 };

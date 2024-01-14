@@ -502,6 +502,25 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  pause(): any {
+    this.logger.logAdapterMethod('pause');
+    this.workflow.call({
+      process: AdapterProcess.pause,
+      status: ProcessStatus.start
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  resume(): any {
+    this.logger.logAdapterMethod('resume');
+    this.workflow.call({
+      process: AdapterProcess.pause,
+      status: ProcessStatus.start,
+      payload: { options: { resume: true } }
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fix(options: AdapterFixOptions<Item>): any {
     this.logger.logAdapterMethod('fix', options);
     this.workflow.call({

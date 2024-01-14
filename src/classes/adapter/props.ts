@@ -35,6 +35,8 @@ export enum AdapterPropName {
   insert = 'insert',
   replace = 'replace',
   update = 'update',
+  pause = 'pause',
+  resume = 'resume',
   fix = 'fix',
   relax = 'relax',
   showLog = 'showLog',
@@ -221,6 +223,16 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
   {
     type: Type.WorkflowRunner,
     name: Name.update,
+    value: noopWF
+  },
+  {
+    type: Type.WorkflowRunner,
+    name: Name.pause,
+    value: noopWF
+  },
+  {
+    type: Type.WorkflowRunner,
+    name: Name.resume,
     value: noopWF
   },
   {

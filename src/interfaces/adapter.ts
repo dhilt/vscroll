@@ -170,6 +170,8 @@ export interface IAdapter<Data = unknown> {
   insert(options: AdapterInsertOptions<Data>): MethodResult;
   replace(options: AdapterReplaceOptions<Data>): MethodResult;
   update(options: AdapterUpdateOptions<Data>): MethodResult;
+  pause(): MethodResult;
+  resume(): MethodResult;
   fix(options: AdapterFixOptions<Data>): MethodResult; // experimental
   relax(callback?: () => void): MethodResult;
   showLog(): void;

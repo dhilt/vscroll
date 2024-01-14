@@ -3,6 +3,7 @@ import { runStateMachine } from './workflow-transducer';
 import { Reactive } from './classes/reactive';
 import { Item } from './classes/item';
 import { CommonProcess, ProcessStatus as Status, } from './processes/index';
+import { WORKFLOW, validate } from './inputs/index';
 import {
   WorkflowParams,
   ProcessName,
@@ -18,6 +19,7 @@ import {
 export class Workflow<ItemData = unknown> {
 
   isInitialized: boolean;
+  disposed: boolean;
   initTimer: ReturnType<typeof setTimeout> | null;
   adapterRun$: Reactive<ProcessSubject>;
   cyclesDone: number;
@@ -30,8 +32,16 @@ export class Workflow<ItemData = unknown> {
 
   scroller: Scroller<ItemData>;
 
-  constructor({ element, datasource, consumer, run, Routines }: WorkflowParams<ItemData>) {
+  constructor(params: WorkflowParams<ItemData>) {
+    const { element, datasource, consumer, run, Routines } = params;
+
+    const validationResult = validate(params, WORKFLOW);
+    if (!validationResult.isValid) {
+      throw new Error(`Invalid Workflow params: ${validationResult.errors.join(', ')}.`);
+    }
+
     this.isInitialized = false;
+    this.disposed = false;
     this.initTimer = null;
     this.adapterRun$ = new Reactive();
     this.cyclesDone = 0;
@@ -62,13 +72,6 @@ export class Workflow<ItemData = unknown> {
 
   init(): void {
     this.scroller.init(this.adapterRun$);
-    this.isInitialized = true;
-
-    // run the Workflow
-    this.callWorkflow({
-      process: CommonProcess.init,
-      status: Status.start
-    });
 
     // set up scroll event listener
     const { routines } = this.scroller;
@@ -79,6 +82,13 @@ export class Workflow<ItemData = unknown> {
         payload: { event }
       });
     this.offScroll = routines.onScroll(onScrollHandler);
+
+    // run the Workflow
+    this.isInitialized = true;
+    this.callWorkflow({
+      process: CommonProcess.init,
+      status: Status.start
+    });
   }
 
   changeItems(items: Item<ItemData>[]): void {
@@ -185,6 +195,7 @@ export class Workflow<ItemData = unknown> {
   }
 
   dispose(): void {
+    this.scroller.logger.log(() => 'disposing workflow');
     if (this.initTimer) {
       clearTimeout(this.initTimer);
     }
@@ -194,6 +205,7 @@ export class Workflow<ItemData = unknown> {
     Object.getOwnPropertyNames(this).forEach(prop => {
       delete (this as Record<string, unknown>)[prop];
     });
+    this.disposed = true;
   }
 
   finalize(): void {

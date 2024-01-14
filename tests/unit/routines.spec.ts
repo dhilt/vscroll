@@ -37,7 +37,7 @@ describe('Routines', () => {
   });
 
   describe('Override', () => {
-    class CustomRoutines {
+    class CustomRoutines extends Routines {
       checkElement(element: HTMLElement) {
         if (!element) {
           throw new Error('HTML element is not defined (custom)');
@@ -46,7 +46,7 @@ describe('Routines', () => {
     }
 
     it('should override "checkElement" method and work as before', () => {
-      const routines = new Routines(element, settings, CustomRoutines);
+      const routines = new CustomRoutines(element, settings);
       expect(routines instanceof Routines).toBe(true);
       expect(typeof routines.checkElement).toBe('function');
       expect(typeof routines.getSize).toBe('function');
@@ -55,7 +55,7 @@ describe('Routines', () => {
     it('should override "checkElement" method and throw an error if element is incorrect', () => {
       let routines;
       try {
-        routines = new Routines(elementBad, settings, CustomRoutines);
+        routines = new CustomRoutines(elementBad, settings);
       } catch (e) {
         expect(e.message).toBe('HTML element is not defined (custom)');
       }
@@ -63,7 +63,7 @@ describe('Routines', () => {
     });
 
     it('should override "checkElement" method and throw an error anyway', () => {
-      class CustomRoutines {
+      class CustomRoutines extends Routines {
         checkElement() {
           throw new Error('Throw anyway');
         }
@@ -71,32 +71,12 @@ describe('Routines', () => {
       [elementBad, element].forEach(elt => {
         let routines;
         try {
-          routines = new Routines(elt, settings, CustomRoutines);
+          routines = new CustomRoutines(elt, settings);
         } catch (e) {
           expect(e.message).toBe('Throw anyway');
         }
         expect(typeof routines).toBe('undefined');
       });
-    });
-
-    it('should not pass extra method', () => {
-      type Extra = { extra: () => unknown };
-      class CustomRoutines {
-        checkElement(): void {
-        }
-        extra() {
-          return true;
-        }
-      }
-      const routines = new Routines(element, settings, CustomRoutines);
-      try {
-        routines.checkElement(element);
-        (routines as unknown as Extra).extra();
-      } catch (e) {
-        // "routines.extra is not a function"
-        expect(e instanceof TypeError).toBe(true);
-      }
-      expect(typeof (routines as unknown as Extra).extra).toBe('undefined');
     });
   });
 

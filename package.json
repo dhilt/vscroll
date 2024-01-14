@@ -1,6 +1,6 @@
 {
   "name": "vscroll",
-  "version": "1.5.4",
+  "version": "1.6.0-beta.3",
   "description": "Virtual scroll engine",
   "main": "dist/bundles/vscroll.umd.js",
   "module": "dist/bundles/vscroll.esm5.js",
@@ -31,8 +31,9 @@
     "test": "npm run lint && npm run jest",
     "app": "node app/server.js",
     "playwright": "npm run playwright test example.spec.ts --headed",
-    "prepublishOnly": "npm run test",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "checkGit": "sh ./uncommited.sh",
+    "prepublishOnly": "npm run checkGit && npm run test && npm run build && npm run checkGit"
   },
   "dependencies": {
     "tslib": "^2.3.1"

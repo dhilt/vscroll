@@ -94,7 +94,7 @@
           oldItems = newItems;
         },
         // DOM routines override, to provide table-header offset
-        Routines: class {
+        Routines: class extends VScroll.Routines {
           getOffset() {
             return document.querySelector('#viewport thead')?.offsetHeight || 0;
           }

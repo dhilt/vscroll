@@ -69,7 +69,7 @@ interface WorkflowParams<ItemData> {
   element: HTMLElement;
   datasource: IDatasource<ItemData>;
   run: OnDataChanged<ItemData>;
-  Routines?: CustomRoutinesClass;
+  Routines?: RoutinesClassType;
 }
 ```
 
@@ -153,7 +153,7 @@ For more solid understanding the concept of the Datasource with examples, please
 A callback that is called every time the Workflow decides that the UI needs to be changed. Its argument is a list of items to be present in the UI. This is a consumer responsibility to detect changes and display them in the UI.
 
 ```js
-run: (newItems) => {
+const run = newItems => {
   // assume oldItems contains a list of items that are currently present in the UI
   if (!newItems.length && !oldItems.length) {
     return;
@@ -186,37 +186,49 @@ There are some requirements on how the items should be processed by `run` call:
 
 ### 5. Routines
 
-A special class allowing to override the default behavior related to the DOM. All DOM-specific operations are implemented as the [DOM Routines class](https://github.com/dhilt/vscroll/blob/v1.5.0/src/classes/domRoutines.ts) methods inside core. When the `Routines` class setting is passed among the Workflow arguments, its methods override the base class methods. The Routines methods description can be taken from  the [IRoutines interface](https://github.com/dhilt/vscroll/blob/v1.5.0/src/interfaces/routines.ts) sources. For example, there is a method that throws an error if its argument is not an HTML element:
+A special class allowing to override the default behavior related to the DOM. All DOM-specific operations are implemented as the [DOM Routines class](https://github.com/dhilt/vscroll/blob/v1.5.0/src/classes/domRoutines.ts) methods inside core. When the `Routines` class setting is passed among the Workflow arguments, it replaces the core Routines. The custom Routines class must extend the core class, which can be taken from the VScroll imports:
+
+```js
+import { Routines, Workflow } from 'vscroll';
+
+class CustomRoutines extends Routines { ... }
+
+new Workflow({
+  // consumer, element, datasource, run,
+  Routines: CustomRoutines
+})
+```
+
+The Routines methods description can be taken from the [IRoutines interface](https://github.com/dhilt/vscroll/blob/v1.5.0/src/interfaces/routines.ts) sources. For example, there is a method that calculates the scroller's offset:
 
 ```typescript
-checkElement(element: HTMLElement): void {
-  if (!element) {
-    throw new Error('HTML element is not defined');
-  }
+getOffset(): number {
+  const get = (element: HTMLElement) =>
+    (this.settings.horizontal ? element.offsetLeft : element.offsetTop) || 0;
+  return get(this.element) - (!this.settings.window ? get(this.viewport) : 0);
 }
 ```
 
-With the `Routines` class setting it can be overridden as follows:
+If we have a table layout case where we need to specify the offset of the table header, the base method can be overridden as follows:
 
 ```js
-new Workflow({ 
-  consumer, element, datasource, run,
-  Routines: class {
-    checkElement(element) {
-      if (!element || typeof element.querySelector !== 'function') {
-        throw new Error('Fatal: expecting HTML element');
-      }
+new Workflow({
+  // consumer, element, datasource, run,
+  Routines: class extends Routines {
+    getOffset(element) {
+      return document.querySelector('#viewport thead')?.offsetHeight || 0;
     }
   }
 });
 ```
 
-Another example is the table layout case where we need to specify the offset of the table header:
+It's worth noting that thanks to the extending, we can use parent methods and have access to the correct context after the engine instantiates the Routines:
 
 ```js
-const Routines = class {
-  getOffset() {
-    return document.querySelector('#viewport thead')?.offsetHeight || 0;
+class CustomRoutines extends Routines {
+  onInit(...args) {
+    console.log('Routines settings:', this.settings);
+    super.onInit(...args);
   }
 }
 ```

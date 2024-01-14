@@ -14,14 +14,17 @@ type DSGetPromise<T> = (index: number, count: number) => PromiseLike<T[]>;
 
 export type DatasourceGet<T> = DSGetCallback<T> | DSGetObservable<T> | DSGetPromise<T>;
 
-export interface IDatasourceOptional<T = unknown> {
-  get?: DatasourceGet<T>;
+export interface IDatasourceParams<T = unknown> {
+  get: DatasourceGet<T>;
   settings?: Settings<T>;
   devSettings?: DevSettings;
 }
 
-export interface IDatasource<T = unknown> extends IDatasourceOptional<T> {
-  get: DatasourceGet<T>;
+export interface IDatasourceOptional<T = unknown> extends Omit<IDatasourceParams<T>, 'get'> {
+  get?: DatasourceGet<T>;
+}
+
+export interface IDatasource<T = unknown> extends IDatasourceParams<T> {
   adapter?: IAdapter<T>;
 }
 

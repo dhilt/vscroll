@@ -8,8 +8,8 @@ export default class Pause extends BaseAdapterProcessFactory(AdapterProcess.paus
 
     if (!resume) {
       if (!scroller.state.paused.get()) {
-        scroller.state.paused.set(true);
         scroller.logger.log('pause scroller');
+        scroller.state.paused.set(true);
       } else {
         scroller.logger.log('pause scroller (cancelled)');
       }
@@ -21,12 +21,12 @@ export default class Pause extends BaseAdapterProcessFactory(AdapterProcess.paus
       return;
     }
 
-    scroller.state.paused.set(false);
     scroller.logger.log('resume scroller');
+    scroller.state.paused.set(false);
 
     scroller.workflow.call({
       process: AdapterProcess.pause,
-      status: ProcessStatus.done
+      status: ProcessStatus.next
     });
   }
 

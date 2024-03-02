@@ -136,7 +136,7 @@ export const runStateMachine = ({
       if (status === Status.start) {
         run(Pause)(options);
       }
-      if (status === Status.done) {
+      if (status === Status.next) {
         run(Init)(process);
       }
       break;

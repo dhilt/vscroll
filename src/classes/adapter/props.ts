@@ -62,6 +62,12 @@ export const methodPreResult: AdapterMethodResult = {
   details: 'Adapter is not initialized'
 };
 
+export const methodPausedResult: AdapterMethodResult = {
+  immediate: true,
+  success: true,
+  details: 'Scroller is paused'
+};
+
 const noopWF = () => Promise.resolve(methodPreResult);
 
 const emptyPackageInfo: IPackages = {
@@ -186,7 +192,8 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
   {
     type: Type.WorkflowRunner,
     name: Name.reset,
-    value: noopWF
+    value: noopWF,
+    allowedWhenPaused: true
   },
   {
     type: Type.WorkflowRunner,
@@ -241,7 +248,8 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
   {
     type: Type.WorkflowRunner,
     name: Name.resume,
-    value: noopWF
+    value: noopWF,
+    allowedWhenPaused: true
   },
   {
     type: Type.WorkflowRunner,

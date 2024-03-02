@@ -38,6 +38,7 @@ export interface IAdapterProp {
   wanted?: boolean;
   onDemand?: boolean;
   permanent?: boolean;
+  allowedWhenPaused?: boolean;
 }
 
 export interface ItemAdapter<Data = unknown> {

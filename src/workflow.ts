@@ -101,9 +101,11 @@ export class Workflow<ItemData = unknown> {
     }
     const { process, status } = processSubject;
     // if the scroller is paused, any process other than "pause" and "reset" should be blocked
-    if (this.scroller.state.paused.get() && process !== AdapterProcess.pause && process !== AdapterProcess.reset) {
-      this.scroller.logger.log('scroller is paused: ' + process + ' process is ignored');
-      return;
+    if (this.scroller.state.paused.get()) {
+      if (![AdapterProcess.pause, AdapterProcess.reset].includes(process as AdapterProcess)) {
+        this.scroller.logger.log('scroller is paused: ' + process + ' process is ignored');
+        return;
+      }
     }
     if (process && process.startsWith('adapter') && status !== Status.next) {
       this.adapterRun$.set(processSubject);

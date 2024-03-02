@@ -38,6 +38,7 @@ export interface IAdapterProp {
   wanted?: boolean;
   onDemand?: boolean;
   permanent?: boolean;
+  allowedWhenPaused?: boolean;
 }
 
 export interface ItemAdapter<Data = unknown> {
@@ -157,6 +158,8 @@ export interface IAdapter<Data = unknown> {
   readonly bof$: Reactive<boolean>;
   readonly eof: boolean;
   readonly eof$: Reactive<boolean>;
+  readonly paused: boolean;
+  readonly paused$: Reactive<boolean>;
   reset(datasource?: IDatasourceOptional): MethodResult;
   reload(reloadIndex?: number | string): MethodResult;
   append(options: AdapterAppendOptions<Data>): MethodResult;
@@ -170,6 +173,8 @@ export interface IAdapter<Data = unknown> {
   insert(options: AdapterInsertOptions<Data>): MethodResult;
   replace(options: AdapterReplaceOptions<Data>): MethodResult;
   update(options: AdapterUpdateOptions<Data>): MethodResult;
+  pause(): MethodResult;
+  resume(): MethodResult;
   fix(options: AdapterFixOptions<Data>): MethodResult; // experimental
   relax(callback?: () => void): MethodResult;
   showLog(): void;

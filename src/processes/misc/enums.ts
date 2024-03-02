@@ -23,6 +23,7 @@ export enum AdapterProcess {
   update = 'adapter.update',
   clip = 'adapter.clip',
   insert = 'adapter.insert',
+  pause = 'adapter.pause',
   fix = 'adapter.fix',
 }
 

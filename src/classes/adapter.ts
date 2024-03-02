@@ -2,7 +2,13 @@ import { Logger } from './logger';
 import { Buffer } from './buffer';
 import { Reactive } from './reactive';
 import {
-  AdapterPropName, AdapterPropType, EMPTY_ITEM, getDefaultAdapterProps, methodPreResult, reactiveConfigStorage
+  AdapterPropName,
+  AdapterPropType,
+  EMPTY_ITEM,
+  getDefaultAdapterProps,
+  methodPausedResult,
+  methodPreResult,
+  reactiveConfigStorage
 } from './adapter/props';
 import { wantedUtils } from './adapter/wanted';
 import { Viewport } from './viewport';
@@ -42,9 +48,10 @@ type InitializationParams<Item> = {
 }
 
 const ADAPTER_PROPS_STUB = getDefaultAdapterProps();
+const ALLOWED_METHODS_WHEN_PAUSED = ADAPTER_PROPS_STUB.filter(v => !!v.allowedWhenPaused).map(v => v.name);
 
 const _has = (obj: unknown, prop: string): boolean =>
-  typeof obj === 'object' && obj !== null && Object.prototype.hasOwnProperty.call(obj, prop);
+  !!obj && typeof obj === 'object' && Object.prototype.hasOwnProperty.call(obj, prop);
 
 const convertAppendArgs = <Item>(prepend: boolean, options: unknown, eof?: boolean) => {
   let result = options as AdapterAppendOptions<Item> & AdapterPrependOptions<Item>;
@@ -107,20 +114,38 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   bof$: Reactive<boolean>;
   eof: boolean;
   eof$: Reactive<boolean>;
+  paused: boolean;
+  paused$: Reactive<boolean>;
 
   private relax$: Reactive<AdapterMethodResult> | null;
   private relaxRun: Promise<AdapterMethodResult> | null;
 
-  private getPromisifiedMethod(method: MethodResolver, defaultMethod: MethodResolver) {
+  private shouldIgnorePausedMethod(method: MethodResolver) {
+    const methodName = method.name as AdapterPropName;
+    return this.paused && !ALLOWED_METHODS_WHEN_PAUSED.includes(methodName);
+  }
+
+  private getPausedMethodResult(method: MethodResolver) {
+    this.logger?.log?.(() => 'scroller is paused: ' + method.name + ' method is ignored');
+    return Promise.resolve(methodPausedResult);
+  }
+
+  private getPromisifiedMethod(method: MethodResolver, args: unknown[]) {
+    return new Promise<AdapterMethodResult>(resolve => {
+      if (this.relax$) {
+        this.relax$.once(value => resolve(value));
+      }
+      method.apply(this, args);
+    });
+  }
+
+  private getWorkflowRunnerMethod(method: MethodResolver, defaultMethod: MethodResolver) {
     return (...args: unknown[]): Promise<AdapterMethodResult> =>
-      this.relax$
-        ? new Promise(resolve => {
-          if (this.relax$) {
-            this.relax$.once(value => resolve(value));
-          }
-          method.apply(this, args);
-        })
-        : defaultMethod.apply(this, args);
+      !this.relax$
+        ? defaultMethod.apply(this, args)
+        : this.shouldIgnorePausedMethod(method)
+          ? this.getPausedMethodResult(method)
+          : this.getPromisifiedMethod(method, args);
   }
 
   constructor(context: IAdapter<Item> | null, getWorkflow: WorkflowGetter<Item>, logger: Logger) {
@@ -249,7 +274,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         if (type === AdapterPropType.Function) {
           value = (value as () => void).bind(this);
         } else if (type === AdapterPropType.WorkflowRunner) {
-          value = this.getPromisifiedMethod(value as MethodResolver, defaultValue as MethodResolver);
+          value = this.getWorkflowRunnerMethod(value as MethodResolver, defaultValue as MethodResolver);
         } else if (type === AdapterPropType.Reactive && reactivePropsStore[name]) {
           value = (context as IAdapter)[name];
         } else if (name === AdapterPropName.augmented) {
@@ -303,6 +328,8 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     state.cycle.innerLoop.busy.on(busy => this.loopPending = busy);
     this.isLoading = state.cycle.busy.get();
     state.cycle.busy.on(busy => this.isLoading = busy);
+    this.paused = state.paused.get();
+    state.paused.on(paused => this.paused = paused);
 
     //viewport
     this.setFirstOrLastVisible = ({ first, last, workflow }) => {
@@ -498,6 +525,25 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       process: AdapterProcess.update,
       status: ProcessStatus.start,
       payload: { options }
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  pause(): any {
+    this.logger.logAdapterMethod('pause');
+    this.workflow.call({
+      process: AdapterProcess.pause,
+      status: ProcessStatus.start
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  resume(): any {
+    this.logger.logAdapterMethod('resume');
+    this.workflow.call({
+      process: AdapterProcess.pause,
+      status: ProcessStatus.start,
+      payload: { options: { resume: true } }
     });
   }
 

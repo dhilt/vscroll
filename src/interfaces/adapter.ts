@@ -157,6 +157,8 @@ export interface IAdapter<Data = unknown> {
   readonly bof$: Reactive<boolean>;
   readonly eof: boolean;
   readonly eof$: Reactive<boolean>;
+  readonly paused: boolean;
+  readonly paused$: Reactive<boolean>;
   reset(datasource?: IDatasourceOptional): MethodResult;
   reload(reloadIndex?: number | string): MethodResult;
   append(options: AdapterAppendOptions<Data>): MethodResult;

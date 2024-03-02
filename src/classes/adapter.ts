@@ -107,6 +107,8 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   bof$: Reactive<boolean>;
   eof: boolean;
   eof$: Reactive<boolean>;
+  paused: boolean;
+  paused$: Reactive<boolean>;
 
   private relax$: Reactive<AdapterMethodResult> | null;
   private relaxRun: Promise<AdapterMethodResult> | null;
@@ -303,6 +305,8 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     state.cycle.innerLoop.busy.on(busy => this.loopPending = busy);
     this.isLoading = state.cycle.busy.get();
     state.cycle.busy.on(busy => this.isLoading = busy);
+    this.paused = state.paused.get();
+    state.paused.on(paused => this.paused = paused);
 
     //viewport
     this.setFirstOrLastVisible = ({ first, last, workflow }) => {

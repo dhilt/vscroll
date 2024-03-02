@@ -25,6 +25,8 @@ export enum AdapterPropName {
   bof$ = 'bof$',
   eof = 'eof',
   eof$ = 'eof$',
+  paused = 'paused',
+  paused$ = 'paused$',
   reset = 'reset',
   reload = 'reload',
   append = 'append',
@@ -176,6 +178,12 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
     reactive: Name.eof$
   },
   {
+    type: Type.Scalar,
+    name: Name.paused,
+    value: false,
+    reactive: Name.paused$
+  },
+  {
     type: Type.WorkflowRunner,
     name: Name.reset,
     value: noopWF
@@ -285,6 +293,11 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
   {
     type: Type.Reactive,
     name: Name.eof$,
+    value: new Reactive<boolean>()
+  },
+  {
+    type: Type.Reactive,
+    name: Name.paused$,
     value: new Reactive<boolean>()
   }
 ];

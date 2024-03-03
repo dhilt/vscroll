@@ -120,16 +120,6 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   private relax$: Reactive<AdapterMethodResult> | null;
   private relaxRun: Promise<AdapterMethodResult> | null;
 
-  private shouldIgnorePausedMethod(method: MethodResolver) {
-    const methodName = method.name as AdapterPropName;
-    return this.paused && !ALLOWED_METHODS_WHEN_PAUSED.includes(methodName);
-  }
-
-  private getPausedMethodResult(method: MethodResolver) {
-    this.logger?.log?.(() => 'scroller is paused: ' + method.name + ' method is ignored');
-    return Promise.resolve(methodPausedResult);
-  }
-
   private getPromisifiedMethod(method: MethodResolver, args: unknown[]) {
     return new Promise<AdapterMethodResult>(resolve => {
       if (this.relax$) {
@@ -139,13 +129,19 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     });
   }
 
-  private getWorkflowRunnerMethod(method: MethodResolver, defaultMethod: MethodResolver) {
-    return (...args: unknown[]): Promise<AdapterMethodResult> =>
-      !this.relax$
-        ? defaultMethod.apply(this, args)
-        : this.shouldIgnorePausedMethod(method)
-          ? this.getPausedMethodResult(method)
-          : this.getPromisifiedMethod(method, args);
+  private getWorkflowRunnerMethod(method: MethodResolver, name: AdapterPropName) {
+    return (...args: unknown[]): Promise<AdapterMethodResult> => {
+      if (!this.relax$) {
+        this.logger?.log?.(() => 'scroller is not initialized: ' + name + ' method is ignored');
+        return Promise.resolve(methodPreResult);
+      }
+      if (this.paused && !ALLOWED_METHODS_WHEN_PAUSED.includes(name)) {
+        this.logger?.log?.(() => 'scroller is paused: ' + name + ' method is ignored');
+        return Promise.resolve(methodPausedResult);
+
+      }
+      return this.getPromisifiedMethod(method, args);
+    };
   }
 
   constructor(context: IAdapter<Item> | null, getWorkflow: WorkflowGetter<Item>, logger: Logger) {
@@ -269,12 +265,12 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     // Adapter public context augmentation
     adapterProps
       .forEach((prop: IAdapterProp) => {
-        const { name, type, value: defaultValue, permanent } = prop;
+        const { name, type, permanent } = prop;
         let value = (this as IAdapter)[name];
         if (type === AdapterPropType.Function) {
           value = (value as () => void).bind(this);
         } else if (type === AdapterPropType.WorkflowRunner) {
-          value = this.getWorkflowRunnerMethod(value as MethodResolver, defaultValue as MethodResolver);
+          value = this.getWorkflowRunnerMethod(value as MethodResolver, name);
         } else if (type === AdapterPropType.Reactive && reactivePropsStore[name]) {
           value = (context as IAdapter)[name];
         } else if (name === AdapterPropName.augmented) {

@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "../",
+    "noImplicitAny": true
+  },
+  "exclude": ["node_modules"],
+  "files": ["./e2e/index.ts", "./e2e/index.d.ts"]
+}

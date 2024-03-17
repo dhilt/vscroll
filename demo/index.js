@@ -71,3 +71,6 @@ const createItemElement = item => {
 
 // run the VScroll Workflow
 new VScroll.Workflow(workflowParams);
+
+const versionElt = document.getElementById(`vscroll-core-version`);
+versionElt.innerHTML = `Package version: ${VScroll.packageInfo.name} v${VScroll.packageInfo.version}.`;

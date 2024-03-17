@@ -73,7 +73,7 @@ interface WorkflowParams<ItemData> {
 }
 ```
 
-This is a TypeScript definition, but speaking of JavaScript, an argument object must contain 4 fields described below.
+This is a TypeScript definition, but speaking of JavaScript, an argument object must contain 4 mandatory and 1 optional fields described below.
 
 ### 1. Consumer
 
@@ -176,13 +176,14 @@ Each item (in both `newItems` and `oldItems` lists) is an instance of the [Item 
 
 `Run` callback is the most complex and environment-specific part of the `vscroll` API, which is fully depends on the environment for which the consumer is being created. Framework specific consumer should rely on internal mechanism of the framework to provide runtime DOM modifications.
 
-There are some requirements on how the items should be processed by `run` call:
- - after the `run` callback is completed, there must be `newItems.length` elements in the DOM between backward and forward padding elements;
-- old items that are not in the new item list should be removed from DOM; use `oldItems[].element` references for this purpose;
- - old items that are in the list should not be removed and recreated, as it may lead to an unwanted shift of the scroll position; just don't touch them;
- - new items elements should be rendered in accordance with `newItems[].$index` comparable to `$index` of elements that remain: `$index` must increase continuously and the directions of increase must persist across the `run` calls; Scroller maintains `$index` internally, so you only need to properly inject a set of `newItems[].element` into the DOM;
- - new elements should be rendered but not visible, and this should be achieved by "fixed" positioning and "left"/"top" coordinates placing the item element out of view; the Workflow will take care of visibility after calculations; an additional attribute `newItems[].invisible` can be used to determine if a given element should be hidden; this requirement can be changed by the `Routines` class setting, see below;
- - new items elements should have "data-sid" attribute, which value should reflect `newItems[].$index`.
+There are some requirements on how the items should be processed by `run` call.
+
+- After the `run` callback is completed, there must be `newItems.length` elements in the DOM between backward and forward padding elements.
+- Old items that are not in the new items list should be removed from DOM. Use `oldItems[].element` references for this purpose.
+- Old items that are in the new items list should not be removed and recreated, as this may result in unwanted scroll position shifts. Just don't touch them.
+- New items elements should be rendered in the correct order. Specifically, in accordance with `newItems[].$index` comparable to `$index` of elements that remain: `$index` must increase continuously and the directions of increase must persist across the `run` calls. The scroller maintains `$index` internally, so you only need to properly inject a set of `newItems[].element` into the DOM.
+- New elements should be rendered without being visible, and this should be achieved by "fixed" positioning and "left"/"top" coordinates that take the item element out of view. The Workflow will take care of visibility after calculations. An additional `newItems[].invisible` attribute can be used to determine whether a given element should be hidden. This requirement can be changed by the `Routines` class setting (see below).
+- New items elements should have a "data-sid" attribute whose value should reflect `newItems[].$index`.
 
 ### 5. Routines
 
@@ -194,7 +195,7 @@ import { Routines, Workflow } from 'vscroll';
 class CustomRoutines extends Routines { ... }
 
 new Workflow({
-  // consumer, element, datasource, run,
+  consumer, element, datasource, run, // required params
   Routines: CustomRoutines
 })
 ```
@@ -213,9 +214,9 @@ If we have a table layout case where we need to specify the offset of the table 
 
 ```js
 new Workflow({
-  // consumer, element, datasource, run,
+  consumer, element, datasource, run, // required params
   Routines: class extends Routines {
-    getOffset(element) {
+    getOffset() {
       return document.querySelector('#viewport thead')?.offsetHeight || 0;
     }
   }
@@ -292,4 +293,4 @@ VScroll will receive its own Adapter API documentation later, but for now please
 
  __________
 
-2023 &copy; [Denis Hilt](https://github.com/dhilt)
+2024 &copy; [Denis Hilt](https://github.com/dhilt)

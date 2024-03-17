@@ -1,4 +1,5 @@
 import { Direction } from '../inputs/index';
+import { Reactive } from '../classes/reactive';
 import { WorkflowCycleModel } from '../classes/state/cycle';
 import { FetchModel } from '../classes/state/fetch';
 import { ClipModel } from '../classes/state/clip';
@@ -15,6 +16,7 @@ export interface ScrollEventData {
 export interface State {
   packageInfo: IPackages;
   initTime: number;
+  paused: Reactive<boolean>;
   cycle: WorkflowCycleModel;
   fetch: FetchModel;
   clip: ClipModel;

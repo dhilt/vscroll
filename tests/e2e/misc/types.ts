@@ -39,8 +39,8 @@ type TemplateSettings = {
 export type Config<Custom = void> = {
   datasourceClass?: { new(): unknown };
   datasourceName?: string;
-  datasourceSettings: Settings;
-  datasourceDevSettings: DevSettings;
+  datasourceSettings?: Settings;
+  datasourceDevSettings?: DevSettings;
   templateSettings?: TemplateSettings;
   toThrow?: boolean;
   custom?: Custom;

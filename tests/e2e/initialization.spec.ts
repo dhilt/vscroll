@@ -1,4 +1,5 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { runScroller } from './misc/runner';
 
 const URL = '127.0.0.1:3000';
 
@@ -30,18 +31,9 @@ test('DOM + Workflow', async ({ page }) => {
   expect(name).toBe('vscroll');
 });
 
-const runScroller = async (page: Page, { settings = {}, devSettings = {} } = {}) =>
-  await page.evaluate(({ settings, devSettings }) => {
-    const { Scroller, datasource } = window['__vscroll__'];
-    datasource.settings = { ...datasource.settings, ...settings };
-    datasource.devSettings = { ...datasource.devSettings, ...devSettings };
-    const { workflow } = new Scroller(datasource);
-    window['__vscroll__'].workflow = workflow;
-  }, { settings, devSettings });
-
 test('Workflow & Adapter. Delayed initialization', async ({ page }) => {
   await page.goto(URL + '/need-run');
-  await runScroller(page, { devSettings: { initDelay: 100 } });
+  await runScroller(page, { datasourceDevSettings: { initDelay: 100 } });
 
   await page.waitForFunction(() => {
     const { workflow, datasource } = window['__vscroll__'];
@@ -58,7 +50,7 @@ test('Workflow & Adapter. Delayed initialization', async ({ page }) => {
 
 test('Workflow & Adapter. Disposing after delayed initialization', async ({ page }) => {
   await page.goto(URL + '/need-run');
-  await runScroller(page, { devSettings: { initDelay: 100 } });
+  await runScroller(page, { datasourceDevSettings: { initDelay: 100 } });
 
   await page.waitForTimeout(100);
   await page.evaluate(() => window['__vscroll__'].workflow.dispose());
@@ -71,7 +63,7 @@ test('Workflow & Adapter. Disposing after delayed initialization', async ({ page
 
 test('Workflow & Adapter. Disposing before delayed initialization', async ({ page }) => {
   await page.goto(URL + '/need-run');
-  await runScroller(page, { devSettings: { initDelay: 100 } });
+  await runScroller(page, { datasourceDevSettings: { initDelay: 100 } });
 
   await page.evaluate(() => window['__vscroll__'].workflow.dispose());
   await page.waitForTimeout(100);

@@ -1,4 +1,3 @@
-
 import { Page } from '@playwright/test';
 import { Direction } from '../../../src/inputs/common';
 import { TESTS } from './types';

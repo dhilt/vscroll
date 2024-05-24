@@ -1,6 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { ScrollResult, initializeItemsCounter } from './misc/itemsCounter';
 import { Config, It, MakeTest } from './misc/types';
+import { runScroller } from './misc/runner';
 import { Direction } from '../../src/inputs/common';
 
 // test.use({ headless: false });
@@ -166,53 +167,12 @@ const shouldScroll = async (config: Config<ICustom>, page: Page) => {
     .toHaveText(`${oppositeItemIndex[0]}) item #${oppositeItemIndex[0]}`);
 };
 
-const runScroller = async (page: Page, config: Config<ICustom>) =>
-  await page.evaluate(config => {
-    const { datasourceSettings, datasourceDevSettings, templateSettings } = config as Config<ICustom>;
-    const { Scroller, datasource } = window['__vscroll__'];
-    datasource.settings = { ...datasource.settings, ...datasourceSettings };
-    datasource.devSettings = { ...datasource.devSettings, ...datasourceDevSettings };
-
-    const viewport = window.document.querySelector('.viewport') as HTMLElement;
-    if (templateSettings?.viewportWidth) {
-      viewport.style.width = templateSettings.viewportWidth + 'px';
-    }
-    if (templateSettings?.viewportHeight) {
-      viewport.style.height = templateSettings.viewportHeight + 'px';
-    }
-    if (templateSettings?.horizontal) {
-      viewport.className += ' horizontal';
-    }
-    let styles = '';
-    if (templateSettings?.itemWidth) {
-      styles += `
-      .viewport .item { 
-        width: ${templateSettings.itemWidth}px;
-      }`;
-    }
-    if (templateSettings?.itemHeight) {
-      styles += `
-      .viewport .item { 
-        height: ${templateSettings.itemHeight}px;
-      }`;
-    }
-    if (styles) {
-      const styleSheet = document.createElement('style');
-      styleSheet.innerText = styles;
-      document.head.appendChild(styleSheet);
-    }
-
-    const { workflow } = new Scroller(datasource);
-    window['__vscroll__'].workflow = workflow;
-  }, config as unknown);
-
-
 const makeTest: MakeTest<ICustom> = ({ title, config, it }) =>
   test(title, ({ page }) => it({ config, page }));
 
 const shouldWork: It<ICustom> = async ({ config, page }) => {
   await page.goto(URL + '/need-run');
-  await runScroller(page, config);
+  await runScroller(page, config as Config);
   await shouldScroll(config, page);
   // await new Promise(r => setTimeout(r, 2000));
 };

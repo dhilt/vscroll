@@ -36,7 +36,7 @@ type TemplateSettings = {
   headerHeight?: number;
 }
 
-export type Config<Custom = void> = {
+export type Config<Custom = unknown> = {
   datasourceClass?: { new(): unknown };
   datasourceName?: string;
   datasourceSettings?: Settings;
@@ -48,5 +48,3 @@ export type Config<Custom = void> = {
 }
 
 export type It<T = unknown> = (args: { config: Config<T>, page: Page }) => Promise<void>;
-
-export type MakeTest<T = unknown> = (args: { title: string; config: Config<T>; it: It<T> }) => void;

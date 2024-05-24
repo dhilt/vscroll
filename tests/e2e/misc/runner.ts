@@ -1,5 +1,7 @@
-import { Page } from '@playwright/test';
-import { Config } from './types';
+import test, { Page } from '@playwright/test';
+import { Config, It } from './types';
+
+const URL = '127.0.0.1:3000';
 
 export const runScroller = async (page: Page, config: Config = {}) =>
   await page.evaluate(config => {
@@ -40,3 +42,13 @@ export const runScroller = async (page: Page, config: Config = {}) =>
     const { workflow } = new Scroller(datasource);
     window['__vscroll__'].workflow = workflow;
   }, config as unknown);
+
+export const makeTest = (
+  { title, config, it }: { title: string; config: Config; it: It }
+) =>
+  test(title, async ({ page }) => {
+    await page.goto(URL + '/need-run');
+    await runScroller(page, config as Config);
+    await it({ config, page });
+    // await new Promise(r => setTimeout(r, 2000));
+  });

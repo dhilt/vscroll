@@ -1,12 +1,10 @@
 import { test, expect, Page } from '@playwright/test';
 import { ScrollResult, initializeItemsCounter } from './misc/itemsCounter';
-import { Config, It, MakeTest } from './misc/types';
-import { runScroller } from './misc/runner';
+import { Config } from './misc/types';
+import { makeTest } from './misc/runner';
 import { Direction } from '../../src/inputs/common';
 
 // test.use({ headless: false });
-
-const URL = '127.0.0.1:3000';
 
 interface ICustom {
   direction: Direction;
@@ -112,7 +110,7 @@ const massTwoDirectionalScrollsConfigList_bwd =
   } as Config<ICustom>));
 
 
-const shouldScroll = async (config: Config<ICustom>, page: Page) => {
+const shouldWork = async ({ config, page }: { config: Config, page: Page }) => {
 
   await initializeItemsCounter(page);
 
@@ -165,16 +163,6 @@ const shouldScroll = async (config: Config<ICustom>, page: Page) => {
     .toHaveText(`${edgeItemIndex[0]}) item #${edgeItemIndex[0]}`);
   await expect(page.locator(`[data-sid="${oppositeItemIndex[0]}"]`))
     .toHaveText(`${oppositeItemIndex[0]}) item #${oppositeItemIndex[0]}`);
-};
-
-const makeTest: MakeTest<ICustom> = ({ title, config, it }) =>
-  test(title, ({ page }) => it({ config, page }));
-
-const shouldWork: It<ICustom> = async ({ config, page }) => {
-  await page.goto(URL + '/need-run');
-  await runScroller(page, config as Config);
-  await shouldScroll(config, page);
-  // await new Promise(r => setTimeout(r, 2000));
 };
 
 test.describe('Scroll Basic Spec', () => {

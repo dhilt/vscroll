@@ -1,4 +1,7 @@
+import { Page } from '@playwright/test';
+import { Settings, DevSettings } from '../../../src/interfaces';
 import { Workflow, IDatasourceConstructed } from '../../../src/index';
+import { ItemsCounter } from './itemsCounter';
 
 interface Scroller {
   workflow: InstanceType<typeof Workflow>;
@@ -16,3 +19,34 @@ export type VSCROLL = {
   scroller1: Scroller;
   scroller2: Scroller;
 };
+
+export type TESTS = {
+  ItemsCounter: ItemsCounter
+};
+
+type TemplateSettings = {
+  noViewportClass?: boolean;
+  viewportHeight?: number;
+  viewportWidth?: number | null;
+  itemHeight?: number;
+  itemWidth?: number | null;
+  horizontal?: boolean;
+  dynamicSize?: string | null;
+  viewportPadding?: number;
+  headerHeight?: number;
+}
+
+export type Config<Custom = void> = {
+  datasourceClass?: { new(): unknown };
+  datasourceName?: string;
+  datasourceSettings: Settings;
+  datasourceDevSettings: DevSettings;
+  templateSettings?: TemplateSettings;
+  toThrow?: boolean;
+  custom?: Custom;
+  timeout?: number;
+}
+
+export type It<T = unknown> = (args: { config: Config<T>, page: Page }) => Promise<void>;
+
+export type MakeTest<T = unknown> = (args: { title: string; config: Config<T>; it: It<T> }) => void;

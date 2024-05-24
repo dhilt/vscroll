@@ -33,7 +33,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build vscroll
         run: npm run build
@@ -44,7 +44,7 @@ jobs:
       - name: E2e tests
         run: |
           npx playwright install
-          npx playwright test initialization.spec.ts
+          npx playwright test .spec.ts
 
       - name: Artifacts
         uses: actions/upload-artifact@v3

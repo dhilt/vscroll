@@ -24,6 +24,18 @@
     .viewport .item span {
       font-size: small;
     }
+
+    .viewport.horizontal {
+      width: 200px;
+      height: 100px;
+      overflow-x: scroll;
+      overflow-y: hidden;
+      white-space: nowrap;
+    }
+
+    .viewport.horizontal div {
+      display: inline-block;
+    }
   </style>
   <script>window.__vscroll__ = {};</script>
   <script src="vscroll.js"></script>

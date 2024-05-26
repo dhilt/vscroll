@@ -1,0 +1,39 @@
+[
+  {
+    "route": "/common",
+    "title": {
+      "head": "common",
+      "body": "Common"
+    },
+    "description": "Common demo with minimal functionality",
+    "ds": "./datasources/common.js"
+  },
+  {
+    "route": "/no-datasource",
+    "title": {
+      "head": "no datasource",
+      "body": "No datasource"
+    },
+    "description": "Need to make the datasource and run the scroller"
+  },
+  {
+    "route": "/need-run",
+    "title": {
+      "head": "need run",
+      "body": "Need run"
+    },
+    "description": "Need to run the scroller",
+    "runner": "./runners/empty.js"
+  },
+  {
+    "route": "/multiple",
+    "title": {
+      "head": "multiple",
+      "body": "Multiple"
+    },
+    "description": "Multiple scrollers",
+    "ds": "./datasources/multiple.js",
+    "runner": "./runners/multiple.js",
+    "template": "./templates/multiple.html"
+  }
+]

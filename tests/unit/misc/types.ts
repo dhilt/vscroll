@@ -1,5 +1,5 @@
-import { Direction } from '../../src/inputs';
-import { BufferUpdater } from '../../src/interfaces';
+import { Direction } from '../../../src/inputs';
+import { BufferUpdater } from '../../../src/interfaces';
 
 export type Id = number | string;
 

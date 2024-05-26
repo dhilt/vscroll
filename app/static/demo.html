@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>vscroll demo<!-- head-title --></title>
+  <meta charset="utf-8">
+  <style>
+    h2 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .viewport {
+      margin-top: 10px;
+      height: 240px;
+      width: 150px;
+      overflow-y: scroll;
+    }
+
+    .viewport .item {
+      height: 24px;
+    }
+
+    .viewport .item span {
+      font-size: small;
+    }
+
+    .viewport.horizontal {
+      width: 200px;
+      height: 100px;
+      overflow-x: scroll;
+      overflow-y: hidden;
+      white-space: nowrap;
+    }
+
+    .viewport.horizontal div {
+      display: inline-block;
+    }
+  </style>
+  <script>window.__vscroll__ = {};</script>
+  <script src="vscroll.js"></script>
+  <script src="./scroller.js"></script>
+  <!-- datasource -->
+</head>
+
+<body>
+  <h2>VScroll Demo<!-- body-title --></h3>
+    <!-- body-description -->
+    <!-- template -->
+    <!-- runner -->
+</body>
+
+</html>

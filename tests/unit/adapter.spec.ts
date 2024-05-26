@@ -1,8 +1,8 @@
-import { Scroller } from '../src/scroller';
-import { AdapterPropName } from '../src/classes/adapter/props';
-import { Datasource } from '../src/classes/datasource';
-import { wantedUtils } from '../src/classes/adapter/wanted';
-import version from '../src/version';
+import { Scroller } from '../../src/scroller';
+import { AdapterPropName } from '../../src/classes/adapter/props';
+import { Datasource } from '../../src/classes/datasource';
+import { wantedUtils } from '../../src/classes/adapter/wanted';
+import version from '../../src/version';
 
 const MOCK = {
   datasource: {

@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      cause:
+        description: "Reason"
+        required: true
+        default: "Manual triggering"
+
+jobs:
+  vscroll_ci:
+    name: VScroll CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatched?
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "This is dispatched"
+          echo "Reason: ${{ github.event.inputs.cause }}"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build vscroll
+        run: npm run build
+
+      - name: Unit tests
+        run: npm test
+
+      - name: E2e tests
+        run: |
+          npx playwright install
+          npm run e2e
+
+      - name: Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist

@@ -23,7 +23,6 @@
       "body": "Need run"
     },
     "description": "Need to run the scroller",
-    "ds": "./datasources/common.js",
     "runner": "./runners/empty.js"
   },
   {

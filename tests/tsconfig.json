@@ -2,6 +2,7 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDir": "../",
+    "lib": ["dom", "es2022"],
     "noImplicitAny": true
   },
   "exclude": ["node_modules"],

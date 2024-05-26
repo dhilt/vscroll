@@ -109,17 +109,16 @@ const massTwoDirectionalScrollsConfigList_bwd =
     }
   } as Config<ICustom>));
 
-
 const shouldWork = async ({ config, page }: { config: Config, page: Page }) => {
 
   await initializeItemsCounter(page);
 
   const result = await page.evaluate(custom =>
     new Promise<ScrollResult>(resolve => {
-      const { workflow } = window['__vscroll__'];
+      const { workflow, datasource } = window['__vscroll__'];
       const { ItemsCounter: helper } = window['__tests__'];
 
-      workflow.scroller.state.cycle.busy.on(busy => {
+      datasource.adapter.isLoading$.on(busy => {
         if (busy) {
           return;
         }

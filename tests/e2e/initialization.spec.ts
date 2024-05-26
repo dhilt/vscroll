@@ -1,94 +1,101 @@
 import { test, expect } from '@playwright/test';
-import { runScroller } from './misc/runner';
+import { makeTest } from './misc/runner';
 
 const URL = '127.0.0.1:3000';
 
-test('DOM + Workflow', async ({ page }) => {
-  await page.goto(URL + '/common');
+// test.use({ headless: false });
 
-  await expect(page.locator('[data-padding-forward]')).toBeAttached();
-  await expect(page.locator('[data-padding-backward]')).toBeAttached();
-  await expect(page.locator('[data-padding-forward]')).toHaveCount(1);
-  await expect(page.locator('[data-padding-backward]')).toHaveCount(1);
+makeTest({
+  title: 'DOM + Workflow',
+  config: { datasourceDevSettings: { initDelay: 100 } },
+  it: async ({ page }) => {
+    await expect(page.locator('[data-padding-forward]')).toBeAttached();
+    await expect(page.locator('[data-padding-backward]')).toBeAttached();
+    await expect(page.locator('[data-padding-forward]')).toHaveCount(1);
+    await expect(page.locator('[data-padding-backward]')).toHaveCount(1);
 
-  const firstItemElt = page.locator('[data-sid="1"]');
-  await expect(firstItemElt).toBeVisible();
-  await expect(firstItemElt).toContainText('1) item #1');
+    const firstItemElt = page.locator('[data-sid="1"]');
+    await expect(firstItemElt).toBeVisible();
+    await expect(firstItemElt).toContainText('1) item #1');
 
-  const { datasource, scroller: { workflow } } = await page.evaluate(async () => {
-    const vscroll = window['__vscroll__'];
-    await vscroll.datasource.adapter.relax();
-    return vscroll;
-  });
+    const { datasource, workflow } = await page.evaluate(async () => {
+      const vscroll = window['__vscroll__'];
+      await vscroll.datasource.adapter.relax();
+      return vscroll;
+    });
 
-  // eslint-disable-next-line no-prototype-builtins
-  expect(datasource.hasOwnProperty('get')).toBe(true);
-  expect(typeof workflow).toBe('object');
-  expect(workflow.isInitialized).toBe(true);
-  expect(workflow.errors.length).toEqual(0);
-  expect(workflow.cyclesDone).toEqual(1);
-  const name = workflow?.scroller?.state?.packageInfo?.core?.name;
-  expect(name).toBe('vscroll');
+    expect(Object.hasOwn(datasource, 'get')).toBe(true);
+    expect(typeof workflow).toBe('object');
+    expect(workflow.isInitialized).toBe(true);
+    expect(workflow.errors.length).toEqual(0);
+    expect(workflow.cyclesDone).toEqual(1);
+    const name = workflow?.scroller?.state?.packageInfo?.core?.name;
+    expect(name).toBe('vscroll');
+  }
 });
 
-test('Workflow & Adapter. Delayed initialization', async ({ page }) => {
-  await page.goto(URL + '/need-run');
-  await runScroller(page, { datasourceDevSettings: { initDelay: 100 } });
+makeTest({
+  title: 'Workflow & Adapter. Delayed initialization',
+  config: { datasourceDevSettings: { initDelay: 100 } },
+  it: async ({ page }) => {
+    await page.waitForFunction(() => {
+      const { workflow, datasource } = window['__vscroll__'];
+      return !workflow.isInitialized && !datasource.adapter.init;
+    });
 
-  await page.waitForFunction(() => {
-    const { workflow, datasource } = window['__vscroll__'];
-    return !workflow.isInitialized && !datasource.adapter.init;
-  });
+    await page.waitForTimeout(100);
 
-  await page.waitForTimeout(100);
-
-  await page.waitForFunction(() => {
-    const { workflow, datasource } = window['__vscroll__'];
-    return workflow.isInitialized && datasource.adapter.init;
-  });
+    await page.waitForFunction(() => {
+      const { workflow, datasource } = window['__vscroll__'];
+      return workflow.isInitialized && datasource.adapter.init;
+    });
+  }
 });
 
-test('Workflow & Adapter. Disposing after delayed initialization', async ({ page }) => {
-  await page.goto(URL + '/need-run');
-  await runScroller(page, { datasourceDevSettings: { initDelay: 100 } });
+makeTest({
+  title: 'Workflow & Adapter. Disposing after delayed initialization',
+  config: { datasourceDevSettings: { initDelay: 100 } },
+  it: async ({ page }) => {
+    await page.waitForTimeout(100);
+    await page.evaluate(() => window['__vscroll__'].workflow.dispose());
 
-  await page.waitForTimeout(100);
-  await page.evaluate(() => window['__vscroll__'].workflow.dispose());
-
-  await page.waitForFunction(() => {
-    const { workflow, datasource } = window['__vscroll__'];
-    return !workflow.isInitialized && !datasource.adapter.init;
-  });
+    await page.waitForFunction(() => {
+      const { workflow, datasource } = window['__vscroll__'];
+      return !workflow.isInitialized && !datasource.adapter.init;
+    });
+  }
 });
 
-test('Workflow & Adapter. Disposing before delayed initialization', async ({ page }) => {
-  await page.goto(URL + '/need-run');
-  await runScroller(page, { datasourceDevSettings: { initDelay: 100 } });
+makeTest({
+  title: 'Workflow & Adapter. Disposing before delayed initialization',
+  config: { datasourceDevSettings: { initDelay: 100 } },
+  it: async ({ page }) => {
+    await page.evaluate(() => window['__vscroll__'].workflow.dispose());
+    await page.waitForTimeout(100);
 
-  await page.evaluate(() => window['__vscroll__'].workflow.dispose());
-  await page.waitForTimeout(100);
-
-  await page.waitForFunction(() => {
-    const { workflow, datasource } = window['__vscroll__'];
-    return !workflow.isInitialized && !datasource.adapter.init;
-  });
+    await page.waitForFunction(() => {
+      const { workflow, datasource } = window['__vscroll__'];
+      return !workflow.isInitialized && !datasource.adapter.init;
+    });
+  }
 });
 
-test('Workflow & Adapter. Disposing after immediate initialization', async ({ page }) => {
-  await page.goto(URL + '/need-run');
-  await runScroller(page);
+makeTest({
+  title: 'Workflow & Adapter. Disposing after immediate initialization',
+  config: { datasourceDevSettings: { initDelay: 100 } },
+  it: async ({ page }) => {
+    await page.waitForFunction(() => {
+      const { workflow, datasource } = window['__vscroll__'];
+      return workflow.isInitialized && datasource.adapter.init;
+    });
 
-  await page.waitForFunction(() => {
-    const { workflow, datasource } = window['__vscroll__'];
-    return workflow.isInitialized && datasource.adapter.init;
-  });
+    await page.evaluate(() => window['__vscroll__'].workflow.dispose());
 
-  await page.evaluate(() => window['__vscroll__'].workflow.dispose());
-
-  await page.waitForFunction(() => {
-    const { workflow, datasource } = window['__vscroll__'];
-    return !workflow.isInitialized && !datasource.adapter.init;
-  });
+    await page.waitForFunction(() => {
+      const { workflow, datasource } = window['__vscroll__'];
+      return !workflow.isInitialized && !datasource.adapter.init;
+    });
+  }
 });
 
 test('Multiple instances initialization', async ({ page }) => {

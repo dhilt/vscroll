@@ -31,7 +31,8 @@
     "build": "node build",
     "test": "npm run lint && npm run jest",
     "app": "node app/server.js",
-    "playwright": "npm run playwright test example.spec.ts --headed",
+    "playwright": "npx playwright test .spec.ts",
+    "e2e": "npm run app & npm run playwright",
     "prepack": "npm run build",
     "checkGit": "sh ./uncommited.sh",
     "prepublishOnly": "npm run checkGit && npm run test && npm run build && npm run checkGit"

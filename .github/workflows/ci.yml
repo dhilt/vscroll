@@ -44,7 +44,7 @@ jobs:
       - name: E2e tests
         run: |
           npx playwright install
-          npx playwright test .spec.ts
+          npm run e2e
 
       - name: Artifacts
         uses: actions/upload-artifact@v3

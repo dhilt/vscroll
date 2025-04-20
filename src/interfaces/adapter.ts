@@ -81,12 +81,14 @@ export interface AdapterAppendOptions<Data = unknown> {
   items: Data[];
   eof?: boolean;
   decrease?: boolean;
+  virtualize?: boolean;
 }
 
 export interface AdapterPrependOptions<Data = unknown> {
   items: Data[];
   bof?: boolean;
   increase?: boolean;
+  virtualize?: boolean;
 }
 
 export interface AdapterRemoveOptions<Data = unknown> {

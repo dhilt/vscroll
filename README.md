@@ -293,4 +293,4 @@ VScroll will receive its own Adapter API documentation later, but for now please
 
  __________
 
-2024 &copy; [Denis Hilt](https://github.com/dhilt)
+2025 &copy; [Denis Hilt](https://github.com/dhilt)

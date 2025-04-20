@@ -52,7 +52,7 @@ export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.ins
     const { before, after, beforeIndex, afterIndex, items, decrease } = params;
     const indexToInsert = scroller.buffer.getIndexToInsert(before || after, beforeIndex, afterIndex);
 
-    if (isNaN(indexToInsert)) {
+    if (params.virtualize || isNaN(indexToInsert)) {
       return false;
     }
     const isBackward = Number.isInteger(beforeIndex) || before;

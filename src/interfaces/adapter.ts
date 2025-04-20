@@ -109,6 +109,7 @@ export interface AdapterInsertOptions<Data = unknown> {
   beforeIndex?: number;
   afterIndex?: number;
   decrease?: boolean;
+  virtualize?: boolean;
 }
 
 export interface AdapterReplaceOptions<Data = unknown> {

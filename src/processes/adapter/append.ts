@@ -42,7 +42,8 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
       items,
       beforeIndex,
       afterIndex,
-      decrease: opposite
+      decrease: opposite,
+      virtualize: params.virtualize
     });
   }
 

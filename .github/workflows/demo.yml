@@ -1,0 +1,28 @@
+name: deploy demo app
+
+on:
+  workflow_run:
+    workflows:
+      - build
+    types:
+      - completed
+
+jobs:
+  vscroll_deploy_demo_app:
+    name: VScroll Deploy Demo App
+    if: github.ref == 'refs/heads/e2e'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build vscroll
+        run: npm run build

@@ -59,15 +59,19 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
       } else {
         fwdSize += viewportSizeDiff;
       }
-      scroller.logger.log(() =>
-        inverse ? 'backward' : 'forward' + ` padding will be increased by ${viewportSizeDiff} to fill the viewport`
-      );
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log(() =>
+          inverse ? 'backward' : 'forward' + ` padding will be increased by ${viewportSizeDiff} to fill the viewport`
+        );
+      }
     }
 
     backward.size = bwdSize;
     forward.size = fwdSize;
 
-    scroller.logger.stat('after paddings adjustments');
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      scroller.logger.stat('after paddings adjustments');
+    }
   }
 
   static calculatePosition(scroller: Scroller): number {
@@ -76,7 +80,9 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
 
     // increase the position to meet the expectation of the first visible item
     if (!isNaN(fetch.firstVisible.index) && !isNaN(buffer.firstIndex)) {
-      scroller.logger.log(`first index = ${fetch.firstVisible.index}, delta = ${fetch.firstVisible.delta}`);
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log(`first index = ${fetch.firstVisible.index}, delta = ${fetch.firstVisible.delta}`);
+      }
       const shouldCheckPreSizeExpectation = fetch.shouldCheckPreSizeExpectation(buffer.lastIndex);
       buffer.items.forEach(item => {
         // 1) shift of the buffered items before the first visible item
@@ -99,7 +105,9 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
     if (scroll.positionBeforeAsync !== null) {
       const diff = render.positionBefore - scroll.positionBeforeAsync;
       if (diff !== 0) {
-        scroller.logger.log(`shift position due to fetch-render difference (${diff})`);
+        if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+          scroller.logger.log(`shift position due to fetch-render difference (${diff})`);
+        }
         position += diff;
       }
     }
@@ -133,7 +141,9 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
     const shift = Math.min(size, diff);
     if (shift) {
       viewport.paddings.forward.size += shift;
-      scroller.logger.log(`increase fwd padding due to lack of items (${diff} -> ${shift})`);
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log(`increase fwd padding due to lack of items (${diff} -> ${shift})`);
+      }
     }
   }
 
@@ -156,7 +166,9 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
       }
       scroll.syntheticFulfill = true;
       viewport.scrollPosition = position;
-      scroller.logger.stat('after scroll adjustment' + diffLog);
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.stat('after scroll adjustment' + diffLog);
+      }
       done();
     });
   }

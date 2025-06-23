@@ -1,3 +1,5 @@
+import './global-defs';
+
 import { Workflow } from './workflow';
 import { makeDatasource } from './classes/datasource';
 import { Routines } from './classes/domRoutines';

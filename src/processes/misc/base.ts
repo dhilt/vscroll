@@ -31,7 +31,9 @@ export const BaseAdapterProcessFactory = (process: AdapterProcess): IBaseAdapter
             [key]: value
           }), {} as T);
       } else {
-        scroller.logger.log(() => result.data.showErrors());
+        if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+          scroller.logger.log(() => result.data.showErrors());
+        }
         if (!ignoreErrors) {
           scroller.workflow.call({
             process,

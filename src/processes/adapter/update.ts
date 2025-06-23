@@ -23,7 +23,9 @@ export default class Update extends BaseAdapterProcessFactory(AdapterProcess.upd
   static doUpdate(scroller: Scroller, params: AdapterUpdateOptions): boolean {
     const { buffer, viewport, state: { fetch }, routines, logger } = scroller;
     if (!buffer.items) {
-      logger.log(() => 'no items in Buffer');
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        logger.log(() => 'no items in Buffer');
+      }
       return false;
     }
     const { item: firstItem, index: firstIndex, diff: firstItemDiff } =
@@ -43,19 +45,23 @@ export default class Update extends BaseAdapterProcessFactory(AdapterProcess.upd
     }
 
     toRemove.forEach(item => item.hide());
-    logger.log(() => toRemove.length
-      ? 'items to remove: [' + toRemove.map(({ $index }) => $index).join(',') + ']'
-      : 'no items to remove'
-    );
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      logger.log(() => toRemove.length
+        ? 'items to remove: [' + toRemove.map(({ $index }) => $index).join(',') + ']'
+        : 'no items to remove'
+      );
+    }
     if (toRemove.length) { // insertions will be processed on render
       buffer.checkDefaultSize();
     }
 
     const toRender = buffer.items.filter(({ toInsert }) => toInsert);
-    logger.log(() => toRender.length
-      ? 'items to render: [' + toRender.map(({ $index }) => $index).join(',') + ']'
-      : 'no items to render'
-    );
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      logger.log(() => toRender.length
+        ? 'items to render: [' + toRender.map(({ $index }) => $index).join(',') + ']'
+        : 'no items to render'
+      );
+    }
 
     fetch.update(trackedIndex, delta, toRender, toRemove);
     return !!toRemove.length || !!toRender.length;

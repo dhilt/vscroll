@@ -19,7 +19,9 @@ export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
     const { buffer, viewport: { paddings }, state: { clip }, logger } = scroller;
     const size = { [Direction.backward]: 0, [Direction.forward]: 0 };
 
-    logger.stat(`before clip (${++clip.callCount})`);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      logger.stat(`before clip (${++clip.callCount})`);
+    }
 
     const itemsToRemove = buffer.items.filter(item => {
       if (!item.toRemove) {
@@ -44,19 +46,21 @@ export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
 
     buffer.clip();
 
-    logger.log(() => {
-      const list = itemsToRemove.map(({ $index }) => $index);
-      return list.length
-        ? [
-          `clipped ${list.length} item(s) from Buffer` +
-          (size.backward ? `, +${size.backward} fwd px` : '') +
-          (size.forward ? `, +${size.forward} bwd px` : '') +
-          `, range: [${list[0]}..${list[list.length - 1]}]`
-        ]
-        : 'clipped 0 items from Buffer';
-    });
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      logger.log(() => {
+        const list = itemsToRemove.map(({ $index }) => $index);
+        return list.length
+          ? [
+            `clipped ${list.length} item(s) from Buffer` +
+            (size.backward ? `, +${size.backward} fwd px` : '') +
+            (size.forward ? `, +${size.forward} bwd px` : '') +
+            `, range: [${list[0]}..${list[list.length - 1]}]`
+          ]
+          : 'clipped 0 items from Buffer';
+      });
 
-    logger.stat('after clip');
+      logger.stat('after clip');
+    }
   }
 
 }

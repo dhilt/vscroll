@@ -31,7 +31,9 @@ export default class Check extends BaseAdapterProcessFactory(AdapterProcess.chec
       );
     }
 
-    scroller.logger.stat('check');
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      scroller.logger.stat('check');
+    }
 
     workflow.call({
       process: Check.process,

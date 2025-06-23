@@ -24,7 +24,9 @@ export default class Replace extends BaseAdapterProcessFactory(AdapterProcess.re
       .map(item => item.$index);
 
     if (!toRemove.length) {
-      scroller.logger.log('no items to be replaced');
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log('no items to be replaced');
+      }
       return false;
     }
 

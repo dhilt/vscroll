@@ -223,8 +223,8 @@ const onOr = (validators: IValidator[]) => (value: unknown): ValidatedValue => {
   return { value, isSet: true, isValid: !errors.length, errors };
 };
 
-enum AbstractEnum { }
-type TEnum = typeof AbstractEnum;
+type AbstractEnum = Record<string, string | number>;
+type TEnum = AbstractEnum;
 
 const onEnum = (list: TEnum) => (value: unknown): ValidatedValue => {
   const errors = [];

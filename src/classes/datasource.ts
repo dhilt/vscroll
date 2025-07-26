@@ -31,7 +31,7 @@ export class DatasourceGeneric<Data> implements IDatasourceConstructed<Data> {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+
 export const makeDatasource = <DSClassType = typeof DatasourceGeneric>(
   getConfig?: () => IAdapterConfig
 ) =>

@@ -42,7 +42,9 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     if (!shouldBuffered && !shouldVirtual) {
       return false;
     }
-    scroller.logger.stat('after remove');
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      scroller.logger.stat('after remove');
+    }
     return true;
   }
 
@@ -101,7 +103,9 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     }
 
     // virtual removal
-    scroller.logger.log(() => `going to remove ${toRemove.length} item(s) virtually`);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      scroller.logger.log(() => `going to remove ${toRemove.length} item(s) virtually`);
+    }
     buffer.removeVirtually(toRemove, !!increase);
     buffer.checkDefaultSize();
     Remove.shiftFirstVisibleIndex(scroller, toRemove, !!increase);

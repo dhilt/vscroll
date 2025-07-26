@@ -55,12 +55,14 @@ export class Scroller<Data = unknown> {
 
     this.workflow = workflow;
     this.settings = new Settings<Data>(datasource.settings, datasource.devSettings, ++instanceCount);
-    this.logger = new Logger(this as Scroller, packageInfo, datasource.adapter);
+    this.logger = typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging ? new Logger(this as Scroller, packageInfo, datasource.adapter) : null!;
     this.routines = new (CustomRoutines || Routines)(element, this.settings);
     this.state = new State(packageInfo, this.settings, scroller ? scroller.state : void 0);
     this.buffer = new Buffer<Data>(this.settings, workflow.onDataChanged, this.logger);
     this.viewport = new Viewport(this.settings, this.routines, this.state, this.logger);
-    this.logger.object('vscroll settings object', this.settings, true);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.object('vscroll settings object', this.settings, true);
+    }
 
     this.initDatasource(datasource, scroller);
   }
@@ -90,7 +92,9 @@ export class Scroller<Data = unknown> {
 
   init(adapterRun$?: Reactive<ProcessSubject>): void {
     this.viewport.reset(this.buffer.startIndex);
-    this.logger.stat('initialization');
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.stat('initialization');
+    }
     this.adapter.initialize({
       buffer: this.buffer,
       state: this.state,
@@ -101,7 +105,9 @@ export class Scroller<Data = unknown> {
   }
 
   dispose(forever?: boolean): void {
-    this.logger.log(() => 'disposing scroller' + (forever ? ' (forever)' : ''));
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.log(() => 'disposing scroller' + (forever ? ' (forever)' : ''));
+    }
     if (forever) { // Adapter is not re-instantiated on reset
       this.adapter.dispose();
     }

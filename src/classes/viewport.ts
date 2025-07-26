@@ -34,14 +34,18 @@ export class Viewport {
   setPosition(value: number): number {
     const oldPosition = this.scrollPosition;
     if (oldPosition === value) {
-      this.logger.log(() => ['setting scroll position at', value, '[cancelled]']);
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        this.logger.log(() => ['setting scroll position at', value, '[cancelled]']);
+      }
       return value;
     }
     this.routines.setScrollPosition(value);
     const position = this.scrollPosition;
-    this.logger.log(() => [
-      'setting scroll position at', position, ...(position !== value ? [`(${value})`] : [])
-    ]);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.log(() => [
+        'setting scroll position at', position, ...(position !== value ? [`(${value})`] : [])
+      ]);
+    }
     return position;
   }
 

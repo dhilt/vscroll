@@ -103,7 +103,9 @@ export class Workflow<ItemData = unknown> {
     // if the scroller is paused, any process other than "pause" and "reset" should be blocked
     if (this.scroller.state.paused.get()) {
       if (![AdapterProcess.pause, AdapterProcess.reset].includes(process as AdapterProcess)) {
-        this.scroller.logger.log('scroller is paused: ' + process + ' process is ignored');
+        if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+          this.scroller.logger.log('scroller is paused: ' + process + ' process is ignored');
+        }
         return;
       }
     }
@@ -122,13 +124,15 @@ export class Workflow<ItemData = unknown> {
 
   process(data: ProcessSubject): void {
     const { status, process, payload } = data;
-    if (this.scroller.settings.logProcessRun) {
-      this.scroller.logger.log(() => [
-        '%cfire%c', ...['color: #cc7777;', 'color: #000000;'],
-        process, `"${status}"`, ...(payload !== void 0 ? [payload] : [])
-      ]);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      if (this.scroller.settings.logProcessRun) {
+        this.scroller.logger.log(() => [
+          '%cfire%c', ...['color: #cc7777;', 'color: #000000;'],
+          process, `"${status}"`, ...(payload !== void 0 ? [payload] : [])
+        ]);
+      }
+      this.scroller.logger.logProcess(data);
     }
-    this.scroller.logger.logProcess(data);
 
     if (process === CommonProcess.end) {
       this.scroller.finalize();
@@ -142,11 +146,13 @@ export class Workflow<ItemData = unknown> {
   runProcess() {
     return ({ run, process, name }: ProcessClass) =>
       (...args: unknown[]): void => {
-        if (this.scroller.settings.logProcessRun) {
-          this.scroller.logger.log(() => [
-            '%crun%c', ...['color: #333399;', 'color: #000000;'],
-            process || name, ...args
-          ]);
+        if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+          if (this.scroller.settings.logProcessRun) {
+            this.scroller.logger.log(() => [
+              '%crun%c', ...['color: #333399;', 'color: #000000;'],
+              process || name, ...args
+            ]);
+          }
         }
         run(this.scroller as Scroller, ...args);
       };
@@ -161,7 +167,9 @@ export class Workflow<ItemData = unknown> {
       time,
       loop: cycle.loopIdNext
     });
-    this.scroller.logger.logError(message);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.scroller.logger.logError(message);
+    }
   }
 
   interrupt({ process, finalize, datasource }: InterruptParams<ItemData>): void {
@@ -174,11 +182,15 @@ export class Workflow<ItemData = unknown> {
       workflow.call.interrupted = true;
       this.scroller.workflow = this.getUpdater();
       this.interruptionCount++;
-      logger.log(() => `workflow had been interrupted by the ${process} process (${this.interruptionCount})`);
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        logger.log(() => `workflow had been interrupted by the ${process} process (${this.interruptionCount})`);
+      }
     }
     if (datasource) { // Scroller re-initialization case
       const reInit = () => {
-        this.scroller.logger.log('new Scroller instantiation');
+        if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+          this.scroller.logger.log('new Scroller instantiation');
+        }
         const scroller = new Scroller<ItemData>({ datasource, scroller: this.scroller });
         this.scroller.dispose();
         this.scroller = scroller;
@@ -202,7 +214,9 @@ export class Workflow<ItemData = unknown> {
   }
 
   dispose(): void {
-    this.scroller.logger.log(() => 'disposing workflow');
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.scroller.logger.log(() => 'disposing workflow');
+    }
     if (this.initTimer) {
       clearTimeout(this.initTimer);
     }

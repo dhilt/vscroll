@@ -36,7 +36,9 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
     PreFetch.setPositions(scroller);
     PreFetch.setFirstIndex(scroller);
     PreFetch.setLastIndex(scroller);
-    scroller.logger.fetch();
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      scroller.logger.fetch();
+    }
   }
 
   static setPositions(scroller: Scroller): void {
@@ -61,9 +63,11 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
     for (let index = buffer.finiteAbsMinIndex; index < buffer.startIndex; index++) {
       startDelta += buffer.getSizeByIndex(index);
     }
-    scroller.logger.log(() => [
-      `start delta is ${startDelta}`, ...(offset ? [` (+${offset} offset)`] : [])
-    ]);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      scroller.logger.log(() => [
+        `start delta is ${startDelta}`, ...(offset ? [` (+${offset} offset)`] : [])
+      ]);
+    }
     return startDelta;
   }
 
@@ -73,9 +77,13 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
     let firstIndex = buffer.startIndex;
     let firstIndexPosition = 0;
     if (state.cycle.innerLoop.isInitial) {
-      scroller.logger.log('skipping fetch backward direction [initial loop]');
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log('skipping fetch backward direction [initial loop]');
+      }
     } else if (!buffer.defaultSize) {
-      scroller.logger.log('skipping fetch backward direction [no item size]');
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log('skipping fetch backward direction [no item size]');
+      }
     } else {
       let position = firstIndexPosition;
       let index = firstIndex;
@@ -120,7 +128,9 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
     if (!buffer.defaultSize) {
       // just to fetch forward bufferSize items if neither averageItemSize nor itemSize are present
       lastIndex = buffer.startIndex + settings.bufferSize - 1;
-      scroller.logger.log('forcing fetch forward direction [no item size]');
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log('forcing fetch forward direction [no item size]');
+      }
     } else {
       let index = first.indexBuffer;
       let position = first.position;
@@ -174,8 +184,10 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
     }
     fetch.first.index = Math.max(pack[0], buffer.absMinIndex);
     fetch.last.index = Math.min(pack[pack.length - 1], buffer.absMaxIndex);
-    if (fetch.first.index !== firstIndex || fetch.last.index !== lastIndex) {
-      scroller.logger.fetch('after Buffer flushing');
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      if (fetch.first.index !== firstIndex || fetch.last.index !== lastIndex) {
+        scroller.logger.fetch('after Buffer flushing');
+      }
     }
   }
 
@@ -194,8 +206,10 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
     if (fetchLast < bufferFirst) {
       fetch.last.index = fetch.last.indexBuffer = bufferFirst - 1;
     }
-    if (fetch.first.index !== fetchFirst || fetch.last.index !== fetchLast) {
-      scroller.logger.fetch('after Buffer filling (no clip case)');
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      if (fetch.first.index !== fetchFirst || fetch.last.index !== fetchLast) {
+        scroller.logger.fetch('after Buffer filling (no clip case)');
+      }
     }
   }
 
@@ -222,7 +236,9 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
       }
     }
     if (fetch.first.index !== firstIndex || fetch.last.index !== lastIndex) {
-      scroller.logger.fetch('after bufferSize adjustment');
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.fetch('after bufferSize adjustment');
+      }
       PreFetch.skipBufferedItems(scroller);
     }
   }
@@ -235,18 +251,24 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
         direction = fetch.last.index < buffer.items[0].$index ? Direction.backward : Direction.forward;
       }
       fetch.direction = direction;
-      scroller.logger.log(() => `fetch direction is "${direction}"`);
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log(() => `fetch direction is "${direction}"`);
+      }
     }
   }
 
   static getStatus(scroller: Scroller): ProcessStatus {
     const { cycle, fetch } = scroller.state;
     if (cycle.initiator === AdapterProcess.clip) {
-      scroller.logger.log(() => `going to skip fetch due to "${AdapterProcess.clip}" process`);
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log(() => `going to skip fetch due to "${AdapterProcess.clip}" process`);
+      }
       return ProcessStatus.next;
     }
     if (fetch.shouldFetch) {
-      scroller.logger.log(() => `going to fetch ${fetch.count} items started from index ${fetch.index}`);
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log(() => `going to fetch ${fetch.count} items started from index ${fetch.index}`);
+      }
       return ProcessStatus.next;
     }
     return ProcessStatus.done;

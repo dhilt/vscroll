@@ -132,11 +132,15 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   private getWorkflowRunnerMethod(method: MethodResolver, name: AdapterPropName) {
     return (...args: unknown[]): Promise<AdapterMethodResult> => {
       if (!this.relax$) {
-        this.logger?.log?.(() => 'scroller is not initialized: ' + name + ' method is ignored');
+        if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+          this.logger?.log?.(() => 'scroller is not initialized: ' + name + ' method is ignored');
+        }
         return Promise.resolve(methodPreResult);
       }
       if (this.paused && !ALLOWED_METHODS_WHEN_PAUSED.includes(name)) {
-        this.logger?.log?.(() => 'scroller is paused: ' + name + ' method is ignored');
+        if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+          this.logger?.log?.(() => 'scroller is paused: ' + name + ' method is ignored');
+        }
         return Promise.resolve(methodPausedResult);
 
       }
@@ -337,7 +341,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         return;
       }
       if (buffer.items.some(({ element }) => !element)) {
-        logger.log('skipping first/lastVisible set because not all buffered items are rendered at this moment');
+        if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+          logger.log('skipping first/lastVisible set because not all buffered items are rendered at this moment');
+        }
         return;
       }
       const direction = first ? Direction.backward : Direction.forward;
@@ -423,7 +429,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   reset(options?: IDatasourceOptional): any {
     this.reloadCounter++;
-    this.logger.logAdapterMethod('reset', options, ` of ${this.reloadId}`);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.logAdapterMethod('reset', options, ` of ${this.reloadId}`);
+    }
     this.workflow.call({
       process: AdapterProcess.reset,
       status: ProcessStatus.start,
@@ -434,7 +442,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   reload(options?: number | string): any {
     this.reloadCounter++;
-    this.logger.logAdapterMethod('reload', options, ` of ${this.reloadId}`);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.logAdapterMethod('reload', options, ` of ${this.reloadId}`);
+    }
     this.workflow.call({
       process: AdapterProcess.reload,
       status: ProcessStatus.start,
@@ -445,7 +455,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   append(_options: AdapterAppendOptions<Item> | unknown, eof?: boolean): any {
     const options = convertAppendArgs(false, _options, eof); // support old signature
-    this.logger.logAdapterMethod('append', [options.items, options.eof]);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.logAdapterMethod('append', [options.items, options.eof]);
+    }
     this.workflow.call({
       process: AdapterProcess.append,
       status: ProcessStatus.start,
@@ -456,7 +468,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prepend(_options: AdapterPrependOptions<Item> | unknown, bof?: boolean): any {
     const options = convertAppendArgs(true, _options, bof); // support old signature
-    this.logger.logAdapterMethod('prepend', [options.items, options.bof]);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.logAdapterMethod('prepend', [options.items, options.bof]);
+    }
     this.workflow.call({
       process: AdapterProcess.prepend,
       status: ProcessStatus.start,
@@ -466,7 +480,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   check(): any {
-    this.logger.logAdapterMethod('check');
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.logAdapterMethod('check');
+    }
     this.workflow.call({
       process: AdapterProcess.check,
       status: ProcessStatus.start
@@ -476,7 +492,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   remove(options: AdapterRemoveOptions<Item> | ItemsPredicate<Item>): any {
     options = convertRemoveArgs(options); // support old signature
-    this.logger.logAdapterMethod('remove', options);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.logAdapterMethod('remove', options);
+    }
     this.workflow.call({
       process: AdapterProcess.remove,
       status: ProcessStatus.start,
@@ -486,7 +504,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   clip(options?: AdapterClipOptions): any {
-    this.logger.logAdapterMethod('clip', options);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.logAdapterMethod('clip', options);
+    }
     this.workflow.call({
       process: AdapterProcess.clip,
       status: ProcessStatus.start,
@@ -496,7 +516,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   insert(options: AdapterInsertOptions<Item>): any {
-    this.logger.logAdapterMethod('insert', options);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.logAdapterMethod('insert', options);
+    }
     this.workflow.call({
       process: AdapterProcess.insert,
       status: ProcessStatus.start,
@@ -506,7 +528,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   replace(options: AdapterReplaceOptions<Item>): any {
-    this.logger.logAdapterMethod('replace', options);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.logAdapterMethod('replace', options);
+    }
     this.workflow.call({
       process: AdapterProcess.replace,
       status: ProcessStatus.start,
@@ -516,7 +540,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   update(options: AdapterUpdateOptions<Item>): any {
-    this.logger.logAdapterMethod('update', options);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.logAdapterMethod('update', options);
+    }
     this.workflow.call({
       process: AdapterProcess.update,
       status: ProcessStatus.start,
@@ -526,7 +552,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pause(): any {
-    this.logger.logAdapterMethod('pause');
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.logAdapterMethod('pause');
+    }
     this.workflow.call({
       process: AdapterProcess.pause,
       status: ProcessStatus.start
@@ -535,7 +563,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resume(): any {
-    this.logger.logAdapterMethod('resume');
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.logAdapterMethod('resume');
+    }
     this.workflow.call({
       process: AdapterProcess.pause,
       status: ProcessStatus.start,
@@ -545,7 +575,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fix(options: AdapterFixOptions<Item>): any {
-    this.logger.logAdapterMethod('fix', options);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.logAdapterMethod('fix', options);
+    }
     this.workflow.call({
       process: AdapterProcess.fix,
       status: ProcessStatus.start,
@@ -576,7 +608,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         };
       }
       const success = reloadId === this.reloadId;
-      this.logger?.log?.(() => !success ? `relax promise cancelled due to ${reloadId} != ${this.reloadId}` : void 0);
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        this.logger?.log?.(() => !success ? `relax promise cancelled due to ${reloadId} != ${this.reloadId}` : void 0);
+      }
       return {
         immediate,
         success,
@@ -587,7 +621,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
   relax(callback?: () => void): Promise<AdapterMethodResult> {
     const reloadId = this.reloadId;
-    this.logger.logAdapterMethod('relax', callback, ` of ${reloadId}`);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.logAdapterMethod('relax', callback, ` of ${reloadId}`);
+    }
     if (!this.init) {
       return Promise.resolve(methodPreResult);
     }
@@ -600,7 +636,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   }
 
   showLog(): void {
-    this.logger.logAdapterMethod('showLog');
-    this.logger.logForce();
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      this.logger.logAdapterMethod('showLog');
+      this.logger.logForce();
+    }
   }
 }

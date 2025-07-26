@@ -6,7 +6,9 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
 
   static run(scroller: Scroller): void {
     const { workflow, state: { cycle, render, scroll, fetch }, viewport, routines } = scroller;
-    scroller.logger.stat('before new items render');
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      scroller.logger.stat('before new items render');
+    }
     if (scroll.positionBeforeAsync === null) {
       scroll.positionBeforeAsync = viewport.scrollPosition;
     }
@@ -41,8 +43,10 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
     }
     buffer.checkDefaultSize();
     render.sizeAfter = viewport.getScrollableSize();
-    logger.stat('after new items render');
-    logger.log(() => render.noSize ? 'viewport size has not been changed' : void 0);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      logger.stat('after new items render');
+      logger.log(() => render.noSize ? 'viewport size has not been changed' : void 0);
+    }
     return true;
   }
 

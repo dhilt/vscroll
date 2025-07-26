@@ -13,6 +13,7 @@
   - [Routines](#5-routines)
 - [Live](#live)
 - [Adapter API](#adapter-api)
+- [Compile-Time Logging Control](#compile-time-logging-control)
 - [Thanks](#thanks)
 
 ## Overview
@@ -278,6 +279,30 @@ console.log('The Workflow runs'); // 1st output
 ```
 
 VScroll will receive its own Adapter API documentation later, but for now please refer to [ngx-ui-scroll](https://github.com/dhilt/ngx-ui-scroll#adapter-api).
+
+## Compile-Time Logging Control
+
+`vscroll` includes detailed internal logging useful for debugging. To avoid unnecessary overhead in production, you can disable logging at compile time by defining a global constant:
+
+```js
+// webpack.config.js
+new webpack.DefinePlugin({
+  vscroll_enableLogging: JSON.stringify(false)
+});
+```
+
+Or when using ESBuild:
+
+```js
+import { build } from 'esbuild';
+
+build({
+  ...,
+  define: {
+    vscroll_enableLogging: JSON.stringify(false)
+  }
+});
+```
 
 ## Thanks
 

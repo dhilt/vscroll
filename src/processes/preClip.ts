@@ -23,17 +23,21 @@ export default class PreClip extends BaseProcessFactory(CommonProcess.preClip) {
     }
     const firstIndex = fetch.first.indexBuffer;
     const lastIndex = fetch.last.indexBuffer;
-    scroller.logger.log(() =>
-      `looking for ${fetch.direction ? 'anti-' + fetch.direction + ' ' : ''}items ` +
-      `that are out of [${firstIndex}..${lastIndex}] range`);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      scroller.logger.log(() =>
+        `looking for ${fetch.direction ? 'anti-' + fetch.direction + ' ' : ''}items ` +
+        `that are out of [${firstIndex}..${lastIndex}] range`);
+    }
     if (PreClip.isBackward(scroller, firstIndex)) {
       PreClip.prepareClipByDirection(scroller, Direction.backward, firstIndex);
     }
     if (PreClip.isForward(scroller, lastIndex)) {
       PreClip.prepareClipByDirection(scroller, Direction.forward, lastIndex);
     }
-    if (!clip.doClip) {
-      scroller.logger.log('skipping clip [no items to clip]');
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      if (!clip.doClip) {
+        scroller.logger.log('skipping clip [no items to clip]');
+      }
     }
     return;
   }
@@ -41,15 +45,21 @@ export default class PreClip extends BaseProcessFactory(CommonProcess.preClip) {
   static shouldNotClip(scroller: Scroller): boolean {
     const { settings, buffer, state } = scroller;
     if (settings.infinite && !state.clip.force) {
-      scroller.logger.log('skipping clip [infinite mode]');
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log('skipping clip [infinite mode]');
+      }
       return true;
     }
     if (!buffer.size) {
-      scroller.logger.log('skipping clip [empty buffer]');
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log('skipping clip [empty buffer]');
+      }
       return true;
     }
     if (state.cycle.isInitial) {
-      scroller.logger.log('skipping clip [initial cycle]');
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log('skipping clip [initial cycle]');
+      }
       return true;
     }
     return false;

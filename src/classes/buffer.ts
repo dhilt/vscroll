@@ -65,15 +65,21 @@ export class Buffer<Data> {
     const start = this.startIndexUser;
     let index = Number(newStartIndex);
     if (Number.isNaN(index)) {
-      this.logger.log(() => `fallback startIndex to settings.startIndex (${start})`);
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        this.logger.log(() => `fallback startIndex to settings.startIndex (${start})`);
+      }
       index = start;
     }
     if (index < min) {
-      this.logger.log(() => `setting startIndex to settings.minIndex (${min}) because ${index} < ${min}`);
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        this.logger.log(() => `setting startIndex to settings.minIndex (${min}) because ${index} < ${min}`);
+      }
       index = min;
     }
     if (index > max) {
-      this.logger.log(() => `setting startIndex to settings.maxIndex (${max}) because ${index} > ${max}`);
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        this.logger.log(() => `setting startIndex to settings.maxIndex (${max}) because ${index} > ${max}`);
+      }
       index = max;
     }
     this.startIndex = index;

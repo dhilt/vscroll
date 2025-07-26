@@ -27,14 +27,18 @@ export default class Scroll extends BaseProcessFactory(CommonProcess.scroll) {
         scroll.syntheticPosition = null;
       }
       if (!scroll.syntheticFulfill || synthPos === position) {
-        scroller.logger.log(() => [
-          'skipping scroll', position, `[${scroll.syntheticFulfill ? '' : 'pre-'}synthetic]`
-        ]);
+        if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+          scroller.logger.log(() => [
+            'skipping scroll', position, `[${scroll.syntheticFulfill ? '' : 'pre-'}synthetic]`
+          ]);
+        }
         return true;
       }
-      scroller.logger.log(() => [
-        'synthetic scroll has been fulfilled:', position, position < synthPos ? '<' : '>', synthPos
-      ]);
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log(() => [
+          'synthetic scroll has been fulfilled:', position, position < synthPos ? '<' : '>', synthPos
+        ]);
+      }
     }
     return false;
   }
@@ -47,12 +51,14 @@ export default class Scroll extends BaseProcessFactory(CommonProcess.scroll) {
     const delta = throttle - timeDiff;
     const shouldDelay = isFinite(delta) && delta > 0;
     const alreadyDelayed = !!scroll.scrollTimer;
-    logger.log(() => [
-      direction === Direction.backward ? '\u2934' : '\u2935',
-      position,
-      shouldDelay ? (timeDiff + 'ms') : '0ms',
-      shouldDelay ? (alreadyDelayed ? 'delayed' : `/ ${delta}ms delay`) : ''
-    ]);
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      logger.log(() => [
+        direction === Direction.backward ? '\u2934' : '\u2935',
+        position,
+        shouldDelay ? (timeDiff + 'ms') : '0ms',
+        shouldDelay ? (alreadyDelayed ? 'delayed' : `/ ${delta}ms delay`) : ''
+      ]);
+    }
     if (!shouldDelay) {
       if (scroll.scrollTimer) {
         clearTimeout(scroll.scrollTimer);
@@ -63,16 +69,18 @@ export default class Scroll extends BaseProcessFactory(CommonProcess.scroll) {
     }
     if (!alreadyDelayed) {
       scroll.scrollTimer = setTimeout(() => {
-        logger.log(() => {
-          const curr = Scroll.getScrollEvent(scroller.viewport.scrollPosition, scroll.current);
-          return [
-            curr.direction === Direction.backward ? '\u2934' : '\u2935',
-            curr.position,
-            (curr.time - time) + 'ms',
-            'triggered by timer set on',
-            position
-          ];
-        });
+        if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+          logger.log(() => {
+            const curr = Scroll.getScrollEvent(scroller.viewport.scrollPosition, scroll.current);
+            return [
+              curr.direction === Direction.backward ? '\u2934' : '\u2935',
+              curr.position,
+              (curr.time - time) + 'ms',
+              'triggered by timer set on',
+              position
+            ];
+          });
+        }
         scroll.scrollTimer = null;
         done();
       }, delta);
@@ -98,7 +106,9 @@ export default class Scroll extends BaseProcessFactory(CommonProcess.scroll) {
     scroll.current = null;
 
     if (cycle.busy.get()) {
-      scroller.logger.log(() => ['skipping scroll', (scroll.previous as ScrollEventData).position, '[pending]']);
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log(() => ['skipping scroll', (scroll.previous as ScrollEventData).position, '[pending]']);
+      }
       return;
     }
 

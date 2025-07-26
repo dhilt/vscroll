@@ -8,7 +8,9 @@ export default class Pause extends BaseAdapterProcessFactory(AdapterProcess.paus
 
     // pause branch
     if (!resume && !scroller.state.paused.get()) {
-      scroller.logger.log('pause scroller');
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log('pause scroller');
+      }
       scroller.state.paused.set(true);
       scroller.workflow.call({
         process: AdapterProcess.pause,
@@ -17,7 +19,9 @@ export default class Pause extends BaseAdapterProcessFactory(AdapterProcess.paus
       return;
     }
 
-    scroller.logger.log('resume scroller');
+    if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+      scroller.logger.log('resume scroller');
+    }
     scroller.state.paused.set(false);
     scroller.workflow.call({
       process: AdapterProcess.pause,

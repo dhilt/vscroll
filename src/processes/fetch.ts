@@ -22,10 +22,12 @@ export default class Fetch extends BaseProcessFactory(CommonProcess.fetch) {
 
     const box = {
       success: (data: unknown[]) => {
-        scroller.logger.log(() =>
-          `resolved ${data.length} items ` +
-          `(index = ${scroller.state.fetch.index}, count = ${scroller.state.fetch.count})`
-        );
+        if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+          scroller.logger.log(() =>
+            `resolved ${data.length} items ` +
+            `(index = ${scroller.state.fetch.index}, count = ${scroller.state.fetch.count})`
+          );
+        }
         scroller.state.fetch.newItemsData = data;
         workflow.call({
           process: Fetch.process,

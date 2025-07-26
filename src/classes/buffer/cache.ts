@@ -85,7 +85,9 @@ export class Cache<Data = unknown> {
 
   recalculateDefaultSize(): boolean {
     if (this.defaultSize.recalculate(this.size)) {
-      this.logger.log(() => `default size has been updated: ${this.defaultSize.get()}`);
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        this.logger.log(() => `default size has been updated: ${this.defaultSize.get()}`);
+      }
       return true;
     }
     return false;

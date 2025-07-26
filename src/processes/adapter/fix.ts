@@ -79,7 +79,9 @@ export default class Fix extends BaseAdapterProcessFactory(AdapterProcess.fix) {
     const updater = () => updateReference = true;
     buffer.items.forEach(item => value(item.get(), updater));
     if (updateReference) {
-      logger.log(() => 'update Buffer.items reference');
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        logger.log(() => 'update Buffer.items reference');
+      }
       buffer.items = [...buffer.items];
     }
   }
@@ -87,7 +89,9 @@ export default class Fix extends BaseAdapterProcessFactory(AdapterProcess.fix) {
   static scrollToItem(scroller: Scroller, value: ItemsPredicate, options?: boolean | ScrollIntoViewOptions): void {
     const found = scroller.buffer.items.find(item => value(item.get()));
     if (!found) {
-      scroller.logger.log(() => 'scrollToItem cancelled, item not found');
+      if (typeof vscroll_enableLogging === 'undefined' || vscroll_enableLogging) {
+        scroller.logger.log(() => 'scrollToItem cancelled, item not found');
+      }
       return;
     }
     found.scrollTo(options);

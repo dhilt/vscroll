@@ -1,7 +1,7 @@
 import resolve from '@rollup/plugin-node-resolve';
-import sourcemaps from 'rollup-plugin-sourcemaps';
+import sourcemaps from 'rollup-plugin-sourcemaps2';
 import license from 'rollup-plugin-license';
-import { terser } from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 
 export const plugins = {
   resolve: () => resolve(),

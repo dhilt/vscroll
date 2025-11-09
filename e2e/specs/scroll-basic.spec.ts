@@ -3,32 +3,17 @@ import type { Page } from '@playwright/test';
 import { VScrollFixture, Direction, type DirectionType } from '../fixture/VScrollFixture.js';
 import { ItemsCounter } from '../helpers/itemsCounter.js';
 import type { IDatasource } from '../../src/index.js';
-import type { Settings, DevSettings } from '../../src/interfaces/settings.js';
+import { ITestConfig } from 'types/index.js';
 
-interface ICustom {
+type IConfig = ITestConfig<{
   direction: DirectionType;
   count: number;
   bouncing?: boolean;
   mass?: boolean;
-}
-
-interface ITemplateSettings {
-  viewportHeight?: number;
-  viewportWidth?: number;
-  itemHeight?: number;
-  itemWidth?: number;
-  horizontal?: boolean;
-}
-
-interface ITestConfig {
-  datasourceSettings: Settings;
-  datasourceDevSettings?: DevSettings; // Optional dev settings for debugging
-  templateSettings: ITemplateSettings;
-  custom: ICustom;
-}
+}>;
 
 // Test configurations (same as original)
-const configList: ITestConfig[] = [
+const configList: IConfig[] = [
   {
     datasourceSettings: {
       startIndex: 100,
@@ -91,7 +76,7 @@ const configList: ITestConfig[] = [
 // Helper functions (ported from original)
 const treatIndex = (index: number) => (index <= 3 ? index : 3 * 2 - index);
 
-const doScrollMax = async (config: ITestConfig, fixture: VScrollFixture) => {
+const doScrollMax = async (config: IConfig, fixture: VScrollFixture) => {
   if (config.custom.direction === Direction.forward) {
     await fixture.scrollMax();
   } else {
@@ -99,14 +84,14 @@ const doScrollMax = async (config: ITestConfig, fixture: VScrollFixture) => {
   }
 };
 
-const invertDirection = (config: ITestConfig) => {
+const invertDirection = (config: IConfig) => {
   const _forward = config.custom.direction === Direction.forward;
   config.custom.direction = _forward ? Direction.backward : Direction.forward;
 };
 
 const getInitialItemsCounter = async (
   fixture: VScrollFixture,
-  config: ITestConfig
+  config: IConfig
 ): Promise<ItemsCounter> => {
   const edgeItem = await fixture.scroller.buffer.getEdgeVisibleItem(Direction.forward);
   const oppositeItem = await fixture.scroller.buffer.getEdgeVisibleItem(Direction.backward);
@@ -153,7 +138,7 @@ const getCurrentItemsCounter = async (
   fixture: VScrollFixture,
   direction: DirectionType,
   previous: ItemsCounter,
-  config: ITestConfig
+  config: IConfig
 ): Promise<ItemsCounter> => {
   const bufferSize = config.datasourceSettings.bufferSize;
   const padding = config.datasourceSettings.padding;
@@ -202,7 +187,7 @@ const getCurrentItemsCounter = async (
 };
 
 // Create test fixture from config
-const createFixture = async (page: Page, config: ITestConfig): Promise<VScrollFixture> => {
+const createFixture = async (page: Page, config: IConfig): Promise<VScrollFixture> => {
   const { datasourceSettings, datasourceDevSettings, templateSettings } = config;
 
   // // Capture browser console logs
@@ -283,7 +268,7 @@ const createFixture = async (page: Page, config: ITestConfig): Promise<VScrollFi
 };
 
 // Main test function
-const shouldScroll = async (fixture: VScrollFixture, config: ITestConfig) => {
+const shouldScroll = async (fixture: VScrollFixture, config: IConfig) => {
   const custom = config.custom;
   const wfCount = custom.count + 1;
   const wfCountMiddle = Math.ceil(wfCount / 2);
@@ -333,7 +318,7 @@ const shouldScroll = async (fixture: VScrollFixture, config: ITestConfig) => {
   expect(await fixture.checkElementContentByIndex(oppositeItemIndex)).toEqual(true);
 };
 
-const makeTest = (title: string, config: ITestConfig) => {
+const makeTest = (title: string, config: IConfig) => {
   test(title, async ({ page }) => {
     const fixture = await createFixture(page, config);
     await shouldScroll(fixture, config);
@@ -343,11 +328,11 @@ const makeTest = (title: string, config: ITestConfig) => {
 
 // Test suites
 test.describe('Basic Scroll Spec', () => {
-  test.describe('Single max fwd scroll event', () => {
-    configList.forEach((config, index) => {
-      makeTest(`should process 1 forward max scroll (config ${index})`, config);
-    });
-  });
+  test.describe('Single max fwd scroll event', () =>
+    configList.forEach((config, index) =>
+      makeTest(`should process 1 forward max scroll (config ${index})`, config)
+    )
+  );
 
   test.describe('Single max bwd scroll event', () =>
     configList.map(config => ({

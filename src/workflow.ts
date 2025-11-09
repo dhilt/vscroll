@@ -23,6 +23,7 @@ export class Workflow<ItemData = unknown> {
   initTimer: ReturnType<typeof setTimeout> | null;
   adapterRun$: Reactive<ProcessSubject>;
   cyclesDone: number;
+  cyclesDone$: Reactive<number>;
   interruptionCount: number;
   errors: WorkflowError[];
 
@@ -45,6 +46,7 @@ export class Workflow<ItemData = unknown> {
     this.initTimer = null;
     this.adapterRun$ = new Reactive();
     this.cyclesDone = 0;
+    this.cyclesDone$ = new Reactive<number>(0);
     this.interruptionCount = 0;
     this.errors = [];
     this.offScroll = () => null;
@@ -196,6 +198,7 @@ export class Workflow<ItemData = unknown> {
   done(): void {
     const { state, logger } = this.scroller;
     this.cyclesDone++;
+    this.cyclesDone$.set(this.cyclesDone);
     logger.logCycle(false);
     state.endWorkflowCycle(this.cyclesDone + 1);
     this.finalize();
@@ -208,6 +211,7 @@ export class Workflow<ItemData = unknown> {
     }
     this.offScroll();
     this.adapterRun$.dispose();
+    this.cyclesDone$.dispose();
     this.scroller.dispose(true);
     Object.getOwnPropertyNames(this).forEach(prop => {
       delete (this as Record<string, unknown>)[prop];

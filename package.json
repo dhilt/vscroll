@@ -28,11 +28,11 @@
     "jest": "jest",
     "watch": "jest --watch",
     "build": "node build",
-    "test": "npm run lint && npm run jest",
+    "test:unit": "npm run lint && npm run jest",
     "test:e2e": "playwright test --config=e2e/playwright.config.ts",
     "test:e2e:ui": "playwright test --config=e2e/playwright.config.ts --ui",
     "test:e2e:debug": "playwright test --config=e2e/playwright.config.ts --debug",
-    "test:all": "npm run test && npm run test:e2e",
+    "test": "npm run test:unit && npm run test:e2e",
     "prepack": "npm run build",
     "checkGit": "sh ./uncommited.sh",
     "prepublishOnly": "npm run checkGit && npm run test && npm run build && npm run checkGit"

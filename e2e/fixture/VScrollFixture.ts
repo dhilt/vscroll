@@ -248,10 +248,11 @@ export class VScrollFixture {
    * Access to workflow in browser
    */
   get workflow() {
+    const page = this.page;
     return {
       // Proxy methods to browser
-      cyclesDone: async () => {
-        return await this.page.evaluate(() => {
+      get cyclesDone(): Promise<number> {
+        return page.evaluate(() => {
           return window.__vscroll__.workflow.cyclesDone;
         });
       }
@@ -261,14 +262,15 @@ export class VScrollFixture {
 
 
   /**
-   * Scroll to a specific position
-   * Waits for the workflow to complete and the adapter to relax if the scroll position changed
+   * Scroll to a specific position. Waits for the scroller to relax if the scroll position changed.
+   * @param position - The position to scroll to
+   * @param options.noRelax - If true, the adapter will not be relaxed even if the scroll position changed
    */
-  async scrollTo(position: number): Promise<void> {
+  async scrollTo(position: number, options: { noRelax?: boolean } = {}): Promise<void> {
     const positionBefore = await this.scroller.viewport.scrollPosition;
     await this.adapter.fix({ scrollPosition: position });
     const positionAfter = await this.scroller.viewport.scrollPosition;
-    if (positionBefore !== positionAfter) {
+    if (!options?.noRelax && positionBefore !== positionAfter) {
       await this.relaxNext();
     }
   }
@@ -276,15 +278,15 @@ export class VScrollFixture {
   /**
    * Scroll to max position
    */
-  async scrollMax(): Promise<void> {
-    await this.scrollTo(Infinity);
+  async scrollMax(options?: { noRelax?: boolean }): Promise<void> {
+    return this.scrollTo(Infinity, options);
   }
 
   /**
    * Scroll to min position
    */
-  async scrollMin(): Promise<void> {
-    await this.scrollTo(0);
+  async scrollMin(options?: { noRelax?: boolean }): Promise<void> {
+    return this.scrollTo(0, options);
   }
 
   /**

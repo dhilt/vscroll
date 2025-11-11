@@ -3,7 +3,6 @@
     "baseUrl": ".",
     "outDir": "./dist",
     "types": ["node", "@playwright/test"],
-    "typeRoots": ["./types", "../node_modules/@types"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "esModuleInterop": true,

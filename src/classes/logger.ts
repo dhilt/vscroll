@@ -17,7 +17,7 @@ export class Logger {
   readonly getLoopId: () => string;
   readonly getLoopIdNext: () => string;
   readonly getScrollPosition: () => number;
-  private logs: unknown[][] = [];
+  private logs: LogType[] = [];
 
   constructor(scroller: Scroller, packageInfo: IPackages, adapter?: { id: number }) {
     const { settings } = scroller;
@@ -237,5 +237,9 @@ export class Logger {
         console.log.apply(this, args as LogType);
       }
     }
+  }
+
+  getLogs(): LogType[] {
+    return this.logs;
   }
 }

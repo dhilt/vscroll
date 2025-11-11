@@ -12,7 +12,6 @@ type IConfig = ITestConfig<{
   mass?: boolean;
 }>;
 
-// Test configurations (same as original)
 const configList: IConfig[] = [
   {
     datasourceSettings: {
@@ -21,7 +20,6 @@ const configList: IConfig[] = [
       padding: 0.22,
       itemSize: 20
     },
-    datasourceDevSettings: { debug: true, immediateLog: true },
     templateSettings: { viewportHeight: 71, itemHeight: 20 },
     custom: { direction: Direction.forward, count: 1 }
   },
@@ -32,7 +30,6 @@ const configList: IConfig[] = [
       padding: 0.2,
       itemSize: 20
     },
-    datasourceDevSettings: { debug: true, immediateLog: true },
     templateSettings: { viewportHeight: 100, itemHeight: 20 },
     custom: { direction: Direction.forward, count: 1 }
   },
@@ -43,7 +40,6 @@ const configList: IConfig[] = [
       padding: 0.98,
       itemSize: 20
     },
-    datasourceDevSettings: { debug: true, immediateLog: true },
     templateSettings: { viewportHeight: 66, itemHeight: 20 },
     custom: { direction: Direction.forward, count: 1 }
   },
@@ -55,7 +51,6 @@ const configList: IConfig[] = [
       horizontal: true,
       itemSize: 100
     },
-    datasourceDevSettings: { debug: true, immediateLog: true },
     templateSettings: { viewportWidth: 450, itemWidth: 100, horizontal: true },
     custom: { direction: Direction.forward, count: 1 }
   },
@@ -67,7 +62,6 @@ const configList: IConfig[] = [
       horizontal: true,
       itemSize: 75
     },
-    datasourceDevSettings: { debug: true, immediateLog: true },
     templateSettings: { viewportWidth: 300, itemWidth: 75, horizontal: true },
     custom: { direction: Direction.forward, count: 1 }
   }

@@ -126,7 +126,14 @@ export class VScrollFixture {
     // Serialize functions and config
     const datasourceGetStr = datasource.get.toString();
     const datasourceSettings = datasource.settings || {};
-    const datasourceDevSettings = datasource.devSettings || {}; // Include devSettings
+    // Add default devSettings for all e2e tests: debug enabled, colors disabled
+    const datasourceDevSettings = {
+      debug: true,
+      logProcessRun: true,
+      immediateLog: true,
+      logColor: false,
+      ...(datasource.devSettings || {})
+    };
     const templateFnStr = templateFn
       ? templateFn.toString()
       : '(item) => `<div class="item">${item.$index}: ${item.data.text || ""}</div>`';

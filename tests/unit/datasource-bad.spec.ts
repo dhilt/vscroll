@@ -1,4 +1,4 @@
-import { INVALID_DATASOURCE_PREFIX, Scroller } from '../src/scroller';
+import { INVALID_DATASOURCE_PREFIX, Scroller } from '../../src/scroller';
 
 describe('Wrong Datasource on Scroller instantiation', () => {
 

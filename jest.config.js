@@ -1,6 +1,5 @@
 export default {
-  testMatch: ['**/tests/**/*.spec.ts'],
-  testPathIgnorePatterns: ['/node_modules/', '/e2e/'],
+  testMatch: ['**/tests/unit/**/*.spec.ts'],
   transform: {
     '^.+\\.ts$': 'babel-jest'
   },

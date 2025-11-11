@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { afterEachLogs } from '../fixture/after-each-logs.js';
 import { VScrollFixture, Direction, type DirectionType } from '../fixture/VScrollFixture.js';
+import { afterEachLogs } from '../fixture/after-each-logs.js';
+import { createFixture } from '../fixture/create-fixture.js';
 import { ItemsCounter } from '../helpers/itemsCounter.js';
-import { ITestConfig, Page, IDatasource } from 'types/index.js';
+import { ITestConfig } from 'types/index.js';
 
 test.afterEach(afterEachLogs);
 
@@ -181,86 +182,6 @@ const getCurrentItemsCounter = async (
   return result;
 };
 
-// Create test fixture from config
-const createFixture = async (page: Page, config: IConfig): Promise<VScrollFixture> => {
-  const { datasourceSettings, templateSettings } = config;
-
-  // // Capture browser console logs
-  // page.on('console', (msg: any) => {
-  //   console.log(`[BROWSER] ${msg.text()}`);
-  // });
-
-  // Enable adapter to access relax() method
-  const datasource: IDatasource = {
-    get: (index, count, success) => {
-      const data = [];
-      for (let i = index; i < index + count; i++) {
-        data.push({ id: i, text: `item #${i}` });
-      }
-      setTimeout(() => success(data), 25);
-    },
-    settings: datasourceSettings
-  };
-
-  const fixture = await VScrollFixture.create(page, {
-    datasource,
-    useAdapter: true,
-    templateSettings,
-    templateFn: (item: { $index: number, data: { id: number, text: string } }) =>
-      `<div class="item">${item.$index}: ${item.data.text}</div>`
-  });
-
-  // Wait for initial workflow cycle to complete
-  await fixture.relaxNext();
-
-  // // Debug: log actual element dimensions
-  // const debugInfo = await page.evaluate(() => {
-  //   const viewport = document.getElementById('viewport')!;
-  //   const vscroll = document.getElementById('vscroll')!;
-  //   const items = Array.from(vscroll.querySelectorAll('[data-sid]'));
-  //   const bwdPadding = vscroll.querySelector('[data-padding-backward]') as HTMLElement;
-  //   const fwdPadding = vscroll.querySelector('[data-padding-forward]') as HTMLElement;
-  //   const horizontal = (window as any).__vscroll__.workflow.scroller.settings.horizontal;
-  //   return {
-  //     viewportDimensions: {
-  //       clientWidth: viewport.clientWidth,
-  //       clientHeight: viewport.clientHeight,
-  //       scrollWidth: viewport.scrollWidth,
-  //       scrollHeight: viewport.scrollHeight
-  //     },
-  //     vscrollDimensions: {
-  //       clientWidth: vscroll.clientWidth,
-  //       clientHeight: vscroll.clientHeight,
-  //       scrollWidth: vscroll.scrollWidth,
-  //       scrollHeight: vscroll.scrollHeight
-  //     },
-  //     itemCount: items.length,
-  //     firstItemDimensions: items[0] ? {
-  //       width: (items[0] as HTMLElement).clientWidth,
-  //       height: (items[0] as HTMLElement).clientHeight,
-  //       display: getComputedStyle(items[0] as HTMLElement).display,
-  //       whiteSpace: getComputedStyle(vscroll).whiteSpace
-  //     } : null,
-  //     bwdPaddingDimensions: {
-  //       width: bwdPadding.clientWidth,
-  //       height: bwdPadding.clientHeight,
-  //       display: getComputedStyle(bwdPadding).display,
-  //       computedWidth: getComputedStyle(bwdPadding).width
-  //     },
-  //     fwdPaddingDimensions: {
-  //       width: fwdPadding.clientWidth,
-  //       height: fwdPadding.clientHeight,
-  //       display: getComputedStyle(fwdPadding).display,
-  //       computedWidth: getComputedStyle(fwdPadding).width
-  //     },
-  //     horizontal
-  //   };
-  // });
-  // console.log('[DEBUG] Initial dimensions:', JSON.stringify(debugInfo, null, 2));
-
-  return fixture;
-};
-
 // Main test function
 const shouldScroll = async (fixture: VScrollFixture, config: IConfig) => {
   const custom = config.custom;
@@ -314,7 +235,7 @@ const shouldScroll = async (fixture: VScrollFixture, config: IConfig) => {
 
 const makeTest = (title: string, config: IConfig) => {
   test(title, async ({ page }) => {
-    const fixture = await createFixture(page, config);
+    const fixture = await createFixture(page, config as ITestConfig);
     await shouldScroll(fixture, config);
     await fixture.cleanup();
   });

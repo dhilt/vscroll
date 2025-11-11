@@ -1,42 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { afterEachLogs } from '../fixture/after-each-logs.js';
-import { VScrollFixture } from '../fixture/VScrollFixture.js';
-import { ITestConfig, Page, IDatasource } from 'types/index.js';
+import { createFixture } from '../fixture/create-fixture.js';
+import { ITestConfig } from 'types/index.js';
 
 test.afterEach(afterEachLogs);
-
-/**
- * Create fixture with datasource delay
- */
-const createFixture = async (page: Page, config: ITestConfig): Promise<VScrollFixture> => {
-  const { datasourceSettings, datasourceDevSettings, templateSettings } = config;
-
-  // Note: closure variables not available in browser context
-  const datasource: IDatasource = {
-    get: (index, count, success) => {
-      const data = [];
-      for (let i = index; i < index + count; i++) {
-        data.push({ id: i, text: `item #${i}` });
-      }
-      setTimeout(() => success(data), 150); // 150ms delay for slow fetch test
-    },
-    settings: datasourceSettings,
-    devSettings: datasourceDevSettings
-  };
-
-  const fixture = await VScrollFixture.create(page, {
-    datasource,
-    useAdapter: true,
-    templateSettings,
-    templateFn: (item: { $index: number, data: { id: number, text: string } }) =>
-      `<div class="item">${item.$index}: ${item.data.text}</div>`
-  });
-
-  // Wait for initial workflow cycle to complete
-  await fixture.relaxNext();
-
-  return fixture;
-};
 
 /**
  * Test: Throttled scroll event handling

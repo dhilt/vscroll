@@ -1,7 +1,7 @@
 
 import type { Page } from '@playwright/test';
-import type { IDatasource } from '../../src/index.js';
-import type { Settings, DevSettings } from '../../src/interfaces/settings.js';
+import type { IDatasource } from '../../../src/index.js';
+import type { Settings, DevSettings } from '../../../src/interfaces/settings.js';
 
 export type { Page };
 export type { IDatasource };
@@ -13,7 +13,7 @@ interface ITemplateSettings {
   horizontal?: boolean;
 }
 
-export interface ITestConfig<Custom = void> {
+export interface ITestConfig<Custom = unknown> {
   datasourceSettings: Settings;
   datasourceDevSettings?: DevSettings;
   templateSettings: ITemplateSettings;

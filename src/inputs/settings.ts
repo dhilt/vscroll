@@ -26,6 +26,7 @@ enum DevSettings {
   immediateLog = 'immediateLog',
   logProcessRun = 'logProcessRun',
   logTime = 'logTime',
+  logColor = 'logColor',
   throttle = 'throttle',
   initDelay = 'initDelay',
   initWindowDelay = 'initWindowDelay',
@@ -119,6 +120,10 @@ export const DEV_SETTINGS: ICommonProps<DevSettings> = {
   [DevSettings.logTime]: {
     validators: [BOOLEAN],
     defaultValue: false
+  },
+  [DevSettings.logColor]: {
+    validators: [BOOLEAN],
+    defaultValue: true
   },
   [DevSettings.throttle]: {
     validators: [INTEGER, MORE_OR_EQUAL(MIN[DevSettings.throttle], true)],

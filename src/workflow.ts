@@ -125,10 +125,10 @@ export class Workflow<ItemData = unknown> {
   process(data: ProcessSubject): void {
     const { status, process, payload } = data;
     if (this.scroller.settings.logProcessRun) {
-      this.scroller.logger.log(() => [
-        '%cfire%c', ...['color: #cc7777;', 'color: #000000;'],
-        process, `"${status}"`, ...(payload !== void 0 ? [payload] : [])
-      ]);
+      const _fire = this.scroller.settings.logColor
+        ? ['%cfire%c', 'color: #cc7777;', 'color: #000000;']
+        : ['fire'];
+      this.scroller.logger.log(() => [..._fire, process, `"${status}"`, ...(payload !== void 0 ? [payload] : [])]);
     }
     this.scroller.logger.logProcess(data);
 
@@ -145,10 +145,10 @@ export class Workflow<ItemData = unknown> {
     return ({ run, process, name }: ProcessClass) =>
       (...args: unknown[]): void => {
         if (this.scroller.settings.logProcessRun) {
-          this.scroller.logger.log(() => [
-            '%crun%c', ...['color: #333399;', 'color: #000000;'],
-            process || name, ...args
-          ]);
+          const _run = this.scroller.settings.logColor
+            ? ['%crun%c', 'color: #333399;', 'color: #000000;']
+            : ['run'];
+          this.scroller.logger.log(() => [..._run, process || name, ...args]);
         }
         run(this.scroller as Scroller, ...args);
       };

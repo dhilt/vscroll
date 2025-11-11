@@ -9,6 +9,7 @@ export class Logger {
   readonly debug: boolean;
   readonly immediateLog: boolean;
   readonly logTime: boolean;
+  readonly logColor: boolean;
   readonly getTime: () => string;
   readonly getStat: () => string;
   readonly getFetchRange: () => string;
@@ -23,6 +24,7 @@ export class Logger {
     this.debug = settings.debug;
     this.immediateLog = settings.immediateLog;
     this.logTime = settings.logTime;
+    this.logColor = settings.logColor;
     this.getTime = (): string =>
       scroller.state && ` // time: ${scroller.state.time}`;
     this.getStat = (): string => {
@@ -91,19 +93,27 @@ export class Logger {
 
   stat(str?: string): void {
     if (this.debug) {
-      const logStyles = [
-        'color: #888; border: dashed #888 0; border-bottom-width: 0px',
-        'color: #000; border-width: 0'
-      ];
-      this.log(() => ['%cstat' + (str ? ` ${str}` : '') + ',%c ' + this.getStat(), ...logStyles]);
+      if (this.logColor) {
+        const logStyles = [
+          'color: #888; border: dashed #888 0; border-bottom-width: 0px',
+          'color: #000; border-width: 0'
+        ];
+        this.log(() => ['%cstat' + (str ? ` ${str}` : '') + ',%c ' + this.getStat(), ...logStyles]);
+      } else {
+        this.log(() => ['stat' + (str ? ` ${str}` : '') + ', ' + this.getStat()]);
+      }
     }
   }
 
   fetch(str?: string): void {
     if (this.debug) {
       const _text = 'fetch interval' + (str ? ` ${str}` : '');
-      const logStyles = ['color: #888', 'color: #000'];
-      this.log(() => [`%c${_text}: %c${this.getFetchRange()}`, ...logStyles]);
+      if (this.logColor) {
+        const logStyles = ['color: #888', 'color: #000'];
+        this.log(() => [`%c${_text}: %c${this.getFetchRange()}`, ...logStyles]);
+      } else {
+        this.log(() => [`${_text}: ${this.getFetchRange()}`]);
+      }
     }
   }
 
@@ -124,32 +134,42 @@ export class Logger {
     if (
       process === CommonProcess.init && status === Status.next
     ) {
-      loopLog.push(`%c---=== loop ${this.getLoopIdNext()} start`);
+      const loopStart = `---=== loop ${this.getLoopIdNext()} start`;
+      loopLog.push(this.logColor ? `%c${loopStart}` : loopStart);
     } else if (
       process === CommonProcess.end
     ) {
-      loopLog.push(`%c---=== loop ${this.getLoopId()} done`);
+      const loopDone = `---=== loop ${this.getLoopId()} done`;
+      loopLog.push(this.logColor ? `%c${loopDone}` : loopDone);
       const parent = payload && payload.process;
       if (status === Status.next && (parent !== AdapterProcess.reset && parent !== AdapterProcess.reload)) {
         loopLog[0] += `, loop ${this.getLoopIdNext()} start`;
       }
     }
     if (loopLog.length) {
-      this.log(() => [...loopLog, 'color: #006600;']);
+      this.log(() => this.logColor ? [...loopLog, 'color: #006600;'] : loopLog);
     }
   }
 
   logCycle(start = true): void {
     const logData = this.getWorkflowCycleData();
-    const border = start ? '1px 0 0 1px' : '0 0 1px 1px';
-    const logStyles = `color: #0000aa; border: solid #555 1px; border-width: ${border}; margin-left: -2px`;
-    this.log(() => [`%c   ~~~ WF Cycle ${logData} ${start ? 'STARTED' : 'FINALIZED'} ~~~  `, logStyles]);
+    if (this.logColor) {
+      const border = start ? '1px 0 0 1px' : '0 0 1px 1px';
+      const logStyles = `color: #0000aa; border: solid #555 1px; border-width: ${border}; margin-left: -2px`;
+      this.log(() => [`%c   ~~~ WF Cycle ${logData} ${start ? 'STARTED' : 'FINALIZED'} ~~~  `, logStyles]);
+    } else {
+      this.log(() => [`   ~~~ WF Cycle ${logData} ${start ? 'STARTED' : 'FINALIZED'} ~~~  `]);
+    }
   }
 
   logError(str: string): void {
     if (this.debug) {
-      const logStyles = ['color: #a00;', 'color: #000'];
-      this.log(() => ['error:%c' + (str ? ` ${str}` : '') + `%c (loop ${this.getLoopIdNext()})`, ...logStyles]);
+      if (this.logColor) {
+        const logStyles = ['color: #a00;', 'color: #000'];
+        this.log(() => ['error:%c' + (str ? ` ${str}` : '') + `%c (loop ${this.getLoopIdNext()})`, ...logStyles]);
+      } else {
+        this.log(() => ['error:' + (str ? ` ${str}` : '') + ` (loop ${this.getLoopIdNext()})`]);
+      }
     }
   }
 

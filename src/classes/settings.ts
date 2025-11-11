@@ -53,6 +53,14 @@ export class Settings<Data = unknown> implements ISettings, IDevSettings {
 
   /**
    * Development setting.
+   * If true, console color formatting will be used in logs.
+   * Default value: true.
+   * @type {boolean}
+   */
+  logColor: boolean;
+
+  /**
+   * Development setting.
    * If set, scroll event handling is throttled (ms).
    * Default value: 40. Minimal value: 0.
    * @type {number} ms

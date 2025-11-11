@@ -39,8 +39,9 @@ export async function afterEachLogs({ page }: { page: Page }, testInfo: TestInfo
     }).catch(() => [] as string[]);
 
     if (logs.length > 0) {
+      const testName = testInfo.titlePath.join(' › ');
       console.log('\n' + '='.repeat(80));
-      console.log('VSCROLL DEBUG LOGS (test failed):');
+      console.log(`VSCROLL DEBUG LOGS (test failed): ${testName}`);
       console.log('='.repeat(80));
       logs.forEach(log => console.log(log));
       console.log('='.repeat(80) + '\n');

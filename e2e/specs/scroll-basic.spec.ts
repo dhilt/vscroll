@@ -1,9 +1,7 @@
 import { test, expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
 import { VScrollFixture, Direction, type DirectionType } from '../fixture/VScrollFixture.js';
 import { ItemsCounter } from '../helpers/itemsCounter.js';
-import type { IDatasource } from '../../src/index.js';
-import { ITestConfig } from 'types/index.js';
+import { ITestConfig, Page, IDatasource } from 'types/index.js';
 
 type IConfig = ITestConfig<{
   direction: DirectionType;
@@ -182,7 +180,7 @@ const getCurrentItemsCounter = async (
 
 // Create test fixture from config
 const createFixture = async (page: Page, config: IConfig): Promise<VScrollFixture> => {
-  const { datasourceSettings, datasourceDevSettings, templateSettings } = config;
+  const { datasourceSettings, templateSettings } = config;
 
   // // Capture browser console logs
   // page.on('console', (msg: any) => {
@@ -198,8 +196,7 @@ const createFixture = async (page: Page, config: IConfig): Promise<VScrollFixtur
       }
       setTimeout(() => success(data), 25);
     },
-    settings: datasourceSettings,
-    devSettings: datasourceDevSettings
+    settings: datasourceSettings
   };
 
   const fixture = await VScrollFixture.create(page, {

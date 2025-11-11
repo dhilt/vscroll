@@ -1,8 +1,6 @@
 import { test, expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
 import { VScrollFixture } from '../fixture/VScrollFixture.js';
-import type { IDatasource } from '../../src/index.js';
-import { ITestConfig } from 'types/index.js';
+import { ITestConfig, Page, IDatasource } from 'types/index.js';
 
 /**
  * Create fixture with datasource delay

@@ -7,7 +7,10 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [['html', { outputFolder: './playwright-report' }]],
+  reporter: [
+    ['list'], // Detailed console output
+    ['html', { outputFolder: './playwright-report' }]
+  ],
   // timeout: 10 * 60 * 1000, // 10 minutes per test
 
   use: {

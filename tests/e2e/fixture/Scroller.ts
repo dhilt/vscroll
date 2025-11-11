@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page } from '../types';
 import { Direction as DirectionEnum } from '../../../src/inputs/common';
 
 /**

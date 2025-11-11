@@ -1,21 +1,18 @@
 import { VScrollFixture } from './VScrollFixture.js';
 import { Page, IDatasource, ITestConfig } from 'types/index.js';
 
-// Create test fixture from config
-export const createFixture = async (page: Page, config: ITestConfig): Promise<VScrollFixture> => {
-  const { datasourceSettings, datasourceDevSettings, templateSettings } = config;
+type FixtureParams = {
+  page: Page;
+  config: ITestConfig;
+}
 
-  // Enable adapter to access relax() method
+export const createFixture = async ({ page, config }: FixtureParams): Promise<VScrollFixture> => {
+  const { templateSettings } = config;
+
   const datasource: IDatasource = {
-    get: (index, count, success) => {
-      const data = [];
-      for (let i = index; i < index + count; i++) {
-        data.push({ id: i, text: `item #${i}` });
-      }
-      setTimeout(() => success(data), 25);
-    },
-    settings: datasourceSettings,
-    devSettings: datasourceDevSettings
+    get: config.datasourceGet,
+    settings: config.datasourceSettings,
+    devSettings: config.datasourceDevSettings
   };
 
   const fixture = await VScrollFixture.create(page, {

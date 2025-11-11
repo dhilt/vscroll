@@ -1,10 +1,10 @@
 
 import type { Page } from '@playwright/test';
-import type { IDatasource } from '../../../src/index.js';
+import type { IDatasource, Item } from '../../../src/index.js';
 import type { Settings, DevSettings } from '../../../src/interfaces/settings.js';
 
 export type { Page };
-export type { IDatasource };
+export type { IDatasource, Item };
 interface ITemplateSettings {
   viewportHeight?: number;
   viewportWidth?: number;
@@ -14,8 +14,22 @@ interface ITemplateSettings {
 }
 
 export interface ITestConfig<Custom = unknown> {
+  datasourceGet?: IDatasource['get'];
   datasourceSettings: Settings;
   datasourceDevSettings?: DevSettings;
   templateSettings: ITemplateSettings;
   custom?: Custom;
+}
+
+export interface VScrollFixtureConfig {
+  datasource: IDatasource;
+  useAdapter?: boolean; // If true, creates Datasource instance with adapter support
+  templateSettings?: {
+    viewportHeight?: number;
+    viewportWidth?: number;
+    itemHeight?: number;
+    itemWidth?: number;
+    horizontal?: boolean;
+  };
+  templateFn?: (item: unknown) => string;
 }

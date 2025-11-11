@@ -235,7 +235,14 @@ const shouldScroll = async (fixture: VScrollFixture, config: IConfig) => {
 
 const makeTest = (title: string, config: IConfig) => {
   test(title, async ({ page }) => {
-    const fixture = await createFixture(page, config as ITestConfig);
+    config.datasourceGet = (index, count, success) => {
+      const data = [];
+      for (let i = index; i < index + count; i++) {
+        data.push({ id: i, text: `item #${i}` });
+      }
+      setTimeout(() => success(data), 25);
+    };
+    const fixture = await createFixture({ page, config });
     await shouldScroll(fixture, config);
     await fixture.cleanup();
   });

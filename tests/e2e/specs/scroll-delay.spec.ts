@@ -5,6 +5,14 @@ import { ITestConfig } from 'types/index.js';
 
 test.afterEach(afterEachLogs);
 
+const datasourceGet: ITestConfig['datasourceGet'] = (index, count, success) => {
+  const data = [];
+  for (let i = index; i < index + count; i++) {
+    data.push({ id: i, text: `item #${i}` });
+  }
+  setTimeout(() => success(data), 150);
+};
+
 /**
  * Test: Throttled scroll event handling
  * 
@@ -14,6 +22,7 @@ test.afterEach(afterEachLogs);
 test.describe('Delay Scroll Spec', () => {
   test('should work with throttled scroll event handling', async ({ page }) => {
     const config: ITestConfig = {
+      datasourceGet,
       datasourceSettings: {
         startIndex: 1,
         bufferSize: 5,
@@ -30,7 +39,7 @@ test.describe('Delay Scroll Spec', () => {
       }
     };
 
-    const fixture = await createFixture(page, config);
+    const fixture = await createFixture({ page, config });
     const initCyclesCount = await fixture.workflow.cyclesDone;
     expect(initCyclesCount).toBe(1);
 
@@ -73,6 +82,7 @@ test.describe('Delay Scroll Spec', () => {
 
   test('should handle additional scrolling during slow fetch', async ({ page }) => {
     const config: ITestConfig = {
+      datasourceGet,
       datasourceSettings: {
         startIndex: 1,
         bufferSize: 5,
@@ -86,7 +96,7 @@ test.describe('Delay Scroll Spec', () => {
       }
     };
 
-    const fixture = await createFixture(page, config);
+    const fixture = await createFixture({ page, config });
     const initCyclesCount = await fixture.workflow.cyclesDone;
     expect(initCyclesCount).toBe(1);
 

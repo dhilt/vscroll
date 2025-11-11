@@ -1,22 +1,9 @@
-import { Page } from '@playwright/test';
 import * as path from 'path';
-import type { IDatasource, Item } from '../../../src/index';
 import { Scroller, Direction, type DirectionType } from './Scroller.js';
 import { Adapter } from './Adapter.js';
+import { VScrollFixtureConfig, Page, Item } from '../types';
 
 export { Direction, type DirectionType };
-export interface VScrollFixtureConfig {
-  datasource: IDatasource;
-  useAdapter?: boolean; // If true, creates Datasource instance with adapter support
-  templateSettings?: {
-    viewportHeight?: number;
-    viewportWidth?: number;
-    itemHeight?: number;
-    itemWidth?: number;
-    horizontal?: boolean;
-  };
-  templateFn?: (item: unknown) => string;
-}
 
 export class VScrollFixture {
   private page: Page;

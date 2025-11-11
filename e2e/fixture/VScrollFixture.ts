@@ -126,11 +126,11 @@ export class VScrollFixture {
     // Serialize functions and config
     const datasourceGetStr = datasource.get.toString();
     const datasourceSettings = datasource.settings || {};
-    // Add default devSettings for all e2e tests: debug enabled, colors disabled
+    // Add default devSettings for all e2e tests:
+    // debug enabled, colors disabled, immediateLog disabled (to store logs in logger for retrieval on test failure)
     const datasourceDevSettings = {
       debug: true,
-      logProcessRun: true,
-      immediateLog: true,
+      immediateLog: false,
       logColor: false,
       ...(datasource.devSettings || {})
     };

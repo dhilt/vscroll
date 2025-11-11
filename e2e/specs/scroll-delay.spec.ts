@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { afterEachLogs } from '../fixture/after-each-logs.js';
 import { VScrollFixture } from '../fixture/VScrollFixture.js';
 import { ITestConfig, Page, IDatasource } from 'types/index.js';
+
+test.afterEach(afterEachLogs);
 
 /**
  * Create fixture with datasource delay

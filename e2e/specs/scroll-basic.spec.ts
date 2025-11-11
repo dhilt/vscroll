@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { afterEachLogs } from '../fixture/after-each-logs.js';
 import { VScrollFixture, Direction, type DirectionType } from '../fixture/VScrollFixture.js';
 import { ItemsCounter } from '../helpers/itemsCounter.js';
 import { ITestConfig, Page, IDatasource } from 'types/index.js';
+
+test.afterEach(afterEachLogs);
 
 type IConfig = ITestConfig<{
   direction: DirectionType;

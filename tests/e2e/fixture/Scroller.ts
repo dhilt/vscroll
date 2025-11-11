@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { Direction as DirectionEnum } from '../../src/inputs/common';
+import { Direction as DirectionEnum } from '../../../src/inputs/common';
 
 /**
  * Direction enum (inline, no import from vscroll source)

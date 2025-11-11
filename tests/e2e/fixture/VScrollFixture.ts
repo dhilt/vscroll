@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 import * as path from 'path';
-import type { IDatasource, Item } from '../../src/index';
+import type { IDatasource, Item } from '../../../src/index';
 import { Scroller, Direction, type DirectionType } from './Scroller.js';
 import { Adapter } from './Adapter.js';
 
@@ -47,7 +47,7 @@ export class VScrollFixture {
     await page.goto('about:blank');
 
     // 2. Load vscroll UMD bundle
-    const vscrollPath = path.join(process.cwd(), 'dist', 'bundles', 'vscroll.umd.js');
+    const vscrollPath = path.join(process.cwd(), '..', 'dist', 'bundles', 'vscroll.umd.js');
     await page.addScriptTag({ path: vscrollPath });
 
     // 3. Add global styles FIRST (separate evaluate call to ensure styles are processed)

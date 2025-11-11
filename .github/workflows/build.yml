@@ -34,6 +34,17 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - run: npm ci
-      - run: npm run build
-      - run: npm run test:unit
+      - name: Install root dependencies
+        run: npm ci
+      
+      - name: Lint
+        run: npm run lint
+      
+      - name: Build
+        run: npm run build
+      
+      - name: Install test dependencies
+        run: cd tests && npm ci
+      
+      - name: Run unit tests
+        run: npm run test:unit

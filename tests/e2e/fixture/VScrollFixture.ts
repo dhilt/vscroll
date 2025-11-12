@@ -6,7 +6,7 @@ import { VScrollFixtureConfig, Page, Item } from '../types';
 export { Direction, type DirectionType };
 
 export class VScrollFixture {
-  private page: Page;
+  page: Page;
   private config: VScrollFixtureConfig;
   readonly scroller: Scroller;
   readonly adapter: Adapter;
@@ -68,7 +68,15 @@ export class VScrollFixture {
       const viewport = document.createElement('div');
       viewport.id = 'viewport';
 
-      if (settings.horizontal) {
+      // Handle windowViewport mode (use document.body as viewport)
+      const useWindowViewport = settings.noViewportClass && settings.viewportHeight === 0;
+
+      if (useWindowViewport) {
+        // For windowViewport: use body as viewport, no fixed dimensions
+        document.body.style.margin = '0';
+        document.body.style.padding = '0';
+        document.body.style.overflow = settings.horizontal ? 'hidden' : 'auto';
+      } else if (settings.horizontal) {
         viewport.style.width = `${settings.viewportWidth || 300}px`;
         viewport.style.height = '100%';
         viewport.style.overflowX = 'scroll';  // Always scroll, not auto
@@ -111,12 +119,13 @@ export class VScrollFixture {
     const { datasource, templateFn, useAdapter } = this.config;
 
     // Serialize functions and config
-    const datasourceGetStr = datasource.get.toString();
+    const datasourceGetStr = datasource.get ? datasource.get.toString() : null;
     const datasourceSettings = datasource.settings || {};
     // Add default devSettings for all e2e tests:
     // debug enabled, colors disabled, immediateLog disabled (to store logs in logger for retrieval on test failure)
     const datasourceDevSettings = {
       debug: true,
+      logProcessRun: true,
       immediateLog: false,
       logColor: false,
       ...(datasource.devSettings || {})

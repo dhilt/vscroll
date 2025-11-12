@@ -11,6 +11,7 @@ interface ITemplateSettings {
   itemHeight?: number;
   itemWidth?: number;
   horizontal?: boolean;
+  noViewportClass?: boolean;
 }
 
 export interface ITestConfig<Custom = unknown> {
@@ -24,12 +25,6 @@ export interface ITestConfig<Custom = unknown> {
 export interface VScrollFixtureConfig {
   datasource: IDatasource;
   useAdapter?: boolean; // If true, creates Datasource instance with adapter support
-  templateSettings?: {
-    viewportHeight?: number;
-    viewportWidth?: number;
-    itemHeight?: number;
-    itemWidth?: number;
-    horizontal?: boolean;
-  };
+  templateSettings?: ITemplateSettings;
   templateFn?: (item: unknown) => string;
 }

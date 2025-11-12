@@ -3,9 +3,10 @@
  * Extends Window with vscroll-specific properties
  */
 
-import type { IAdapter } from '../../src/interfaces/adapter';
-import type { Item } from '../../src/interfaces/item';
-import type { Workflow } from '../../src/workflow';
+import type { IAdapter } from '../../../src/interfaces/adapter';
+import type { Item } from '../../../src/interfaces/item';
+import type { Workflow } from '../../../src/workflow';
+import type { Direction } from '../../../src/inputs/common';
 
 interface VScrollGlobal {
   workflow: Workflow<unknown> | Record<string, never>;
@@ -22,6 +23,7 @@ interface VScrollGlobal {
 interface VScrollConstructor {
   makeDatasource: () => new (config: unknown) => unknown;
   Workflow: new (config: unknown) => Workflow<unknown>;
+  Direction: typeof Direction;
 }
 
 declare global {

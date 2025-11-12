@@ -47,6 +47,11 @@ export class Scroller {
   get buffer() {
     const page = this.page;
     return {
+      get size(): Promise<number> {
+        return page.evaluate(() => {
+          return window.__vscroll__.workflow.scroller.buffer.size;
+        });
+      },
       get defaultSize(): Promise<number> {
         return page.evaluate(() => {
           return window.__vscroll__.workflow.scroller.buffer.defaultSize;

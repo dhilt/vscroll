@@ -93,16 +93,17 @@ export class Routines implements IRoutines {
   }
 
   getWindowParams(): DOMRect {
-    const { clientWidth, clientHeight, clientLeft, clientTop } = this.viewport;
+    const height = window.innerHeight;
+    const width = window.innerWidth;
     return {
-      'height': clientHeight,
-      'width': clientWidth,
-      'top': clientTop,
-      'bottom': clientTop + clientHeight,
-      'left': clientLeft,
-      'right': clientLeft + clientWidth,
-      'x': clientLeft,
-      'y': clientTop,
+      'height': height,
+      'width': width,
+      'top': 0,
+      'bottom': height,
+      'left': 0,
+      'right': width,
+      'x': 0,
+      'y': 0,
       'toJSON': () => null,
     };
   }

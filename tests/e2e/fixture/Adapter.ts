@@ -171,7 +171,7 @@ export class Adapter {
   /**
    * Get adapter properties (as getters to match IAdapter interface)
    */
-  get isLoading(): Promise<boolean> {
+  get isLoading() {
     return this.page.evaluate(() => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
@@ -181,7 +181,7 @@ export class Adapter {
     });
   }
 
-  get bof(): Promise<boolean> {
+  get bof() {
     return this.page.evaluate(() => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
@@ -191,7 +191,7 @@ export class Adapter {
     });
   }
 
-  get eof(): Promise<boolean> {
+  get eof() {
     return this.page.evaluate(() => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
@@ -201,7 +201,7 @@ export class Adapter {
     });
   }
 
-  get itemsCount(): Promise<number> {
+  get itemsCount() {
     return this.page.evaluate(() => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
@@ -211,7 +211,7 @@ export class Adapter {
     });
   }
 
-  get firstVisible(): Promise<unknown> {
+  get firstVisible() {
     return this.page.evaluate(() => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
@@ -221,7 +221,7 @@ export class Adapter {
     });
   }
 
-  get lastVisible(): Promise<unknown> {
+  get lastVisible() {
     return this.page.evaluate(() => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {

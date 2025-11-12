@@ -12,6 +12,7 @@ interface ITemplateSettings {
   itemWidth?: number;
   horizontal?: boolean;
   noViewportClass?: boolean;
+  headerHeight?: number;
 }
 
 export interface ITestConfig<Custom = unknown> {

@@ -65,11 +65,21 @@ export class VScrollFixture {
 
     // 4. Create viewport and vscroll element (after styles are loaded)
     await page.evaluate((settings) => {
-      const viewport = document.createElement('div');
-      viewport.id = 'viewport';
-
       // Handle windowViewport mode (use document.body as viewport)
       const useWindowViewport = settings.noViewportClass && settings.viewportHeight === 0;
+
+      // Create header if specified
+      if (settings.headerHeight) {
+        const header = document.createElement('div');
+        header.id = 'header';
+        header.style.height = `${settings.headerHeight}px`;
+        header.style.width = '100%';
+        header.style.backgroundColor = 'yellow';
+        document.body.appendChild(header);
+      }
+
+      const viewport = document.createElement('div');
+      viewport.id = 'viewport';
 
       if (useWindowViewport) {
         // For windowViewport: use body as viewport, no fixed dimensions

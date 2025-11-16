@@ -17,10 +17,10 @@ export const createFixture = async ({ page, config }: FixtureParams): Promise<VS
 
   const fixture = await VScrollFixture.create(page, {
     datasource,
-    useAdapter: true,
     templateSettings,
     templateFn: (item: { $index: number, data: { id: number, text: string } }) =>
-      `<div class="item">${item.$index}: ${item.data.text}</div>`
+      `<div class="item">${item.$index}: ${item.data.text}</div>`,
+    noAdapter: config.noAdapter
   });
 
   // Wait for initial workflow cycle to complete

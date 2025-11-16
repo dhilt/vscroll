@@ -126,7 +126,7 @@ export class VScrollFixture {
    * 2. Datasource class with adapter (adapter tests)
    */
   private async initializeWorkflow(): Promise<void> {
-    const { datasource, templateFn, useAdapter } = this.config;
+    const { datasource, templateFn, noAdapter } = this.config;
 
     // Serialize functions and config
     const datasourceGetStr = datasource.get ? datasource.get.toString() : null;
@@ -150,7 +150,7 @@ export class VScrollFixture {
         datasourceSettings,
         datasourceDevSettings,
         templateFnStr,
-        useAdapter
+        noAdapter
       }) => {
         const VScroll = window.VScroll;
 
@@ -207,7 +207,14 @@ export class VScrollFixture {
         // Create datasource (plain object or Datasource class)
         let datasourceInstance;
 
-        if (useAdapter) {
+        if (noAdapter) {
+          // Pattern 1: Plain object (no adapter)
+          datasourceInstance = {
+            get: datasourceGet,
+            settings: datasourceSettings,
+            devSettings: datasourceDevSettings
+          };
+        } else {
           // Pattern 2: Create Datasource class with adapter support
           const Datasource = VScroll.makeDatasource();
           datasourceInstance = new Datasource({
@@ -215,13 +222,6 @@ export class VScrollFixture {
             settings: datasourceSettings,
             devSettings: datasourceDevSettings
           });
-        } else {
-          // Pattern 1: Plain object (no adapter)
-          datasourceInstance = {
-            get: datasourceGet,
-            settings: datasourceSettings,
-            devSettings: datasourceDevSettings
-          };
         }
 
         // Create workflow
@@ -254,7 +254,7 @@ export class VScrollFixture {
         datasourceSettings,
         datasourceDevSettings,
         templateFnStr,
-        useAdapter: !!useAdapter
+        noAdapter: !!noAdapter
       }
     );
   }

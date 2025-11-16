@@ -21,17 +21,20 @@ test.describe('Recreation Spec', () => {
         datasourceGet,
         datasourceSettings: { startIndex: 1, bufferSize: 5, padding: 0.5 },
         templateSettings: { viewportHeight: 200, itemHeight: 20 },
-        noRelaxOnStart: true
+        noAdapter: true // plain DS
       };
 
       const fixture = await createFixture({ page, config });
 
-      // Store datasource-adapter id before cleanup
-      const before = await page.evaluate(() => ({
-        id: window.__vscroll__.datasource.adapter.id,
-        init: window.__vscroll__.datasource.adapter.init,
-        disposed: window.__vscroll__.workflow.disposed
-      }));
+      const getWorkflowData = () =>
+        page.evaluate(() => ({
+          workflowInit: window.__vscroll__.workflow.isInitialized,
+          internalAdapterInit: window.__vscroll__.workflow?.scroller?.adapter?.init,
+          disposed: window.__vscroll__.workflow.disposed
+        }));
+
+      // Store workflow data before cleanup
+      const before = await getWorkflowData();
 
       // Destroy the scroller
       await fixture.dispose();
@@ -39,18 +42,21 @@ test.describe('Recreation Spec', () => {
       // Wait a bit to ensure no async errors
       await page.waitForTimeout(25);
 
-      // Verify datasource still exists with its adapter (wasn't reset/destroyed)
-      const after = await page.evaluate(() => ({
-        id: window.__vscroll__.datasource.adapter.id,
-        init: window.__vscroll__.datasource.adapter.init,
-        disposed: window.__vscroll__.workflow.disposed
-      }));
+      // Store workflow data after cleanup
+      const after = await getWorkflowData();
 
-      expect(before.id).toBe(after.id);
-      expect(before.init).toBe(!after.init);
-      expect(before.disposed).toBe(!after.disposed);
+      expect(before.workflowInit).toBe(true);
+      expect(after.workflowInit).toBe(false);
+      expect(before.internalAdapterInit).toBe(true);
+      expect(after.internalAdapterInit).toBe(undefined);
+      expect(before.disposed).toBe(false);
+      expect(after.disposed).toBe(true);
     });
 
+    // Note: Test 1.2 ('should not reset Datasource on destroy via ngIf') is deferred.
+    // It requires viewport removal detection feature (Routines.onViewportRemoved with MutationObserver)
+    // to automatically call workflow.dispose() when viewport element is removed from DOM.
   });
+
 });
 

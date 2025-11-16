@@ -4,7 +4,6 @@
  */
 
 import type { IAdapter } from '../../../src/interfaces/adapter';
-import type { WorkflowParams, Item } from '../../../src/interfaces/index';
 import type { Workflow } from '../../../src/workflow';
 import type { Direction } from '../../../src/inputs/common';
 

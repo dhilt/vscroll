@@ -58,5 +58,56 @@ test.describe('Recreation Spec', () => {
     // to automatically call workflow.dispose() when viewport element is removed from DOM.
   });
 
+  test.describe('Recreation via ngIf (instance DS)', () => {
+
+    test('should switch Adapter.init trice', async ({ page }) => {
+      const config: ITestConfig = {
+        datasourceGet,
+        datasourceSettings: { startIndex: 1, bufferSize: 5, padding: 0.5 },
+        templateSettings: { viewportHeight: 200, itemHeight: 20 },
+        manualRun: true
+      };
+
+      const fixture = await createFixture({ page, config });
+
+      // Perform dispose and recreate cycle
+      const count = await page.evaluate(() => new Promise((resolve) => {
+        const { datasource, makeScroller } = window.__vscroll__;
+
+        let emissionCount = 0;
+
+        // Subscribe to init$ BEFORE creating workflow
+        const off = datasource.adapter.init$.on(() => {
+          if (++emissionCount === 3) {
+            off();
+            resolve(emissionCount);
+          }
+        });
+
+        // Create and run initial scroller workflow
+        makeScroller!();
+
+        const checkAndRecreate = () => {
+          if (!datasource.adapter.isLoading && datasource.adapter.init) {
+            window.__vscroll__.workflow.dispose();
+
+            setTimeout(() => {
+              // Create and run new scroller workflow
+              makeScroller!();
+            }, 25);
+          } else {
+            setTimeout(checkAndRecreate, 10);
+          }
+        };
+        checkAndRecreate();
+      }));
+
+      // Check emission count
+      expect(count).toBe(3);
+
+      await fixture.dispose();
+    });
+
+  });
 });
 

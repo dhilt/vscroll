@@ -161,7 +161,7 @@ export class VScrollFixture {
         // Old items storage
         let oldItems: Item<unknown>[] = [];
 
-        // Renderer (from POC)
+        // Renderer
         const processItems = (newItems: Item<unknown>[], oldItems: Item<unknown>[]) => {
           // Remove elements not present
           oldItems
@@ -237,7 +237,7 @@ export class VScrollFixture {
             processItems(items, oldItems);
             oldItems = items;
           }
-        }
+        };
         const workflow = new VScroll.Workflow(workflowParams);
 
         // Expose for testing

@@ -20,6 +20,7 @@ export interface ITestConfig<Custom = unknown> {
   datasourceSettings: Settings;
   datasourceDevSettings?: DevSettings;
   templateSettings: ITemplateSettings;
+  noRelaxOnStart?: boolean;
   custom?: Custom;
 }
 

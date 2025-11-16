@@ -244,7 +244,7 @@ const makeTest = (title: string, config: IConfig) => {
     };
     const fixture = await createFixture({ page, config });
     await shouldScroll(fixture, config);
-    await fixture.cleanup();
+    await fixture.dispose();
   });
 };
 

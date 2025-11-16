@@ -77,7 +77,7 @@ test.describe('Delay Scroll Spec', () => {
     // Verify all scrolls were executed
     expect(count).toBe(10);
 
-    await fixture.cleanup();
+    await fixture.dispose();
   });
 
   test('should handle additional scrolling during slow fetch', async ({ page }) => {
@@ -146,7 +146,7 @@ test.describe('Delay Scroll Spec', () => {
     expect(result.position).toBe(result.endPos);
     expect(result.endPos).toBeGreaterThan(startPosition);
 
-    await fixture.cleanup();
+    await fixture.dispose();
   });
 });
 

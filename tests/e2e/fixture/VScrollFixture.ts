@@ -225,7 +225,7 @@ export class VScrollFixture {
         }
 
         // Create workflow
-        const workflow = new VScroll.Workflow({
+        const workflowParams = {
           consumer: { name: 'vscroll-e2e', version: '1.0.0' },
           element: document.getElementById('vscroll'),
           datasource: datasourceInstance,
@@ -237,10 +237,12 @@ export class VScrollFixture {
             processItems(items, oldItems);
             oldItems = items;
           }
-        });
+        }
+        const workflow = new VScroll.Workflow(workflowParams);
 
         // Expose for testing
         window.__vscroll__ = {
+          workflowParams,
           workflow,
           datasource: datasourceInstance,
           oldItems,
@@ -371,9 +373,9 @@ export class VScrollFixture {
 
 
   /**
-   * Cleanup
+   * Dispose
    */
-  async cleanup(): Promise<void> {
+  async dispose(): Promise<void> {
     await this.page.evaluate(() => {
       window.__vscroll__?.workflow?.dispose();
       document.querySelector('#viewport')?.remove();

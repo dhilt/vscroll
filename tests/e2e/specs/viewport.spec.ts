@@ -98,7 +98,7 @@ test.describe('Viewport Spec', () => {
       test(`should${scrollToText} with ${headerText}`, async ({ page }) => {
         const fixture = await createFixture({ page, config });
         await shouldWorkOnWindowWithHeader(fixture, config);
-        await fixture.cleanup();
+        await fixture.dispose();
       });
     });
   });

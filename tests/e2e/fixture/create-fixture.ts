@@ -24,7 +24,9 @@ export const createFixture = async ({ page, config }: FixtureParams): Promise<VS
   });
 
   // Wait for initial workflow cycle to complete
-  await fixture.relaxNext();
+  if (!config.noRelaxOnStart) {
+    await fixture.relaxNext();
+  }
 
   // // Debug: log actual element dimensions
   // const debugInfo = await page.evaluate(() => {

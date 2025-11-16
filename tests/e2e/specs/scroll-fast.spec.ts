@@ -255,7 +255,7 @@ const makeTest = (title: string, config: IConfig) => {
   test(title, async ({ page }) => {
     const fixture = await createFixture({ page, config });
     await shouldReachEdge(fixture, config);
-    await fixture.cleanup();
+    await fixture.dispose();
   });
 };
 

@@ -4,16 +4,17 @@
  */
 
 import type { IAdapter } from '../../../src/interfaces/adapter';
-import type { Item } from '../../../src/interfaces/item';
+import type { WorkflowParams, Item } from '../../../src/interfaces/index';
 import type { Workflow } from '../../../src/workflow';
 import type { Direction } from '../../../src/inputs/common';
 
-interface VScrollGlobal {
-  workflow: Workflow<unknown> | Record<string, never>;
+interface VScrollTest<ItemData = unknown> {
+  workflowParams: WorkflowParams<ItemData>;
+  workflow: Workflow<ItemData> | Record<string, never>;
   datasource: {
-    adapter?: IAdapter;
+    adapter?: IAdapter<ItemData>;
   };
-  oldItems: Item<unknown>[];
+  oldItems: Item<ItemData>[];
   Direction: {
     forward: string;
     backward: string;
@@ -29,7 +30,7 @@ interface VScrollConstructor {
 declare global {
   interface Window {
     VScroll: VScrollConstructor;
-    __vscroll__: VScrollGlobal;
+    __vscroll__: VScrollTest;
   }
 }
 

@@ -216,6 +216,7 @@ export class Workflow<ItemData = unknown> {
     Object.getOwnPropertyNames(this).forEach(prop => {
       delete (this as Record<string, unknown>)[prop];
     });
+    this.isInitialized = false;
     this.disposed = true;
   }
 

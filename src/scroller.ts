@@ -95,7 +95,8 @@ export class Scroller<Data = unknown> {
       buffer: this.buffer,
       state: this.state,
       viewport: this.viewport,
-      logger: this.logger, adapterRun$,
+      logger: this.logger,
+      adapterRun$,
       getWorkflow: () => this.workflow
     });
   }

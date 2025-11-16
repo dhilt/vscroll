@@ -20,11 +20,12 @@ export const createFixture = async ({ page, config }: FixtureParams): Promise<VS
     templateSettings,
     templateFn: (item: { $index: number, data: { id: number, text: string } }) =>
       `<div class="item">${item.$index}: ${item.data.text}</div>`,
-    noAdapter: config.noAdapter
+    noAdapter: config.noAdapter,
+    manualRun: config.manualRun
   });
 
-  // Wait for initial workflow cycle to complete
-  if (!config.noRelaxOnStart) {
+  if (!config.manualRun && !config.noRelaxOnStart) {
+    // Wait for initial workflow cycle to complete
     await fixture.relaxNext();
   }
 

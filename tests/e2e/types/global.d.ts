@@ -9,12 +9,11 @@ import type { Workflow } from '../../../src/workflow';
 import type { Direction } from '../../../src/inputs/common';
 
 interface VScrollTest<ItemData = unknown> {
-  workflowParams: WorkflowParams<ItemData>;
-  workflow: Workflow<ItemData> | Record<string, never>;
+  workflow: Workflow<ItemData>;
   datasource: {
     adapter?: IAdapter<ItemData>;
   };
-  oldItems: Item<ItemData>[];
+  makeScroller?: () => Workflow<ItemData>; // Creates Workflow with fresh oldItems closure (when manualRun)
   Direction: {
     forward: string;
     backward: string;

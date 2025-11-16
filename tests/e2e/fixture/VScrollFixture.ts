@@ -126,7 +126,7 @@ export class VScrollFixture {
    * 2. Datasource class with adapter (adapter tests)
    */
   private async initializeWorkflow(): Promise<void> {
-    const { datasource, templateFn, noAdapter } = this.config;
+    const { datasource, templateFn, noAdapter, manualRun } = this.config;
 
     // Serialize functions and config
     const datasourceGetStr = datasource.get ? datasource.get.toString() : null;
@@ -150,16 +150,14 @@ export class VScrollFixture {
         datasourceSettings,
         datasourceDevSettings,
         templateFnStr,
-        noAdapter
+        noAdapter,
+        manualRun
       }) => {
         const VScroll = window.VScroll;
 
         // Parse configs
         const datasourceGet = eval(`(${datasourceGetStr})`);
         const templateFn = eval(`(${templateFnStr})`);
-
-        // Old items storage
-        let oldItems: Item<unknown>[] = [];
 
         // Renderer
         const processItems = (newItems: Item<unknown>[], oldItems: Item<unknown>[]) => {
@@ -224,37 +222,51 @@ export class VScrollFixture {
           });
         }
 
-        // Create workflow
-        const workflowParams = {
-          consumer: { name: 'vscroll-e2e', version: '1.0.0' },
-          element: document.getElementById('vscroll'),
-          datasource: datasourceInstance,
-          run: (newItems: unknown[]) => {
-            const items = newItems as Item<unknown>[];
-            if (!items.length && !oldItems.length) {
-              return;
-            }
-            processItems(items, oldItems);
-            oldItems = items;
-          }
-        };
-        const workflow = new VScroll.Workflow(workflowParams);
-
         // Expose for testing
         window.__vscroll__ = {
-          workflowParams,
-          workflow,
+          workflow: undefined, // Will be set by createWorkflowFactory()
+          makeScroller: undefined,
           datasource: datasourceInstance,
-          oldItems,
           Direction: { forward: 'forward', backward: 'backward' }
         };
+
+        // Factory to create workflow factory with fresh oldItems closure
+        const workflowFactory = () => {
+          let oldItems: Item<unknown>[] = [];
+
+          const workflowParams = {
+            consumer: { name: 'vscroll-e2e', version: '1.0.0' },
+            element: document.getElementById('vscroll'),
+            datasource: datasourceInstance,
+            run: (newItems: unknown[]) => {
+              const items = newItems as Item<unknown>[];
+              if (!items.length && !oldItems.length) {
+                return;
+              }
+              processItems(items, oldItems);
+              oldItems = items;
+            }
+          };
+
+          return () => new VScroll.Workflow(workflowParams);
+        };
+
+        // Creates Workflow with fresh closure and updates window.__vscroll__.workflow
+        const makeScroller = () => window.__vscroll__.workflow = workflowFactory()();
+        window.__vscroll__.makeScroller = makeScroller;
+
+        // Create initial workflow (unless manualRun)
+        if (!manualRun) {
+          makeScroller();
+        }
       },
       {
         datasourceGetStr,
         datasourceSettings,
         datasourceDevSettings,
         templateFnStr,
-        noAdapter: !!noAdapter
+        noAdapter: !!noAdapter,
+        manualRun: !!manualRun
       }
     );
   }
@@ -339,7 +351,7 @@ export class VScrollFixture {
     await this.page.evaluate(() => {
       return new Promise<void>((resolve) => {
         const workflow = window.__vscroll__.workflow;
-        const ds = window.__vscroll__.datasource;
+        const ds = workflow.scroller.datasource;
         const initialCycles = workflow.cyclesDone;
 
         // If already loading, we're good
@@ -368,7 +380,9 @@ export class VScrollFixture {
    */
   async relaxNext(): Promise<void> {
     await this.waitForLoadingStart();
-    await this.adapter.relax();
+    await this.page.evaluate(() =>
+      window.__vscroll__.workflow.scroller.datasource.adapter.relax()
+    );
   }
 
 

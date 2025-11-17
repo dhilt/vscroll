@@ -71,21 +71,25 @@ test.describe('Recreation Spec', () => {
       const fixture = await createFixture({ page, config });
 
       // Perform dispose and recreate cycle
-      const count = await page.evaluate(() => new Promise((resolve) => {
+      type Result = { adapterInitCount: number; wfInitOnFirstMake?: boolean; };
+      const result = await page.evaluate<Result>(() => new Promise((resolve) => {
         const { datasource, makeScroller } = window.__vscroll__;
 
-        let emissionCount = 0;
+        const result: Result = { adapterInitCount: 0 };
 
         // Subscribe to init$ BEFORE creating workflow
         const off = datasource.adapter.init$.on(() => {
-          if (++emissionCount === 3) {
+          if (++result.adapterInitCount === 3) {
             off();
-            resolve(emissionCount);
+            resolve(result);
           }
         });
 
         // Create and run initial scroller workflow
         makeScroller!();
+
+        // To make sure the workflow is not yet initialized immediately after creation
+        result.wfInitOnFirstMake = window.__vscroll__.workflow.isInitialized;
 
         const checkAndRecreate = () => {
           if (!datasource.adapter.isLoading && datasource.adapter.init) {
@@ -102,8 +106,11 @@ test.describe('Recreation Spec', () => {
         checkAndRecreate();
       }));
 
-      // Check emission count
-      expect(count).toBe(3);
+      // Workflow should not be initialized immediately after creation
+      expect(result.wfInitOnFirstMake).toBe(false);
+
+      // Adapter should be initialized 3 times
+      expect(result.adapterInitCount).toBe(3);
 
       await fixture.dispose();
     });

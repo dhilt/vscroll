@@ -385,7 +385,6 @@ export class VScrollFixture {
     );
   }
 
-
   /**
    * Dispose
    */
@@ -393,6 +392,22 @@ export class VScrollFixture {
     await this.page.evaluate(() => {
       window.__vscroll__?.workflow?.dispose();
       document.querySelector('#viewport')?.remove();
+    });
+  }
+
+  /**
+   * Recreate the scroller
+   * Disposes the current workflow, resets the viewport, and creates a new workflow
+   */
+  async recreateScroller(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.__vscroll__.workflow.dispose();
+
+      // Reset vscroll element to initial state
+      const vscroll = document.getElementById('vscroll') as HTMLElement;
+      vscroll.innerHTML = '<div data-padding-backward></div><div data-padding-forward></div>';
+
+      window.__vscroll__.makeScroller!();
     });
   }
 }

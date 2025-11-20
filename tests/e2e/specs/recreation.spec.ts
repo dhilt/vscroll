@@ -10,7 +10,7 @@ const datasourceGet = (index: number, count: number, success: (data: unknown[]) 
   for (let i = index; i < index + count; i++) {
     data.push({ id: i, text: `item #${i}` });
   }
-  success(data);
+  setTimeout(() => success(data), 0);
 };
 
 test.describe('Recreation Spec', () => {
@@ -115,6 +115,46 @@ test.describe('Recreation Spec', () => {
       await fixture.dispose();
     });
 
+    test('should re-render the viewport', async ({ page }) => {
+      const config: ITestConfig = {
+        datasourceGet,
+        datasourceSettings: { startIndex: 1, bufferSize: 5, padding: 0.5 },
+        templateSettings: { viewportHeight: 200, itemHeight: 20 },
+        datasourceDevSettings: { debug: true, immediateLog: true }
+      };
+
+      const fixture = await createFixture({ page, config });
+
+      // Helper to capture state
+      const getState = () =>
+        page.evaluate(() => ({
+          workflowInit: window.__vscroll__.workflow.isInitialized,
+          scrollerId: window.__vscroll__.workflow.scroller.settings.instanceIndex,
+          internalAdapterId: window.__vscroll__.workflow.scroller.adapter.id,
+          adapterId: window.__vscroll__.datasource.adapter.id
+        })
+        );
+
+      // Capture initial state
+      const before = await getState();
+      const beforeElements = await fixture.getElements();
+
+      // Dispose and recreate
+      await fixture.recreateScroller();
+      await fixture.adapter.relax();
+
+      // Capture state after recreation
+      const after = await getState();
+      const afterElements = await fixture.getElements();
+
+      // Verify expectations
+      expect(after.workflowInit).toBe(true);
+      expect(after.scrollerId).toBe(before.scrollerId + 1); // New scroller instance
+      expect(after.internalAdapterId).toBe(before.adapterId); // Scroller uses same adapter
+      expect(after.adapterId).toBe(before.adapterId); // Same external adapter
+      expect(afterElements.length).toBe(beforeElements.length); // Same number of elements
+
+      await fixture.dispose();
+    });
   });
 });
-

@@ -286,8 +286,6 @@ export class VScrollFixture {
     };
   }
 
-
-
   /**
    * Scroll to a specific position. Waits for the scroller to relax if the scroll position changed.
    * @param position - The position to scroll to
@@ -347,30 +345,31 @@ export class VScrollFixture {
    * Wait for workflow to start loading (a new cycle to begin)
    * This ensures the workflow has started processing before we proceed
    */
-  async waitForLoadingStart(): Promise<void> {
-    await this.page.evaluate(() => {
-      return new Promise<void>((resolve) => {
+  waitForLoadingStart(): Promise<void> {
+    return this.page.evaluate(() =>
+      new Promise<void>((resolve) => {
         const workflow = window.__vscroll__.workflow;
         const ds = workflow.scroller.datasource;
         const initialCycles = workflow.cyclesDone;
 
         // If already loading, we're good
-        if (ds.adapter && ds.adapter.isLoading) {
+        if (ds?.adapter?.isLoading) {
           resolve();
           return;
         }
 
         // Otherwise wait for a new cycle to start OR loading to begin
-        const check = () => {
-          if (workflow.cyclesDone > initialCycles || (ds.adapter && ds.adapter.isLoading)) {
+        const check = async () => {
+          if (workflow.cyclesDone > initialCycles && ds?.adapter) {
+            await ds.adapter.relax();
             resolve();
           } else {
             requestAnimationFrame(check);
           }
         };
         check();
-      });
-    });
+      })
+    );
   }
 
   /**

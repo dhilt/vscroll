@@ -119,8 +119,7 @@ test.describe('Recreation Spec', () => {
       const config: ITestConfig = {
         datasourceGet,
         datasourceSettings: { startIndex: 1, bufferSize: 5, padding: 0.5 },
-        templateSettings: { viewportHeight: 200, itemHeight: 20 },
-        datasourceDevSettings: { debug: true, immediateLog: true }
+        templateSettings: { viewportHeight: 200, itemHeight: 20 }
       };
 
       const fixture = await createFixture({ page, config });
@@ -153,6 +152,32 @@ test.describe('Recreation Spec', () => {
       expect(after.internalAdapterId).toBe(before.adapterId); // Scroller uses same adapter
       expect(after.adapterId).toBe(before.adapterId); // Same external adapter
       expect(afterElements.length).toBe(beforeElements.length); // Same number of elements
+
+      await fixture.dispose();
+    });
+
+    test('should scroll and take firstVisible', async ({ page }) => {
+      const config: ITestConfig = {
+        datasourceGet,
+        datasourceSettings: { startIndex: 1, bufferSize: 5, padding: 0.5 },
+        templateSettings: { viewportHeight: 200, itemHeight: 20 }
+      };
+
+      const fixture = await createFixture({ page, config });
+
+      await fixture.recreateScroller();
+      await page.waitForFunction(() => window.__vscroll__.datasource.adapter.init);
+      await fixture.adapter.relax();
+
+      const firstVisible = await fixture.adapter.firstVisible;
+      expect(firstVisible.$index).toBe(1);
+
+      const cyclesDone = await page.evaluate(() => window.__vscroll__.workflow.cyclesDone);
+      await fixture.adapter.fix({ scrollPosition: 200 });
+      await page.waitForFunction((prevCycles) => window.__vscroll__.workflow.cyclesDone > prevCycles, cyclesDone);
+
+      const firstVisibleAfter = await fixture.adapter.firstVisible;
+      expect(firstVisibleAfter.$index).toBeGreaterThan(1);
 
       await fixture.dispose();
     });

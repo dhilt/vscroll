@@ -287,17 +287,28 @@ export class VScrollFixture {
   }
 
   /**
-   * Scroll to a specific position. Waits for the scroller to relax if the scroll position changed.
+   * Scroll to a specific position and wait for Scroller to relax.
    * @param position - The position to scroll to
-   * @param options.noRelax - If true, the adapter will not be relaxed even if the scroll position changed
+   * @param options.noRelax - If true, no wait for relaxation
    */
   async scrollTo(position: number, options: { noRelax?: boolean } = {}): Promise<void> {
-    const positionBefore = await this.scroller.viewport.scrollPosition;
-    await this.adapter.fix({ scrollPosition: position });
-    const positionAfter = await this.scroller.viewport.scrollPosition;
-    if (!options?.noRelax && positionBefore !== positionAfter) {
-      await this.relaxNext();
-    }
+    return this.page.evaluate(async ({ position, options }) => {
+      const workflow = window.__vscroll__.workflow;
+      const viewport = workflow.scroller.viewport;
+      const adapter = workflow.scroller.datasource.adapter;
+      const cyclesDone = workflow.cyclesDone;
+      const positionBefore = viewport.scrollPosition;
+      await adapter.fix({ scrollPosition: position });
+      if (options?.noRelax || viewport.scrollPosition === positionBefore) {
+        return;
+      }
+      if (!adapter.isLoading) {
+        // The new workflow cycle should run and complete
+        while (workflow.cyclesDone === cyclesDone) {
+          await new Promise(resolve => setTimeout(resolve));
+        }
+      }
+    }, { position, options });
   }
 
   /**

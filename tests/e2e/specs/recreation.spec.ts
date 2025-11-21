@@ -172,9 +172,7 @@ test.describe('Recreation Spec', () => {
       const firstVisible = await fixture.adapter.firstVisible;
       expect(firstVisible.$index).toBe(1);
 
-      const cyclesDone = await page.evaluate(() => window.__vscroll__.workflow.cyclesDone);
-      await fixture.adapter.fix({ scrollPosition: 200 });
-      await page.waitForFunction((prevCycles) => window.__vscroll__.workflow.cyclesDone > prevCycles, cyclesDone);
+      await fixture.scrollTo(200);
 
       const firstVisibleAfter = await fixture.adapter.firstVisible;
       expect(firstVisibleAfter.$index).toBeGreaterThan(1);

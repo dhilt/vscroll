@@ -6,26 +6,26 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: [
     ['list'], // Detailed console output
-    ['html', { outputFolder: './playwright-report' }]
+    ['html', { outputFolder: './playwright-report', open: 'never' }]
   ],
-  // timeout: 10 * 60 * 1000, // 10 minutes per test
+  timeout: 5000, // 5 seconds per test
 
   use: {
     baseURL: 'about:blank',
     trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    // headless: false,  // Show browser window
-    // slowMo: 500,      // Slow down actions by 500ms for visibility
+    screenshot: 'only-on-failure'
+    // headless: true,
+    // slowMo: 500,
+    // viewport: { width: 1024, height: 570 }
   },
 
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-  ],
+      use: { ...devices['Desktop Chrome'] }
+    }
+  ]
 });
-

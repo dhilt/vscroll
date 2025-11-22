@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { VScrollFixture, Direction, type DirectionType } from '../fixture/VScrollFixture.js';
+import {
+  VScrollFixture,
+  Direction,
+  type DirectionType
+} from '../fixture/VScrollFixture.js';
 import { afterEachLogs } from '../fixture/after-each-logs.js';
 import { createFixture } from '../fixture/create-fixture.js';
 import { ItemsCounter } from '../helpers/itemsCounter.js';
@@ -89,8 +93,12 @@ const getInitialItemsCounter = async (
   fixture: VScrollFixture,
   config: IConfig
 ): Promise<ItemsCounter> => {
-  const edgeItem = await fixture.scroller.buffer.getEdgeVisibleItem(Direction.forward);
-  const oppositeItem = await fixture.scroller.buffer.getEdgeVisibleItem(Direction.backward);
+  const edgeItem = await fixture.scroller.buffer.getEdgeVisibleItem(
+    Direction.forward
+  );
+  const oppositeItem = await fixture.scroller.buffer.getEdgeVisibleItem(
+    Direction.backward
+  );
   const result = new ItemsCounter();
 
   if (!edgeItem || !oppositeItem) {
@@ -145,7 +153,12 @@ const getCurrentItemsCounter = async (
   const delta = viewportSize * padding;
 
   // handle direction (fetch)
-  const fullHouseDiff = getFullHouseDiff(viewportSize, delta, itemSize, bufferSize);
+  const fullHouseDiff = getFullHouseDiff(
+    viewportSize,
+    delta,
+    itemSize,
+    bufferSize
+  );
   const _singleFetchCount = Math.ceil(delta / itemSize);
   const singleFetchCount = Math.max(bufferSize, _singleFetchCount);
   const itemsToFetch =
@@ -207,7 +220,12 @@ const shouldScroll = async (fixture: VScrollFixture, config: IConfig) => {
 
     await doScrollMax(config, fixture);
 
-    itemsCounter = await getCurrentItemsCounter(fixture, custom.direction, itemsCounter, config);
+    itemsCounter = await getCurrentItemsCounter(
+      fixture,
+      custom.direction,
+      itemsCounter,
+      config
+    );
   }
 
   // Final expectations
@@ -216,7 +234,8 @@ const shouldScroll = async (fixture: VScrollFixture, config: IConfig) => {
     direction === Direction.forward ? Direction.backward : Direction.forward;
 
   const edgeItem = await fixture.scroller.buffer.getEdgeVisibleItem(direction);
-  const oppositeItem = await fixture.scroller.buffer.getEdgeVisibleItem(opposite);
+  const oppositeItem =
+    await fixture.scroller.buffer.getEdgeVisibleItem(opposite);
   const edgeItemIndex = itemsCounter.get(direction).index;
   const oppositeItemIndex = itemsCounter.get(opposite).index;
 
@@ -230,7 +249,9 @@ const shouldScroll = async (fixture: VScrollFixture, config: IConfig) => {
     itemsCounter.get(opposite).padding
   );
   expect(await fixture.checkElementContentByIndex(edgeItemIndex)).toEqual(true);
-  expect(await fixture.checkElementContentByIndex(oppositeItemIndex)).toEqual(true);
+  expect(await fixture.checkElementContentByIndex(oppositeItemIndex)).toEqual(
+    true
+  );
 };
 
 const makeTest = (title: string, config: IConfig) => {
@@ -253,95 +274,121 @@ test.describe('Basic Scroll Spec', () => {
   test.describe('Single max fwd scroll event', () =>
     configList.forEach((config, index) =>
       makeTest(`should process 1 forward max scroll (config ${index})`, config)
-    )
-  );
+    ));
 
   test.describe('Single max bwd scroll event', () =>
-    configList.map(config => ({
-      ...config,
-      custom: {
-        ...config.custom,
-        direction: Direction.backward
-      }
-    })).forEach((config, index) =>
-      makeTest(`should process 1 backward max scroll (config ${index})`, config)
-    )
-  );
+    configList
+      .map(config => ({
+        ...config,
+        custom: {
+          ...config.custom,
+          direction: Direction.backward
+        }
+      }))
+      .forEach((config, index) =>
+        makeTest(
+          `should process 1 backward max scroll (config ${index})`,
+          config
+        )
+      ));
 
   test.describe('Mass max fwd scroll events', () =>
-    configList.map((config, index) => ({
-      ...config,
-      custom: {
-        direction: Direction.forward,
-        count: 3 + treatIndex(index)
-      }
-    })).forEach((config, index) =>
-      makeTest(`should process ${config.custom.count} forward scrolls (config ${index})`, config)
-    )
-  );
+    configList
+      .map((config, index) => ({
+        ...config,
+        custom: {
+          direction: Direction.forward,
+          count: 3 + treatIndex(index)
+        }
+      }))
+      .forEach((config, index) =>
+        makeTest(
+          `should process ${config.custom.count} forward scrolls (config ${index})`,
+          config
+        )
+      ));
 
   test.describe('Mass max bwd scroll events', () =>
-    configList.map((config, index) => ({
-      ...config,
-      custom: {
-        direction: Direction.backward,
-        count: 3 + treatIndex(index)
-      }
-    })).forEach((config, index) =>
-      makeTest(`should process ${config.custom.count} backward scrolls (config ${index})`, config)
-    )
-  );
+    configList
+      .map((config, index) => ({
+        ...config,
+        custom: {
+          direction: Direction.backward,
+          count: 3 + treatIndex(index)
+        }
+      }))
+      .forEach((config, index) =>
+        makeTest(
+          `should process ${config.custom.count} backward scrolls (config ${index})`,
+          config
+        )
+      ));
 
   test.describe('Bouncing max two-directional scroll events (fwd started)', () =>
-    configList.map((config, index) => ({
-      ...config,
-      custom: {
-        direction: Direction.forward,
-        count: (3 + treatIndex(index)) * 2,
-        bouncing: true
-      }
-    })).forEach((config, index) =>
-      makeTest(`should process ${config.custom.count} bouncing scrolls (config ${index})`, config)
-    )
-  );
+    configList
+      .map((config, index) => ({
+        ...config,
+        custom: {
+          direction: Direction.forward,
+          count: (3 + treatIndex(index)) * 2,
+          bouncing: true
+        }
+      }))
+      .forEach((config, index) =>
+        makeTest(
+          `should process ${config.custom.count} bouncing scrolls (config ${index})`,
+          config
+        )
+      ));
 
   test.describe('Bouncing max two-directional scroll events (bwd started)', () =>
-    configList.map((config, index) => ({
-      ...config,
-      custom: {
-        direction: Direction.backward,
-        count: (3 + treatIndex(index)) * 2,
-        bouncing: true
-      }
-    })).forEach((config, index) =>
-      makeTest(`should process ${config.custom.count} bouncing scrolls (config ${index})`, config)
-    )
-  );
+    configList
+      .map((config, index) => ({
+        ...config,
+        custom: {
+          direction: Direction.backward,
+          count: (3 + treatIndex(index)) * 2,
+          bouncing: true
+        }
+      }))
+      .forEach((config, index) =>
+        makeTest(
+          `should process ${config.custom.count} bouncing scrolls (config ${index})`,
+          config
+        )
+      ));
 
   test.describe('Mass two-directional scroll events (first half fwd, second half bwd)', () =>
-    configList.map((config, index) => ({
-      ...config,
-      custom: {
-        direction: Direction.forward,
-        count: (3 + treatIndex(index)) * 2,
-        mass: true
-      }
-    })).forEach((config, index) =>
-      makeTest(`should process ${config.custom.count} two-directional scrolls (config ${index})`, config)
-    )
-  );
+    configList
+      .map((config, index) => ({
+        ...config,
+        custom: {
+          direction: Direction.forward,
+          count: (3 + treatIndex(index)) * 2,
+          mass: true
+        }
+      }))
+      .forEach((config, index) =>
+        makeTest(
+          `should process ${config.custom.count} two-directional scrolls (config ${index})`,
+          config
+        )
+      ));
 
   test.describe('Mass two-directional scroll events (first half bwd, second half fwd)', () =>
-    configList.map((config, index) => ({
-      ...config,
-      custom: {
-        direction: Direction.backward,
-        count: (3 + treatIndex(index)) * 2,
-        mass: true
-      }
-    })).forEach((config, index) =>
-      makeTest(`should process ${config.custom.count} two-directional scrolls (config ${index})`, config)
-    )
-  );
+    configList
+      .map((config, index) => ({
+        ...config,
+        custom: {
+          direction: Direction.backward,
+          count: (3 + treatIndex(index)) * 2,
+          mass: true
+        }
+      }))
+      .forEach((config, index) =>
+        makeTest(
+          `should process ${config.custom.count} two-directional scrolls (config ${index})`,
+          config
+        )
+      ));
 });
-

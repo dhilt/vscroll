@@ -13,7 +13,7 @@ interface ICustom {
 type IConfig = ITestConfig<ICustom>;
 
 // Datasource: limited callback (1-100)
-const datasourceGet = (index: number, count: number, success: (data: unknown[]) => void): void => {
+const datasourceGet = (index, count, success) => {
   const data = [];
   const start = Math.max(1, index);
   const end = index + count - 1;
@@ -33,7 +33,12 @@ const datasourceGet = (index: number, count: number, success: (data: unknown[]) 
 const windowWith50HeaderConfig: IConfig = {
   datasourceGet,
   datasourceSettings: { startIndex: 1, windowViewport: true, adapter: true },
-  templateSettings: { itemHeight: 50, noViewportClass: true, viewportHeight: 0, headerHeight: 50 },
+  templateSettings: {
+    itemHeight: 50,
+    noViewportClass: true,
+    viewportHeight: 0,
+    headerHeight: 50
+  },
   custom: { scrollTo: undefined }
 };
 
@@ -90,9 +95,10 @@ const shouldWorkOnWindowWithHeader = async (
 test.describe('Viewport Spec', () => {
   test.describe('Entire Window with Header', () => {
     windowWithHeaderConfigList.forEach((config, idx) => {
-      const scrollToText = config.custom?.scrollTo !== undefined
-        ? ` scroll to ${config.custom.scrollTo}`
-        : ' not scroll';
+      const scrollToText =
+        config.custom?.scrollTo !== undefined
+          ? ` scroll to ${config.custom.scrollTo}`
+          : ' not scroll';
       const headerText = `${config.templateSettings.headerHeight}-offset`;
 
       test(`should${scrollToText} with ${headerText}`, async ({ page }) => {

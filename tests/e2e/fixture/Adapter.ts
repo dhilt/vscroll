@@ -4,7 +4,7 @@ import { Page } from '@playwright/test';
  * Adapter accessor class - provides access to adapter methods in browser context
  */
 export class Adapter {
-  constructor(private page: Page) { }
+  constructor(private page: Page) {}
 
   /**
    * Wait for the scroller to relax (no pending operations)
@@ -13,7 +13,9 @@ export class Adapter {
     return await this.page.evaluate(() => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.relax();
     });
@@ -23,10 +25,12 @@ export class Adapter {
    * Append items to the end of the dataset
    */
   async append(options) {
-    return await this.page.evaluate((opts) => {
+    return await this.page.evaluate(opts => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.append(opts);
     }, options);
@@ -36,10 +40,12 @@ export class Adapter {
    * Prepend items to the beginning of the dataset
    */
   async prepend(options) {
-    return await this.page.evaluate((opts) => {
+    return await this.page.evaluate(opts => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.prepend(opts);
     }, options);
@@ -49,10 +55,12 @@ export class Adapter {
    * Reload the dataset
    */
   async reload(reloadIndex) {
-    return await this.page.evaluate((index) => {
+    return await this.page.evaluate(index => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.reload(index);
     }, reloadIndex);
@@ -62,10 +70,12 @@ export class Adapter {
    * Reset the scroller to initial state
    */
   async reset(options) {
-    return await this.page.evaluate((opts) => {
+    return await this.page.evaluate(opts => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.reset(opts);
     }, options);
@@ -76,24 +86,31 @@ export class Adapter {
    */
   async remove(options) {
     const predicateStr = options.predicate.toString();
-    return await this.page.evaluate(({ predicateStr, increase }) => {
-      const ds = window.__vscroll__.datasource;
-      if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
-      }
-      const predicate = eval(`(${predicateStr})`);
-      return ds.adapter.remove({ predicate, increase });
-    }, { predicateStr, increase: options.increase });
+    return await this.page.evaluate(
+      ({ predicateStr, increase }) => {
+        const ds = window.__vscroll__.datasource;
+        if (!ds.adapter) {
+          throw new Error(
+            'Adapter not available. Set useAdapter: true in config.'
+          );
+        }
+        const predicate = eval(`(${predicateStr})`);
+        return ds.adapter.remove({ predicate, increase });
+      },
+      { predicateStr, increase: options.increase }
+    );
   }
 
   /**
    * Insert items at a specific position
    */
   async insert(options) {
-    return await this.page.evaluate((opts) => {
+    return await this.page.evaluate(opts => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.insert(opts);
     }, options);
@@ -104,14 +121,19 @@ export class Adapter {
    */
   async replace(options) {
     const predicateStr = options.predicate.toString();
-    return await this.page.evaluate(({ predicateStr, items }) => {
-      const ds = window.__vscroll__.datasource;
-      if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
-      }
-      const predicate = eval(`(${predicateStr})`);
-      return ds.adapter.replace({ predicate, items });
-    }, { predicateStr, items: options.items });
+    return await this.page.evaluate(
+      ({ predicateStr, items }) => {
+        const ds = window.__vscroll__.datasource;
+        if (!ds.adapter) {
+          throw new Error(
+            'Adapter not available. Set useAdapter: true in config.'
+          );
+        }
+        const predicate = eval(`(${predicateStr})`);
+        return ds.adapter.replace({ predicate, items });
+      },
+      { predicateStr, items: options.items }
+    );
   }
 
   /**
@@ -119,10 +141,12 @@ export class Adapter {
    */
   async update(options) {
     const predicateStr = options.predicate.toString();
-    return await this.page.evaluate((predicateStr) => {
+    return await this.page.evaluate(predicateStr => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       const predicate = eval(`(${predicateStr})`);
       return ds.adapter.update({ predicate });
@@ -133,10 +157,12 @@ export class Adapter {
    * Clip the dataset (remove items outside visible range)
    */
   async clip(options) {
-    return await this.page.evaluate((opts) => {
+    return await this.page.evaluate(opts => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.clip(opts);
     }, options);
@@ -149,7 +175,9 @@ export class Adapter {
     return await this.page.evaluate(() => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.check();
     });
@@ -159,10 +187,12 @@ export class Adapter {
    * Fix scroll position
    */
   async fix(options) {
-    return await this.page.evaluate((opts) => {
+    return await this.page.evaluate(opts => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.fix(opts);
     }, options);
@@ -175,7 +205,9 @@ export class Adapter {
     return this.page.evaluate(() => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.isLoading;
     });
@@ -185,7 +217,9 @@ export class Adapter {
     return this.page.evaluate(() => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.bof;
     });
@@ -195,7 +229,9 @@ export class Adapter {
     return this.page.evaluate(() => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.eof;
     });
@@ -205,7 +241,9 @@ export class Adapter {
     return this.page.evaluate(() => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.itemsCount;
     });
@@ -215,7 +253,9 @@ export class Adapter {
     return this.page.evaluate(() => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.firstVisible;
     });
@@ -225,7 +265,9 @@ export class Adapter {
     return this.page.evaluate(() => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.lastVisible;
     });
@@ -235,10 +277,11 @@ export class Adapter {
     return this.page.evaluate(() => {
       const ds = window.__vscroll__.datasource;
       if (!ds.adapter) {
-        throw new Error('Adapter not available. Set useAdapter: true in config.');
+        throw new Error(
+          'Adapter not available. Set useAdapter: true in config.'
+        );
       }
       return ds.adapter.bufferInfo;
     });
   }
 }
-

@@ -15,7 +15,7 @@ const datasourceGet: ITestConfig['datasourceGet'] = (index, count, success) => {
 
 /**
  * Test: Throttled scroll event handling
- * 
+ *
  * Rapidly triggers multiple scroll operations and verifies that the workflow
  * throttles them into fewer cycles than the number of scroll events.
  */
@@ -44,8 +44,8 @@ test.describe('Delay Scroll Spec', () => {
     expect(initCyclesCount).toBe(1);
 
     // Start rapid scrolling and monitor cycles in browser context
-    const count = await page.evaluate(() =>
-      new Promise<number>(resolve => {
+    const count = await page.evaluate(() => {
+      return new Promise<number>(resolve => {
         const COUNT = 10;
         let scrollCount = 0;
         let timer: ReturnType<typeof setInterval>;
@@ -71,8 +71,8 @@ test.describe('Delay Scroll Spec', () => {
             clearInterval(timer);
           }
         }, 10);
-      })
-    );
+      });
+    });
 
     // Verify all scrolls were executed
     expect(count).toBe(10);
@@ -80,7 +80,9 @@ test.describe('Delay Scroll Spec', () => {
     await fixture.dispose();
   });
 
-  test('should handle additional scrolling during slow fetch', async ({ page }) => {
+  test('should handle additional scrolling during slow fetch', async ({
+    page
+  }) => {
     const config: ITestConfig = {
       datasourceGet,
       datasourceSettings: {
@@ -103,44 +105,45 @@ test.describe('Delay Scroll Spec', () => {
     const startPosition = await fixture.scroller.viewport.scrollPosition;
 
     // Start rapid scrolling and monitor cycles in browser context
-    const result = await page.evaluate(({ start }) =>
-      new Promise<{ endPos: number, position: number }>((resolve) => {
-        const COUNT = 10;
-        let scrollCount = 0;
-        let endPos: number;
-        let timer: ReturnType<typeof setInterval>;
-        const workflow = window.__vscroll__.workflow;
-        const adapter = window.__vscroll__.datasource.adapter;
+    const result = await page.evaluate(
+      ({ start }) =>
+        new Promise<{ endPos: number; position: number }>(resolve => {
+          const COUNT = 10;
+          let scrollCount = 0;
+          let endPos: number;
+          let timer: ReturnType<typeof setInterval>;
+          const workflow = window.__vscroll__.workflow;
+          const adapter = window.__vscroll__.datasource.adapter;
 
-        // Subscribe to cyclesDone$ - stop timer when the nearest cycle completes (cycle 2)
-        workflow.cyclesDone$.on(count => {
-          if (count === 2) {
-            clearInterval(timer);
-            const position = workflow.scroller.viewport.scrollPosition;
-            resolve({ endPos, position });
-          }
-        });
+          // Subscribe to cyclesDone$ - stop timer when the nearest cycle completes (cycle 2)
+          workflow.cyclesDone$.on(count => {
+            if (count === 2) {
+              clearInterval(timer);
+              const position = workflow.scroller.viewport.scrollPosition;
+              resolve({ endPos, position });
+            }
+          });
 
-        // Start the scrolling timer
-        timer = setInterval(
-          () =>
-            requestAnimationFrame(() => {
-              scrollCount++;
-              endPos = start + scrollCount * 5;
+          // Start the scrolling timer
+          timer = setInterval(
+            () =>
+              requestAnimationFrame(() => {
+                scrollCount++;
+                endPos = start + scrollCount * 5;
 
-              // Trigger scroll via adapter.fix
-              adapter.fix({ scrollPosition: endPos });
+                // Trigger scroll via adapter.fix
+                adapter.fix({ scrollPosition: endPos });
 
-              // Stop timer if all scrolls done
-              if (scrollCount === COUNT) {
-                clearInterval(timer);
-              }
-            }),
-          25
-        );
-      })
-      , { start: startPosition });
-
+                // Stop timer if all scrolls done
+                if (scrollCount === COUNT) {
+                  clearInterval(timer);
+                }
+              }),
+            25
+          );
+        }),
+      { start: startPosition }
+    );
 
     // Verify final position
     expect(result.position).toBe(result.endPos);
@@ -149,4 +152,3 @@ test.describe('Delay Scroll Spec', () => {
     await fixture.dispose();
   });
 });
-

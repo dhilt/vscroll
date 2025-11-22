@@ -18,7 +18,10 @@ export class VScrollFixture {
     this.adapter = new Adapter(page);
   }
 
-  static async create(page: Page, config: VScrollFixtureConfig): Promise<VScrollFixture> {
+  static async create(
+    page: Page,
+    config: VScrollFixtureConfig
+  ): Promise<VScrollFixture> {
     const fixture = new VScrollFixture(page, config);
     await fixture.mount();
     return fixture;
@@ -34,7 +37,13 @@ export class VScrollFixture {
     await page.goto('about:blank');
 
     // 2. Load vscroll UMD bundle
-    const vscrollPath = path.join(process.cwd(), '..', 'dist', 'bundles', 'vscroll.umd.js');
+    const vscrollPath = path.join(
+      process.cwd(),
+      '..',
+      'dist',
+      'bundles',
+      'vscroll.umd.js'
+    );
     await page.addScriptTag({ path: vscrollPath });
 
     // 3. Add global styles FIRST (separate evaluate call to ensure styles are processed)
@@ -64,9 +73,10 @@ export class VScrollFixture {
     }
 
     // 4. Create viewport and vscroll element (after styles are loaded)
-    await page.evaluate((settings) => {
+    await page.evaluate(settings => {
       // Handle windowViewport mode (use document.body as viewport)
-      const useWindowViewport = settings.noViewportClass && settings.viewportHeight === 0;
+      const useWindowViewport =
+        settings.noViewportClass && settings.viewportHeight === 0;
 
       // Create header if specified
       if (settings.headerHeight) {
@@ -89,12 +99,12 @@ export class VScrollFixture {
       } else if (settings.horizontal) {
         viewport.style.width = `${settings.viewportWidth || 300}px`;
         viewport.style.height = '100%';
-        viewport.style.overflowX = 'scroll';  // Always scroll, not auto
+        viewport.style.overflowX = 'scroll'; // Always scroll, not auto
         viewport.style.overflowY = 'hidden';
       } else {
         viewport.style.height = `${settings.viewportHeight || 200}px`;
         viewport.style.width = '100%';
-        viewport.style.overflowY = 'scroll';  // Always scroll, not auto
+        viewport.style.overflowY = 'scroll'; // Always scroll, not auto
         viewport.style.overflowX = 'hidden';
       }
 
@@ -160,7 +170,10 @@ export class VScrollFixture {
         const templateFn = eval(`(${templateFnStr})`);
 
         // Renderer
-        const processItems = (newItems: Item<unknown>[], oldItems: Item<unknown>[]) => {
+        const processItems = (
+          newItems: Item<unknown>[],
+          oldItems: Item<unknown>[]
+        ) => {
           // Remove elements not present
           oldItems
             .filter(item => !newItems.includes(item))
@@ -252,7 +265,8 @@ export class VScrollFixture {
         };
 
         // Creates Workflow with fresh closure and updates window.__vscroll__.workflow
-        const makeScroller = () => window.__vscroll__.workflow = workflowFactory()();
+        const makeScroller = () =>
+          (window.__vscroll__.workflow = workflowFactory()());
         window.__vscroll__.makeScroller = makeScroller;
 
         // Create initial workflow (unless manualRun)
@@ -284,7 +298,8 @@ export class VScrollFixture {
       },
       get innerLoopCount(): Promise<number> {
         return page.evaluate(() => {
-          return window.__vscroll__.workflow.scroller.state.cycle.innerLoop.total;
+          return window.__vscroll__.workflow.scroller.state.cycle.innerLoop
+            .total;
         });
       }
     };
@@ -295,24 +310,30 @@ export class VScrollFixture {
    * @param position - The position to scroll to
    * @param options.noRelax - If true, no wait for relaxation
    */
-  async scrollTo(position: number, options: { noRelax?: boolean } = {}): Promise<void> {
-    return this.page.evaluate(async ({ position, options }) => {
-      const workflow = window.__vscroll__.workflow;
-      const viewport = workflow.scroller.viewport;
-      const adapter = workflow.scroller.datasource.adapter;
-      const cyclesDone = workflow.cyclesDone;
-      const positionBefore = viewport.scrollPosition;
-      await adapter.fix({ scrollPosition: position });
-      if (options?.noRelax || viewport.scrollPosition === positionBefore) {
-        return;
-      }
-      if (!adapter.isLoading) {
-        // The new workflow cycle should run and complete
-        while (workflow.cyclesDone === cyclesDone) {
-          await new Promise(resolve => setTimeout(resolve));
+  async scrollTo(
+    position: number,
+    options: { noRelax?: boolean } = {}
+  ): Promise<void> {
+    return this.page.evaluate(
+      async ({ position, options }) => {
+        const workflow = window.__vscroll__.workflow;
+        const viewport = workflow.scroller.viewport;
+        const adapter = workflow.scroller.datasource.adapter;
+        const cyclesDone = workflow.cyclesDone;
+        const positionBefore = viewport.scrollPosition;
+        await adapter.fix({ scrollPosition: position });
+        if (options?.noRelax || viewport.scrollPosition === positionBefore) {
+          return;
         }
-      }
-    }, { position, options });
+        if (!adapter.isLoading) {
+          // The new workflow cycle should run and complete
+          while (workflow.cyclesDone === cyclesDone) {
+            await new Promise(resolve => setTimeout(resolve));
+          }
+        }
+      },
+      { position, options }
+    );
   }
 
   /**
@@ -332,15 +353,15 @@ export class VScrollFixture {
   /**
    * Get all rendered elements
    */
-  async getElements(): Promise<unknown[]> {
-    return await this.page.$$('[data-sid]');
+  async getElements(): Promise<HTMLElement[]> {
+    return (await this.page.$$('[data-sid]')) as unknown as HTMLElement[];
   }
 
   /**
    * Get element index
    */
   async getElementIndex(element: HTMLElement): Promise<number> {
-    return await this.page.evaluate((el) => {
+    return await this.page.evaluate(el => {
       return parseInt(el.getAttribute('data-sid') || '0', 10);
     }, element);
   }
@@ -349,10 +370,14 @@ export class VScrollFixture {
    * Check element content by index
    */
   async checkElementContentByIndex(index: number): Promise<boolean> {
-    return await this.page.evaluate((idx) => {
+    return await this.page.evaluate(idx => {
       const elements = Array.from(document.querySelectorAll('[data-sid]'));
-      const element = elements.find(el => el.getAttribute('data-sid') === String(idx));
-      return element ? element.textContent?.includes(String(idx)) || false : false;
+      const element = elements.find(
+        el => el.getAttribute('data-sid') === String(idx)
+      );
+      return element
+        ? element.textContent?.includes(String(idx)) || false
+        : false;
     }, index);
   }
 
@@ -361,29 +386,30 @@ export class VScrollFixture {
    * This ensures the workflow has started processing before we proceed
    */
   waitForLoadingStart(): Promise<void> {
-    return this.page.evaluate(() =>
-      new Promise<void>((resolve) => {
-        const workflow = window.__vscroll__.workflow;
-        const ds = workflow.scroller.datasource;
-        const initialCycles = workflow.cyclesDone;
+    return this.page.evaluate(
+      () =>
+        new Promise<void>(resolve => {
+          const workflow = window.__vscroll__.workflow;
+          const ds = workflow.scroller.datasource;
+          const initialCycles = workflow.cyclesDone;
 
-        // If already loading, we're good
-        if (ds?.adapter?.isLoading) {
-          resolve();
-          return;
-        }
-
-        // Otherwise wait for a new cycle to start OR loading to begin
-        const check = async () => {
-          if (workflow.cyclesDone > initialCycles && ds?.adapter) {
-            await ds.adapter.relax();
+          // If already loading, we're good
+          if (ds?.adapter?.isLoading) {
             resolve();
-          } else {
-            requestAnimationFrame(check);
+            return;
           }
-        };
-        check();
-      })
+
+          // Otherwise wait for a new cycle to start OR loading to begin
+          const check = async () => {
+            if (workflow.cyclesDone > initialCycles && ds?.adapter) {
+              await ds.adapter.relax();
+              resolve();
+            } else {
+              requestAnimationFrame(check);
+            }
+          };
+          check();
+        })
     );
   }
 
@@ -419,10 +445,10 @@ export class VScrollFixture {
 
       // Reset vscroll element to initial state
       const vscroll = document.getElementById('vscroll') as HTMLElement;
-      vscroll.innerHTML = '<div data-padding-backward></div><div data-padding-forward></div>';
+      vscroll.innerHTML =
+        '<div data-padding-backward></div><div data-padding-forward></div>';
 
       window.__vscroll__.makeScroller!();
     });
   }
 }
-

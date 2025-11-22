@@ -5,7 +5,11 @@ import { ITestConfig } from 'types/index.js';
 
 test.afterEach(afterEachLogs);
 
-const datasourceGet = (index: number, count: number, success: (data: unknown[]) => void): void => {
+const datasourceGet = (
+  index: number,
+  count: number,
+  success: (data: unknown[]) => void
+): void => {
   const data = [];
   for (let i = index; i < index + count; i++) {
     data.push({ id: i, text: `item #${i}` });
@@ -15,7 +19,6 @@ const datasourceGet = (index: number, count: number, success: (data: unknown[]) 
 
 test.describe('Recreation Spec', () => {
   test.describe('Destroying (plain DS)', () => {
-
     test('should not reset Datasource on destroy', async ({ page }) => {
       const config: ITestConfig = {
         datasourceGet,
@@ -29,7 +32,8 @@ test.describe('Recreation Spec', () => {
       const getWorkflowData = () =>
         page.evaluate(() => ({
           workflowInit: window.__vscroll__.workflow.isInitialized,
-          internalAdapterInit: window.__vscroll__.workflow?.scroller?.adapter?.init,
+          internalAdapterInit:
+            window.__vscroll__.workflow?.scroller?.adapter?.init,
           disposed: window.__vscroll__.workflow.disposed
         }));
 
@@ -59,7 +63,6 @@ test.describe('Recreation Spec', () => {
   });
 
   test.describe('Recreation via ngIf (instance DS)', () => {
-
     test('should switch Adapter.init trice', async ({ page }) => {
       const config: ITestConfig = {
         datasourceGet,
@@ -71,40 +74,44 @@ test.describe('Recreation Spec', () => {
       const fixture = await createFixture({ page, config });
 
       // Perform dispose and recreate cycle
-      type Result = { adapterInitCount: number; wfInitOnFirstMake?: boolean; };
-      const result = await page.evaluate<Result>(() => new Promise((resolve) => {
-        const { datasource, makeScroller } = window.__vscroll__;
+      type Result = { adapterInitCount: number; wfInitOnFirstMake?: boolean };
+      const result = await page.evaluate<Result>(
+        () =>
+          new Promise(resolve => {
+            const { datasource, makeScroller } = window.__vscroll__;
 
-        const result: Result = { adapterInitCount: 0 };
+            const result: Result = { adapterInitCount: 0 };
 
-        // Subscribe to init$ BEFORE creating workflow
-        const off = datasource.adapter.init$.on(() => {
-          if (++result.adapterInitCount === 3) {
-            off();
-            resolve(result);
-          }
-        });
+            // Subscribe to init$ BEFORE creating workflow
+            const off = datasource.adapter.init$.on(() => {
+              if (++result.adapterInitCount === 3) {
+                off();
+                resolve(result);
+              }
+            });
 
-        // Create and run initial scroller workflow
-        makeScroller!();
+            // Create and run initial scroller workflow
+            makeScroller!();
 
-        // To make sure the workflow is not yet initialized immediately after creation
-        result.wfInitOnFirstMake = window.__vscroll__.workflow.isInitialized;
+            // To make sure the workflow is not yet initialized immediately after creation
+            result.wfInitOnFirstMake =
+              window.__vscroll__.workflow.isInitialized;
 
-        const checkAndRecreate = () => {
-          if (!datasource.adapter.isLoading && datasource.adapter.init) {
-            window.__vscroll__.workflow.dispose();
+            const checkAndRecreate = () => {
+              if (!datasource.adapter.isLoading && datasource.adapter.init) {
+                window.__vscroll__.workflow.dispose();
 
-            setTimeout(() => {
-              // Create and run new scroller workflow
-              makeScroller!();
-            }, 25);
-          } else {
-            setTimeout(checkAndRecreate, 10);
-          }
-        };
-        checkAndRecreate();
-      }));
+                setTimeout(() => {
+                  // Create and run new scroller workflow
+                  makeScroller!();
+                }, 25);
+              } else {
+                setTimeout(checkAndRecreate, 10);
+              }
+            };
+            checkAndRecreate();
+          })
+      );
 
       // Workflow should not be initialized immediately after creation
       expect(result.wfInitOnFirstMake).toBe(false);
@@ -128,11 +135,11 @@ test.describe('Recreation Spec', () => {
       const getState = () =>
         page.evaluate(() => ({
           workflowInit: window.__vscroll__.workflow.isInitialized,
-          scrollerId: window.__vscroll__.workflow.scroller.settings.instanceIndex,
+          scrollerId:
+            window.__vscroll__.workflow.scroller.settings.instanceIndex,
           internalAdapterId: window.__vscroll__.workflow.scroller.adapter.id,
           adapterId: window.__vscroll__.datasource.adapter.id
-        })
-        );
+        }));
 
       // Capture initial state
       const before = await getState();
@@ -166,7 +173,9 @@ test.describe('Recreation Spec', () => {
       const fixture = await createFixture({ page, config });
 
       await fixture.recreateScroller();
-      await page.waitForFunction(() => window.__vscroll__.datasource.adapter.init);
+      await page.waitForFunction(
+        () => window.__vscroll__.datasource.adapter.init
+      );
       await fixture.adapter.relax();
 
       const firstVisible = await fixture.adapter.firstVisible;

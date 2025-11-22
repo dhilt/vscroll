@@ -4,9 +4,12 @@ import { Page, IDatasource, ITestConfig } from 'types/index.js';
 type FixtureParams = {
   page: Page;
   config: ITestConfig;
-}
+};
 
-export const createFixture = async ({ page, config }: FixtureParams): Promise<VScrollFixture> => {
+export const createFixture = async ({
+  page,
+  config
+}: FixtureParams): Promise<VScrollFixture> => {
   const { templateSettings } = config;
 
   const datasource: IDatasource = {
@@ -18,8 +21,10 @@ export const createFixture = async ({ page, config }: FixtureParams): Promise<VS
   const fixture = await VScrollFixture.create(page, {
     datasource,
     templateSettings,
-    templateFn: (item: { $index: number, data: { id: number, text: string } }) =>
-      `<div class="item">${item.$index}: ${item.data.text}</div>`,
+    templateFn: (item: {
+      $index: number;
+      data: { id: number; text: string };
+    }) => `<div class="item">${item.$index}: ${item.data.text}</div>`,
     noAdapter: config.noAdapter,
     manualRun: config.manualRun
   });

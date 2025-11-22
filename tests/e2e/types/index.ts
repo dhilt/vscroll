@@ -1,7 +1,9 @@
-
 import type { Page } from '@playwright/test';
 import type { IDatasource, Item, Workflow } from '../../../src/index.js';
-import type { Settings, DevSettings } from '../../../src/interfaces/settings.js';
+import type {
+  Settings,
+  DevSettings
+} from '../../../src/interfaces/settings.js';
 
 export type { Page };
 export type { IDatasource, Item, Workflow };

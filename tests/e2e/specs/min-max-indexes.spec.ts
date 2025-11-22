@@ -186,23 +186,28 @@ const noMinIndexConfigList: ITestConfig[] = configList.map(
   }) => ({ ...config, datasourceGet, datasourceSettings })
 );
 
-const forwardGapConfigList: ITestConfig[] = startIndexAroundMaxIndexConfigList.map(
-  ({
-    datasourceGet,
-    datasourceSettings: { minIndex: _, ...datasourceSettings },
-    ...config
-  }) => ({ ...config, datasourceGet, datasourceSettings })
-);
+const forwardGapConfigList: ITestConfig[] =
+  startIndexAroundMaxIndexConfigList.map(
+    ({
+      datasourceGet,
+      datasourceSettings: { minIndex: _, ...datasourceSettings },
+      ...config
+    }) => ({ ...config, datasourceGet, datasourceSettings })
+  );
 
 const checkMinMaxIndexes = async (fixture: VScrollFixture) => {
   const elements = await fixture.getElements();
   const bufferInfo = await fixture.adapter.bufferInfo;
   const { firstIndex, lastIndex, minIndex, maxIndex } = bufferInfo;
+  const _minIndex = await fixture.getElementIndex(elements[0]);
+  const _maxIndex = await fixture.getElementIndex(
+    elements[elements.length - 1]
+  );
 
   expect(firstIndex).toEqual(minIndex);
   expect(lastIndex).toEqual(maxIndex);
-  expect(minIndex).toEqual(await fixture.getElementIndex(elements[0] as HTMLElement));
-  expect(maxIndex).toEqual(await fixture.getElementIndex(elements[elements.length - 1] as HTMLElement));
+  expect(minIndex).toEqual(_minIndex);
+  expect(maxIndex).toEqual(_maxIndex);
 };
 
 const getParams = ({
@@ -264,7 +269,9 @@ const testCommonCase = async (fixture: VScrollFixture, config: ITestConfig) => {
     const negativeSize = (startIndex - minIndex) * itemSize;
     const negativeItemsSize = negativeItemsAmount * itemSize;
     const bwdPaddingSize = negativeSize - negativeItemsSize;
-    expect(await fixture.scroller.viewport.paddings[Direction.backward].size).toEqual(bwdPaddingSize);
+    const _bwdPaddingSize =
+      await fixture.scroller.viewport.paddings[Direction.backward].size;
+    expect(_bwdPaddingSize).toEqual(bwdPaddingSize);
     expect(bufferInfo.absMinIndex).toEqual(minIndex);
   } else {
     expect(bufferInfo.absMinIndex).toEqual(-Infinity);
@@ -274,7 +281,9 @@ const testCommonCase = async (fixture: VScrollFixture, config: ITestConfig) => {
     const positiveSize = (maxIndex - startIndex + 1) * itemSize;
     const positiveItemsSize = positiveItemsAmount * itemSize;
     const fwdPaddingSize = positiveSize - positiveItemsSize;
-    expect(await fixture.scroller.viewport.paddings[Direction.forward].size).toEqual(fwdPaddingSize);
+    const _fwdPaddingSize =
+      await fixture.scroller.viewport.paddings[Direction.forward].size;
+    expect(_fwdPaddingSize).toEqual(fwdPaddingSize);
     expect(bufferInfo.absMaxIndex).toEqual(maxIndex);
   } else {
     expect(bufferInfo.absMaxIndex).toEqual(Infinity);
@@ -291,15 +300,21 @@ const testCommonCase = async (fixture: VScrollFixture, config: ITestConfig) => {
     totalSize = knownSize + negativeItemsAmount * itemSize;
   }
 
-  expect(await fixture.scroller.viewport.getScrollableSize()).toEqual(totalSize);
-  expect(await fixture.workflow.innerLoopCount).toEqual(innerLoopCount);
+  const _totalSize = await fixture.scroller.viewport.getScrollableSize();
+  const _innerLoopCount = await fixture.workflow.innerLoopCount;
+  expect(_totalSize).toEqual(totalSize);
+  expect(_innerLoopCount).toEqual(innerLoopCount);
   await checkMinMaxIndexes(fixture);
 };
 
-const testStartIndexEdgeCase = async (fixture: VScrollFixture, config: ITestConfig) => {
+const testStartIndexEdgeCase = async (
+  fixture: VScrollFixture,
+  config: ITestConfig
+) => {
   await fixture.adapter.relax();
 
-  const { maxIndex, minIndex, itemSize, startIndex, padding } = getParams(config);
+  const { maxIndex, minIndex, itemSize, startIndex, padding } =
+    getParams(config);
   const bufferInfo = await fixture.adapter.bufferInfo;
   const viewportSize = await fixture.scroller.viewport.getSize();
   const totalSize = (maxIndex - minIndex + 1) * itemSize;
@@ -326,9 +341,14 @@ const testStartIndexEdgeCase = async (fixture: VScrollFixture, config: ITestConf
   const positiveItemsSize = positiveItemsAmount * itemSize;
   const fwdPaddingSize = Math.max(0, positiveSize - positiveItemsSize);
 
-  expect(await fixture.scroller.viewport.getScrollableSize()).toEqual(totalSize);
-  expect(await fixture.scroller.viewport.paddings[Direction.backward].size).toEqual(bwdPaddingSize);
-  expect(await fixture.scroller.viewport.paddings[Direction.forward].size).toEqual(fwdPaddingSize);
+  const _totalSize = await fixture.scroller.viewport.getScrollableSize();
+  const _bwdPaddingSize =
+    await fixture.scroller.viewport.paddings[Direction.backward].size;
+  const _fwdPaddingSize =
+    await fixture.scroller.viewport.paddings[Direction.forward].size;
+  expect(_totalSize).toEqual(totalSize);
+  expect(_bwdPaddingSize).toEqual(bwdPaddingSize);
+  expect(_fwdPaddingSize).toEqual(fwdPaddingSize);
 
   expect(bufferInfo.absMinIndex).toEqual(minIndex);
   expect(bufferInfo.absMaxIndex).toEqual(maxIndex);
@@ -339,7 +359,8 @@ const testForwardGapCase = async (fixture: VScrollFixture) => {
   await fixture.adapter.relax();
 
   const gapSize = await fixture.page.evaluate(() => {
-    const viewportChildren = window.__vscroll__.workflow.scroller.routines.element.children;
+    const viewportChildren =
+      window.__vscroll__.workflow.scroller.routines.element.children;
     const lastChild = viewportChildren[viewportChildren.length - 2];
     const lastChildBottom = lastChild.getBoundingClientRect().bottom;
     const viewport = window.__vscroll__.workflow.scroller.viewport;
@@ -350,7 +371,9 @@ const testForwardGapCase = async (fixture: VScrollFixture) => {
   });
 
   expect(gapSize).toEqual(0);
-  expect(await fixture.scroller.viewport.paddings[Direction.forward].size).toEqual(0);
+  expect(
+    await fixture.scroller.viewport.paddings[Direction.forward].size
+  ).toEqual(0);
 };
 
 const makeTest = (
@@ -373,8 +396,7 @@ test.describe('Min/max Indexes Spec', () => {
         config,
         testCommonCase
       )
-    )
-  );
+    ));
 
   test.describe('No maxIndex cases', () =>
     noMaxIndexConfigList.forEach((config, index) =>
@@ -383,8 +405,7 @@ test.describe('Min/max Indexes Spec', () => {
         config,
         testCommonCase
       )
-    )
-  );
+    ));
 
   test.describe('No minIndex cases', () =>
     noMinIndexConfigList.forEach((config, index) =>
@@ -393,8 +414,7 @@ test.describe('Min/max Indexes Spec', () => {
         config,
         testCommonCase
       )
-    )
-  );
+    ));
 
   test.describe('No itemSize cases', () =>
     noItemSizeConfigList.forEach((config, index) =>
@@ -403,36 +423,32 @@ test.describe('Min/max Indexes Spec', () => {
         config,
         testCommonCase
       )
-    )
-  );
+    ));
 
-  test.describe('startIndex\'s around minIndex', () =>
+  test.describe('startIndex around minIndex', () =>
     startIndexAroundMinIndexConfigList.forEach((config, index) =>
       makeTest(
         `should reset backward padding (config ${index})`,
         config,
         testStartIndexEdgeCase
       )
-    )
-  );
+    ));
 
-  test.describe('startIndex\'s around maxIndex', () =>
+  test.describe('startIndex around maxIndex', () =>
     startIndexAroundMaxIndexConfigList.forEach((config, index) =>
       makeTest(
         `should reset forward padding (config ${index})`,
         config,
         testStartIndexEdgeCase
       )
-    )
-  );
+    ));
 
-  test.describe('startIndex\'s around maxIndex and no minIndex', () =>
+  test.describe('startIndex around maxIndex and no minIndex', () =>
     forwardGapConfigList.forEach((config, index) =>
       makeTest(
         `should fill forward padding gap (config ${index})`,
         config,
         testForwardGapCase
       )
-    )
-  );
+    ));
 });

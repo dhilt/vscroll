@@ -1,7 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { afterEachLogs } from '../fixture/after-each-logs.js';
 import { createFixture } from '../fixture/create-fixture.js';
-import { Direction, VScrollFixture, type DirectionType } from '../fixture/VScrollFixture.js';
+import {
+  Direction,
+  VScrollFixture,
+  type DirectionType
+} from '../fixture/VScrollFixture.js';
 import { ITestConfig } from 'types/index.js';
 
 test.afterEach(afterEachLogs);
@@ -15,7 +19,7 @@ type IConfig = ITestConfig<ICustom>;
 
 // Datasource generators for limited ranges
 // Note: We can't use closure variables because the function gets serialized.
-const datasourceGet1to100 = (index: number, count: number, success: (data: unknown[]) => void): void => {
+const datasourceGet1to100 = (index, count, success) => {
   const data = [];
   for (let i = index; i < index + count; i++) {
     if (i >= 1 && i <= 100) {
@@ -25,7 +29,7 @@ const datasourceGet1to100 = (index: number, count: number, success: (data: unkno
   setTimeout(() => success(data), 25);
 };
 
-const datasourceGet51to200 = (index: number, count: number, success: (data: unknown[]) => void): void => {
+const datasourceGet51to200 = (index, count, success) => {
   const data = [];
   for (let i = index; i < index + count; i++) {
     if (i >= 51 && i <= 200) {
@@ -86,7 +90,11 @@ const configList: IConfig[] = [
       maxIndex: 200,
       adapter: true
     },
-    templateSettings: { noViewportClass: true, viewportHeight: 0, itemHeight: 20 },
+    templateSettings: {
+      noViewportClass: true,
+      viewportHeight: 0,
+      itemHeight: 20
+    },
     custom: { items: 150, scrollCount: 5, start: Direction.backward }
   }
 ];
@@ -105,38 +113,38 @@ const configEofList: IConfig[] = configList.map(config => ({
 const runFastScroll = (
   fixture: VScrollFixture,
   customConfig: ICustom
-): Promise<void> => fixture.page.evaluate(
-  ({ scrollCount, start }) => {
-    return new Promise<void>((resolve) => {
-      const adapter = window.__vscroll__.datasource.adapter;
-      let iteration = 0;
+): Promise<void> =>
+  fixture.page.evaluate(
+    ({ scrollCount, start }) =>
+      new Promise(resolve => {
+        const adapter = window.__vscroll__.datasource.adapter;
+        let iteration = 0;
 
-      const doScroll = () => {
-        setTimeout(() => {
-          // scrollMax
-          adapter.fix({ scrollPosition: Infinity });
+        const doScroll = () => {
+          setTimeout(() => {
+            // scrollMax
+            adapter.fix({ scrollPosition: Infinity });
 
-          setTimeout(async () => {
-            // scrollMin (except on last iteration for EOF tests)
-            if (iteration < scrollCount || start === 'backward') {
-              adapter.fix({ scrollPosition: 0 });
-            }
+            setTimeout(async () => {
+              // scrollMin (except on last iteration for EOF tests)
+              if (iteration < scrollCount || start === 'backward') {
+                adapter.fix({ scrollPosition: 0 });
+              }
 
-            iteration++;
-            if (iteration <= scrollCount) {
-              doScroll();
-            } else {
-              resolve();
-            }
+              iteration++;
+              if (iteration <= scrollCount) {
+                doScroll();
+              } else {
+                resolve();
+              }
+            }, 25);
           }, 25);
-        }, 25);
-      };
+        };
 
-      doScroll();
-    });
-  },
-  { scrollCount: customConfig.scrollCount, start: customConfig.start }
-);
+        doScroll();
+      }),
+    { scrollCount: customConfig.scrollCount, start: customConfig.start }
+  );
 
 /**
  * Wait for expected edge element to be reached
@@ -210,8 +218,10 @@ const verifyExpectations = async (
 
   // Get buffer and padding info
   const bufferSize = await fixture.scroller.buffer.size;
-  const backwardPadding = await fixture.scroller.viewport.paddings[Direction.backward].size;
-  const forwardPadding = await fixture.scroller.viewport.paddings[Direction.forward].size;
+  const backwardPadding =
+    await fixture.scroller.viewport.paddings[Direction.backward].size;
+  const forwardPadding =
+    await fixture.scroller.viewport.paddings[Direction.forward].size;
 
   const bufferHeight = bufferSize * itemHeight;
   const totalSize = backwardPadding + forwardPadding + bufferHeight;
@@ -224,11 +234,15 @@ const verifyExpectations = async (
   if (bufferSize > 0) {
     if (position === 0) {
       // At BOF - check first element
-      const first = await fixture.scroller.buffer.getEdgeVisibleItem(Direction.backward);
+      const first = await fixture.scroller.buffer.getEdgeVisibleItem(
+        Direction.backward
+      );
       expect(first.$index).toBe(startIndex);
     } else {
       // At EOF - check last element
-      const last = await fixture.scroller.buffer.getEdgeVisibleItem(Direction.forward);
+      const last = await fixture.scroller.buffer.getEdgeVisibleItem(
+        Direction.forward
+      );
       expect(last.$index).toBe(startIndex + config.custom.items - 1);
     }
   }
@@ -263,13 +277,10 @@ test.describe('Fast Scroll Spec', () => {
   test.describe('multi-scroll to the BOF', () =>
     configList.forEach((config, index) =>
       makeTest(`should reach BOF without gaps (config ${index})`, config)
-    )
-  );
+    ));
 
   test.describe('multi-scroll to the EOF', () =>
     configEofList.forEach((config, index) =>
       makeTest(`should reach EOF without gaps (config ${index})`, config)
-    )
-  );
+    ));
 });
-

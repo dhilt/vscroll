@@ -10,13 +10,13 @@ export const Direction = {
   backward: 'backward'
 } as const;
 
-export type DirectionType = typeof Direction[keyof typeof Direction];
+export type DirectionType = (typeof Direction)[keyof typeof Direction];
 
 /**
  * Scroller accessor class - provides access to scroller properties in browser context
  */
 export class Scroller {
-  constructor(private page: Page) { }
+  constructor(private page: Page) {}
 
   get settings() {
     const page = this.page;
@@ -58,9 +58,11 @@ export class Scroller {
         });
       },
       getEdgeVisibleItem: async (direction: DirectionType) => {
-        return await page.evaluate((dir) => {
+        return await page.evaluate(dir => {
           const workflow = window.__vscroll__.workflow;
-          const item = workflow.scroller.buffer.getEdgeVisibleItem(dir as DirectionEnum);
+          const item = workflow.scroller.buffer.getEdgeVisibleItem(
+            dir as DirectionEnum
+          );
           return item ? { $index: item.$index, data: item.data } : null;
         }, direction);
       }
@@ -89,14 +91,16 @@ export class Scroller {
         [Direction.forward]: {
           get size(): Promise<number> {
             return page.evaluate(() => {
-              return window.__vscroll__.workflow.scroller.viewport.paddings.forward.size;
+              return window.__vscroll__.workflow.scroller.viewport.paddings
+                .forward.size;
             });
           }
         },
         [Direction.backward]: {
           get size(): Promise<number> {
             return page.evaluate(() => {
-              return window.__vscroll__.workflow.scroller.viewport.paddings.backward.size;
+              return window.__vscroll__.workflow.scroller.viewport.paddings
+                .backward.size;
             });
           }
         }
@@ -104,4 +108,3 @@ export class Scroller {
     };
   }
 }
-

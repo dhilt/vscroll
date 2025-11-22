@@ -277,10 +277,14 @@ export class VScrollFixture {
   get workflow() {
     const page = this.page;
     return {
-      // Proxy methods to browser
       get cyclesDone(): Promise<number> {
         return page.evaluate(() => {
           return window.__vscroll__.workflow.cyclesDone;
+        });
+      },
+      get innerLoopCount(): Promise<number> {
+        return page.evaluate(() => {
+          return window.__vscroll__.workflow.scroller.state.cycle.innerLoop.total;
         });
       }
     };

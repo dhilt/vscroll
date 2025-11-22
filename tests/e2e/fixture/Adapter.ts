@@ -230,5 +230,15 @@ export class Adapter {
       return ds.adapter.lastVisible;
     });
   }
+
+  get bufferInfo() {
+    return this.page.evaluate(() => {
+      const ds = window.__vscroll__.datasource;
+      if (!ds.adapter) {
+        throw new Error('Adapter not available. Set useAdapter: true in config.');
+      }
+      return ds.adapter.bufferInfo;
+    });
+  }
 }
 

@@ -7,4 +7,3 @@ export default {
   collectCoverageFrom: ['src/**/*.ts'],
   coveragePathIgnorePatterns: ['/node_modules/', '/tests/']
 };
-

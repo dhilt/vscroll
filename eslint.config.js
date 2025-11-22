@@ -6,12 +6,7 @@ import globals from 'globals';
 export default [
   // Global ignores (replaces .eslintignore)
   {
-    ignores: [
-      'node_modules/**',
-      'dist/**',
-      'build/**',
-      'demo/**'
-    ]
+    ignores: ['node_modules/**', 'dist/**', 'build/**', 'demo/**']
   },
 
   // Base configuration for TypeScript files
@@ -37,8 +32,8 @@ export default [
 
       // Custom rules from original config
       'max-len': ['error', { code: 120 }],
-      'quotes': ['error', 'single'],
-      'semi': ['error', 'always'],
+      quotes: ['error', 'single'],
+      semi: ['error', 'always'],
       '@typescript-eslint/no-empty-function': 'off',
       '@typescript-eslint/no-explicit-any': ['error', { ignoreRestArgs: true }],
 
@@ -76,4 +71,4 @@ export default [
       '@typescript-eslint/no-var-requires': 'off'
     }
   }
-]; 
+];

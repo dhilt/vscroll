@@ -6,7 +6,6 @@ const element = { parentElement: { style: {} } } as unknown as HTMLElement;
 const elementBad = { parentElement: null } as unknown as HTMLElement;
 
 describe('Routines', () => {
-
   describe('Standard instantiation', () => {
     it('should instantiate if element & settings are correct', () => {
       const routines = new Routines(element, settings);
@@ -79,5 +78,4 @@ describe('Routines', () => {
       });
     });
   });
-
 });

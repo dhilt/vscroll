@@ -1,7 +1,6 @@
 import { Reactive } from '../../src/classes/reactive';
 
 describe('Reactive', () => {
-
   const VALUE = 'test';
   const VALUES = ['test1', 'test2', 'test3', 'test4', 'test5'];
 
@@ -22,7 +21,7 @@ describe('Reactive', () => {
     it('should subscribe and emit', () => {
       let call = 0;
       const $ = new Reactive();
-      $.on((v) => {
+      $.on(v => {
         call++;
         expect(v).toEqual(VALUE);
         expect($.get()).toEqual(VALUE);
@@ -34,7 +33,7 @@ describe('Reactive', () => {
     it('should emit multiple', () => {
       let call = 0;
       const $ = new Reactive();
-      $.on((v) => expect(v).toEqual(VALUES[call++]));
+      $.on(v => expect(v).toEqual(VALUES[call++]));
       VALUES.forEach(V => $.set(V));
       expect(call).toEqual(VALUES.length);
       expect($.get()).toEqual(VALUES[call - 1]);
@@ -45,7 +44,7 @@ describe('Reactive', () => {
     it('should subscribe and emit', () => {
       let call = 0;
       const $ = new Reactive();
-      $.once((v) => {
+      $.once(v => {
         call++;
         expect(v).toEqual(VALUE);
         expect($.get()).toEqual(VALUE);
@@ -57,7 +56,7 @@ describe('Reactive', () => {
     it('should emit once, but set', () => {
       let call = 0;
       const $ = new Reactive();
-      $.once((v) => {
+      $.once(v => {
         call++;
         expect(v).toEqual(VALUES[0]);
       });
@@ -71,7 +70,7 @@ describe('Reactive', () => {
     it('should emit on subscribe', () => {
       let call = 0;
       const $ = new Reactive(VALUE, { emitOnSubscribe: true });
-      $.on((v) => {
+      $.on(v => {
         call++;
         expect(v).toEqual(VALUE);
         expect($.get()).toEqual(VALUE);
@@ -89,7 +88,7 @@ describe('Reactive', () => {
     it('should continue emit', () => {
       let call = 0;
       const $ = new Reactive(VALUES[0], { emitOnSubscribe: true });
-      $.on((v) => expect(v).toEqual(VALUES[call++]));
+      $.on(v => expect(v).toEqual(VALUES[call++]));
       VALUES.forEach((V, i) => i > 0 && $.set(V));
       expect(call).toEqual(VALUES.length);
       expect($.get()).toEqual(VALUES[call - 1]);
@@ -100,7 +99,7 @@ describe('Reactive', () => {
     it('should emit the same value', () => {
       let call = 0;
       const $ = new Reactive(VALUE, { emitEqual: true });
-      $.on((v) => {
+      $.on(v => {
         call++;
         expect(v).toEqual(VALUE);
       });
@@ -119,16 +118,21 @@ describe('Reactive', () => {
 
   describe('Cancellation', () => {
     it('should stop emitting if the value becomes obsolete', () => {
-      let call1 = 0, call2 = 0, call3 = 0, value;
+      let call1 = 0,
+        call2 = 0,
+        call3 = 0,
+        value;
       const NEW_VALUE = VALUE + '*';
       const $ = new Reactive('');
 
-      $.on((v) => { // subscription 1
+      $.on(v => {
+        // subscription 1
         call1++;
         expect(v).toEqual(value);
       });
 
-      $.on((v) => { // subscription 2
+      $.on(v => {
+        // subscription 2
         call2++;
         expect(v).toEqual(value);
         if (call2 === 1) {
@@ -137,7 +141,8 @@ describe('Reactive', () => {
         }
       });
 
-      $.on((v) => { // subscription 3
+      $.on(v => {
+        // subscription 3
         call3++;
         expect(v).toEqual(value);
       });
@@ -150,5 +155,4 @@ describe('Reactive', () => {
       expect(call3).toEqual(1);
     });
   });
-
 });

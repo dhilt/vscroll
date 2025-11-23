@@ -101,9 +101,25 @@ const fixedItemSizeAndBigBufferSizeConfigList: ITestConfig[] = [
   }
 ];
 
+const tunedItemSizeConfigList: ITestConfig[] = [
+  {
+    datasourceGet: makeUnlimitedDatasource(),
+    datasourceSettings: {
+      startIndex: 1,
+      bufferSize: 1,
+      padding: 0.5,
+      itemSize: 40,
+      adapter: true
+    },
+    noRelaxOnStart: true,
+    templateSettings: { viewportHeight: 100, itemHeight: 20 }
+  }
+];
+
 interface ItemsCounter {
   backward: { count: number; index: number; padding: number };
   forward: { count: number; index: number; padding: number };
+  total: number;
 }
 
 const getSetItemSizeCounter = async (
@@ -120,7 +136,8 @@ const getSetItemSizeCounter = async (
   const forwardLimit = viewportSize + backwardLimit;
   const itemsCounter: ItemsCounter = {
     backward: { count: 0, index: 0, padding: 0 },
-    forward: { count: 0, index: 0, padding: 0 }
+    forward: { count: 0, index: 0, padding: 0 },
+    total: 0
   };
 
   itemsCounter.backward.count = Math.ceil(backwardLimit / itemSize);
@@ -138,6 +155,91 @@ const getSetItemSizeCounter = async (
 
   itemsCounter.backward.index = startIndex - itemsCounter.backward.count;
   itemsCounter.forward.index = startIndex + itemsCounter.forward.count - 1;
+  itemsCounter.total =
+    itemsCounter.forward.index - itemsCounter.backward.index + 1;
+  return itemsCounter;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getNotSetItemSizeCounter = async (
+  config: ITestConfig,
+  fixture: VScrollFixture,
+  itemSize: number,
+  previous?: ItemsCounter
+): Promise<ItemsCounter> => {
+  const bufferSize = await fixture.scroller.settings.bufferSize;
+  const startIndex = config.datasourceSettings.startIndex as number;
+  const padding = config.datasourceSettings.padding as number;
+  const viewportSize = await fixture.scroller.viewport.getSize();
+  const backwardLimit = viewportSize * padding;
+  const forwardLimit = viewportSize + backwardLimit;
+  const itemsCounter: ItemsCounter = {
+    backward: { count: 0, index: 0, padding: 0 },
+    forward: { count: 0, index: 0, padding: 0 },
+    total: 0
+  };
+  const countB = previous ? previous.backward.count : 0;
+  const countF = previous ? previous.forward.count : 0;
+  let bwd, fwd;
+
+  // 1) fetch only in forward direction if this is the first fetch
+  // 2) fetch bufferSize items if Settings.itemSize value hasn't been set up
+  itemsCounter.backward.count = previous
+    ? itemSize
+      ? Math.ceil(backwardLimit / itemSize)
+      : bufferSize
+    : 0;
+  itemsCounter.forward.count = itemSize
+    ? Math.ceil(forwardLimit / itemSize)
+    : bufferSize;
+  if (previous) {
+    itemsCounter.backward.count = Math.max(itemsCounter.backward.count, countB);
+    itemsCounter.forward.count = Math.max(itemsCounter.forward.count, countF);
+  }
+
+  // when bufferSize is big enough
+  bwd = itemsCounter.backward.count - (previous ? countB : 0);
+  fwd = itemsCounter.forward.count - (previous ? countF : 0);
+  const bwdDiff = bwd > 0 ? bufferSize - bwd : 0;
+  const fwdDiff = fwd > 0 ? bufferSize - fwd : 0;
+  if (bwdDiff > 0 && bwd > fwd) {
+    itemsCounter.backward.count += bwdDiff;
+    itemsCounter.forward.count = previous ? countF : itemsCounter.forward.count;
+  }
+  if (fwdDiff > 0 && fwd >= bwd) {
+    itemsCounter.forward.count += fwdDiff;
+    itemsCounter.backward.count = previous
+      ? countB
+      : itemsCounter.backward.count;
+  }
+
+  if (previous) {
+    bwd = itemsCounter.backward.count - countB;
+    fwd = itemsCounter.forward.count - countF;
+    if (bwd > 0 && bwd > fwd) {
+      itemsCounter.backward.count = countB + bwd;
+      itemsCounter.forward.count =
+        fwd > 0 ? countF : itemsCounter.forward.count;
+    }
+    if (fwd > 0 && fwd >= bwd) {
+      itemsCounter.forward.count = countF + fwd;
+      itemsCounter.backward.count =
+        bwd > 0 ? countB : itemsCounter.backward.count;
+    }
+  }
+
+  itemsCounter.backward.index = startIndex - itemsCounter.backward.count;
+  itemsCounter.forward.index = startIndex + itemsCounter.forward.count - 1;
+
+  const defaultSize = await fixture.scroller.buffer.defaultSize;
+  itemsCounter.backward.padding = 0;
+  itemsCounter.forward.padding = Math.max(
+    0,
+    viewportSize - itemsCounter.forward.count * defaultSize
+  );
+
+  itemsCounter.total =
+    itemsCounter.forward.index - itemsCounter.backward.index + 1;
   return itemsCounter;
 };
 
@@ -206,6 +308,121 @@ const testSetItemSizeCase = async (
   await testItemsCounter(startIndex, fixture, itemsCounter);
 };
 
+type LoopData = {
+  loopCount: number;
+  viewportSize: number;
+  defaultSize: number;
+  bufferSize: number;
+  firstIndex: number;
+  lastIndex: number;
+  bwdPaddingSize: number;
+  fwdPaddingSize: number;
+  elementsLength: number;
+  firstElementIndex: number;
+  lastElementIndex: number;
+  bufferItemsLength: number;
+  bufferFirstIndex: number;
+  bufferLastIndex: number;
+  firstVisibleIndex: number;
+};
+
+const testNotSetItemSizeCase = async (
+  fixture: VScrollFixture,
+  config: ITestConfig
+) => {
+  const startIndex = config.datasourceSettings.startIndex as number;
+  const initialItemSize = config.datasourceSettings.itemSize as number;
+  const tplSettings = config.templateSettings || {};
+  const horizontal = config.datasourceSettings.horizontal;
+  const itemSize = tplSettings[
+    horizontal ? 'itemWidth' : 'itemHeight'
+  ] as number;
+
+  // Capture data from all loops in browser context
+  const loopData = await fixture.page.evaluate(() => {
+    return new Promise<{ loops: LoopData[] }>(resolve => {
+      const workflow = window.__vscroll__.workflow;
+      const innerLoop = workflow.scroller.state.cycle.innerLoop;
+      const loops: LoopData[] = [];
+
+      innerLoop.busy.on(loopPending => {
+        if (loopPending) {
+          return;
+        }
+
+        const loopCount = innerLoop.total;
+
+        // On loops 1, 2, 3: memorize complete state
+        if (loopCount >= 1 && loopCount <= 3) {
+          const buffer = workflow.scroller.buffer;
+          loops.push({
+            loopCount: loopCount,
+            viewportSize: workflow.scroller.viewport.getScrollableSize(),
+            defaultSize: buffer.defaultSize,
+            bufferSize: buffer.size,
+            firstIndex: buffer.firstIndex,
+            lastIndex: buffer.lastIndex,
+            bwdPaddingSize: workflow.scroller.viewport.paddings.backward.size,
+            fwdPaddingSize: workflow.scroller.viewport.paddings.forward.size,
+            elementsLength: buffer.items.length,
+            firstElementIndex: buffer.items[0].$index,
+            lastElementIndex: buffer.items[buffer.items.length - 1].$index,
+            bufferItemsLength: buffer.items.length,
+            bufferFirstIndex: workflow.scroller.adapter.bufferInfo.firstIndex,
+            bufferLastIndex: workflow.scroller.adapter.bufferInfo.lastIndex,
+            firstVisibleIndex: workflow.scroller.adapter.firstVisible.$index
+          });
+        }
+
+        // On loop 4: resolve with all collected data
+        if (loopCount === 4) {
+          resolve({ loops });
+          return;
+        }
+      });
+    });
+  });
+
+  // Wait for scroller to stop completely
+  await fixture.adapter.relax();
+
+  // Check final state in node context
+  const cyclesDone = await fixture.workflow.cyclesDone;
+  const { fetchCount, clipCount } = await fixture.page.evaluate(() => ({
+    fetchCount: window.__vscroll__.workflow.scroller.state.fetch.callCount,
+    clipCount: window.__vscroll__.workflow.scroller.state.clip.callCount
+  }));
+  expect(cyclesDone).toEqual(1);
+  expect(fetchCount).toEqual(3);
+  expect(clipCount).toEqual(0);
+
+  // Validate each loop's itemsCounter against captured snapshots
+  let previousCounter: ItemsCounter | undefined;
+
+  for (const loop of loopData.loops) {
+    const sizeToUse = loop.loopCount === 1 ? initialItemSize : itemSize;
+    const itemsCounter = await getNotSetItemSizeCounter(
+      config,
+      fixture,
+      sizeToUse,
+      previousCounter
+    );
+
+    // Replicate all checks from original testItemsCounter using captured data
+    expect(loop.bwdPaddingSize).toEqual(itemsCounter.backward.padding);
+    expect(loop.fwdPaddingSize).toEqual(itemsCounter.forward.padding);
+    expect(loop.elementsLength).toEqual(itemsCounter.total);
+    expect(loop.bufferItemsLength).toEqual(itemsCounter.total);
+    expect(loop.firstElementIndex).toEqual(itemsCounter.backward.index);
+    expect(loop.lastElementIndex).toEqual(itemsCounter.forward.index);
+    expect(loop.bufferFirstIndex).toEqual(itemsCounter.backward.index);
+    expect(loop.bufferLastIndex).toEqual(itemsCounter.forward.index);
+    expect(loop.firstVisibleIndex).toEqual(startIndex);
+
+    previousCounter = itemsCounter;
+  }
+};
+
 const makeTest = (
   title: string,
   config: ITestConfig,
@@ -234,5 +451,22 @@ test.describe('Initial Load Spec', () => {
         testSetItemSizeCase
       )
     );
+  });
+
+  test.describe('Tuned itemSize', () => {
+    tunedItemSizeConfigList.forEach((config, i) =>
+      makeTest(
+        `should make 3 fetches to satisfy padding limits (config ${i})`,
+        config,
+        testNotSetItemSizeCase
+      )
+    );
+    // tunedItemSizeAndBigBufferSizeConfigList.forEach((config, i) =>
+    //   makeTest(
+    //     `should make 3 fetches to overflow padding limits (bufferSize is big enough) (config ${i})`,
+    //     config,
+    //     testNotSetItemSizeCase
+    //   )
+    // );
   });
 });

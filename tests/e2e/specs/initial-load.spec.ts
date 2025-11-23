@@ -3,22 +3,29 @@ import { VScrollFixture, Direction } from '../fixture/VScrollFixture.js';
 import { afterEachLogs } from '../fixture/after-each-logs.js';
 import { createFixture } from '../fixture/create-fixture.js';
 import { ITestConfig } from 'types/index.js';
+import { ItemsCounter } from '../helpers/itemsCounter.js';
+
+// // Capture console logs for comparison
+// test.beforeEach(async ({ page }) => {
+//   page.on('console', msg => {
+//     console.log('[BROWSER]', msg.text());
+//   });
+// });
 
 test.afterEach(afterEachLogs);
 
 // Basic unlimited datasource for all tests
-const makeUnlimitedDatasource =
-  () => (index: number, count: number, success: (data: unknown[]) => void) => {
-    const data = [];
-    for (let i = index; i < index + count; i++) {
-      data.push({ id: i, text: `item #${i}` });
-    }
-    setTimeout(() => success(data), 25);
-  };
+const unlimitedDatasource = (index, count, success) => {
+  const data = [];
+  for (let i = index; i < index + count; i++) {
+    data.push({ id: i, text: `item #${i}` });
+  }
+  setTimeout(() => success(data), 25);
+};
 
 const fixedItemSizeConfigList: ITestConfig[] = [
   {
-    datasourceGet: makeUnlimitedDatasource(),
+    datasourceGet: unlimitedDatasource,
     datasourceSettings: {
       startIndex: 1,
       padding: 2,
@@ -28,7 +35,7 @@ const fixedItemSizeConfigList: ITestConfig[] = [
     templateSettings: { viewportHeight: 20, itemHeight: 15 }
   },
   {
-    datasourceGet: makeUnlimitedDatasource(),
+    datasourceGet: unlimitedDatasource,
     datasourceSettings: {
       startIndex: 1,
       padding: 0.5,
@@ -38,7 +45,7 @@ const fixedItemSizeConfigList: ITestConfig[] = [
     templateSettings: { viewportHeight: 120, itemHeight: 20 }
   },
   {
-    datasourceGet: makeUnlimitedDatasource(),
+    datasourceGet: unlimitedDatasource,
     datasourceSettings: {
       startIndex: -99,
       padding: 0.3,
@@ -48,7 +55,7 @@ const fixedItemSizeConfigList: ITestConfig[] = [
     templateSettings: { viewportHeight: 200, itemHeight: 25 }
   },
   {
-    datasourceGet: makeUnlimitedDatasource(),
+    datasourceGet: unlimitedDatasource,
     datasourceSettings: {
       startIndex: -77,
       padding: 0.62,
@@ -59,7 +66,7 @@ const fixedItemSizeConfigList: ITestConfig[] = [
     templateSettings: { viewportWidth: 450, itemWidth: 100, horizontal: true }
   },
   {
-    datasourceGet: makeUnlimitedDatasource(),
+    datasourceGet: unlimitedDatasource,
     datasourceSettings: {
       startIndex: 1,
       padding: 0.5,
@@ -77,7 +84,7 @@ const fixedItemSizeConfigList: ITestConfig[] = [
 
 const fixedItemSizeAndBigBufferSizeConfigList: ITestConfig[] = [
   {
-    datasourceGet: makeUnlimitedDatasource(),
+    datasourceGet: unlimitedDatasource,
     datasourceSettings: {
       startIndex: 100,
       padding: 0.1,
@@ -88,7 +95,7 @@ const fixedItemSizeAndBigBufferSizeConfigList: ITestConfig[] = [
     templateSettings: { viewportHeight: 100, itemHeight: 20 }
   },
   {
-    datasourceGet: makeUnlimitedDatasource(),
+    datasourceGet: unlimitedDatasource,
     datasourceSettings: {
       startIndex: -50,
       padding: 0.1,
@@ -103,7 +110,7 @@ const fixedItemSizeAndBigBufferSizeConfigList: ITestConfig[] = [
 
 const tunedItemSizeConfigList: ITestConfig[] = [
   {
-    datasourceGet: makeUnlimitedDatasource(),
+    datasourceGet: unlimitedDatasource,
     datasourceSettings: {
       startIndex: 1,
       bufferSize: 1,
@@ -115,7 +122,7 @@ const tunedItemSizeConfigList: ITestConfig[] = [
     templateSettings: { viewportHeight: 100, itemHeight: 20 }
   },
   {
-    datasourceGet: makeUnlimitedDatasource(),
+    datasourceGet: unlimitedDatasource,
     datasourceSettings: {
       startIndex: -50,
       bufferSize: 2,
@@ -127,7 +134,7 @@ const tunedItemSizeConfigList: ITestConfig[] = [
     templateSettings: { viewportHeight: 120, itemHeight: 20 }
   },
   {
-    datasourceGet: makeUnlimitedDatasource(),
+    datasourceGet: unlimitedDatasource,
     datasourceSettings: {
       startIndex: -77,
       padding: 0.82,
@@ -139,7 +146,7 @@ const tunedItemSizeConfigList: ITestConfig[] = [
     templateSettings: { viewportWidth: 450, itemWidth: 100, horizontal: true }
   },
   {
-    datasourceGet: makeUnlimitedDatasource(),
+    datasourceGet: unlimitedDatasource,
     datasourceSettings: {
       startIndex: -47,
       padding: 0.3,
@@ -158,7 +165,7 @@ const tunedItemSizeConfigList: ITestConfig[] = [
 
 const tunedItemSizeAndBigBufferSizeConfigList: ITestConfig[] = [
   {
-    datasourceGet: makeUnlimitedDatasource(),
+    datasourceGet: unlimitedDatasource,
     datasourceSettings: {
       startIndex: -50,
       bufferSize: 7,
@@ -170,7 +177,7 @@ const tunedItemSizeAndBigBufferSizeConfigList: ITestConfig[] = [
     templateSettings: { viewportHeight: 120, itemHeight: 20 }
   },
   {
-    datasourceGet: makeUnlimitedDatasource(),
+    datasourceGet: unlimitedDatasource,
     datasourceSettings: {
       startIndex: 50,
       padding: 0.33,
@@ -215,11 +222,7 @@ const noItemSizeAndBigBufferConfigList: ITestConfig[] =
 
 const lackOfItemsOnFirstFetchConfigList: ITestConfig[] = [
   {
-    datasourceGet: (
-      index: number,
-      count: number,
-      success: (data: unknown[]) => void
-    ) => {
+    datasourceGet: (index, count, success) => {
       const data = [];
       for (let i = index; i < index + count; i++) {
         if (i >= 1) {
@@ -239,11 +242,7 @@ const lackOfItemsOnFirstFetchConfigList: ITestConfig[] = [
     templateSettings: { viewportHeight: 300, itemHeight: 20 }
   },
   {
-    datasourceGet: (
-      index: number,
-      count: number,
-      success: (data: unknown[]) => void
-    ) => {
+    datasourceGet: (index, count, success) => {
       const data = [];
       for (let i = index; i < index + count; i++) {
         if (i >= -75) {
@@ -263,11 +262,7 @@ const lackOfItemsOnFirstFetchConfigList: ITestConfig[] = [
     templateSettings: { viewportHeight: 200, itemHeight: 20 }
   },
   {
-    datasourceGet: (
-      index: number,
-      count: number,
-      success: (data: unknown[]) => void
-    ) => {
+    datasourceGet: (index, count, success) => {
       const data = [];
       for (let i = index; i < index + count; i++) {
         if (i >= -9) {
@@ -292,11 +287,7 @@ const lackOfItemsOnFirstFetchConfigList: ITestConfig[] = [
     }
   },
   {
-    datasourceGet: (
-      index: number,
-      count: number,
-      success: (data: unknown[]) => void
-    ) => {
+    datasourceGet: (index, count, success) => {
       const data = [];
       for (let i = index; i < index + count; i++) {
         if (i >= -120) {
@@ -318,12 +309,6 @@ const lackOfItemsOnFirstFetchConfigList: ITestConfig[] = [
   }
 ];
 
-interface ItemsCounter {
-  backward: { count: number; index: number; padding: number };
-  forward: { count: number; index: number; padding: number };
-  total: number;
-}
-
 const getSetItemSizeCounter = async (
   config: ITestConfig,
   fixture: VScrollFixture,
@@ -336,11 +321,7 @@ const getSetItemSizeCounter = async (
 
   const backwardLimit = viewportSize * padding;
   const forwardLimit = viewportSize + backwardLimit;
-  const itemsCounter: ItemsCounter = {
-    backward: { count: 0, index: 0, padding: 0 },
-    forward: { count: 0, index: 0, padding: 0 },
-    total: 0
-  };
+  const itemsCounter = new ItemsCounter();
 
   itemsCounter.backward.count = Math.ceil(backwardLimit / itemSize);
   itemsCounter.forward.count = Math.ceil(forwardLimit / itemSize);
@@ -357,12 +338,9 @@ const getSetItemSizeCounter = async (
 
   itemsCounter.backward.index = startIndex - itemsCounter.backward.count;
   itemsCounter.forward.index = startIndex + itemsCounter.forward.count - 1;
-  itemsCounter.total =
-    itemsCounter.forward.index - itemsCounter.backward.index + 1;
   return itemsCounter;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getNotSetItemSizeCounter = async (
   config: ITestConfig,
   fixture: VScrollFixture,
@@ -375,11 +353,7 @@ const getNotSetItemSizeCounter = async (
   const viewportSize = await fixture.scroller.viewport.getSize();
   const backwardLimit = viewportSize * padding;
   const forwardLimit = viewportSize + backwardLimit;
-  const itemsCounter: ItemsCounter = {
-    backward: { count: 0, index: 0, padding: 0 },
-    forward: { count: 0, index: 0, padding: 0 },
-    total: 0
-  };
+  const itemsCounter = new ItemsCounter();
   const countB = previous ? previous.backward.count : 0;
   const countF = previous ? previous.forward.count : 0;
   let bwd, fwd;
@@ -440,8 +414,6 @@ const getNotSetItemSizeCounter = async (
     viewportSize - itemsCounter.forward.count * defaultSize
   );
 
-  itemsCounter.total =
-    itemsCounter.forward.index - itemsCounter.backward.index + 1;
   return itemsCounter;
 };
 
@@ -634,9 +606,9 @@ const testLackOfItemsOnFirstFetchCase = async (
   // Capture state after the first inner loop completes
   const result = await fixture.page.evaluate(() => {
     return new Promise<{
-      firstLoopScrollPosition: number;
-      firstLoopBwdPaddingSize: number;
-      firstLoopFirstVisibleIndex: number;
+      scrollPosition: number;
+      bwdPaddingSize: number;
+      firstVisibleIndex: number;
     }>(resolve => {
       const workflow = window.__vscroll__.workflow;
       const innerLoop = workflow.scroller.state.cycle.innerLoop;
@@ -648,10 +620,9 @@ const testLackOfItemsOnFirstFetchCase = async (
           resolved = true;
           const viewport = workflow.scroller.viewport;
           resolve({
-            firstLoopScrollPosition: viewport.scrollPosition,
-            firstLoopBwdPaddingSize: viewport.paddings.backward.size,
-            firstLoopFirstVisibleIndex:
-              workflow.scroller.adapter.firstVisible.$index
+            scrollPosition: viewport.scrollPosition,
+            bwdPaddingSize: viewport.paddings.backward.size,
+            firstVisibleIndex: workflow.scroller.adapter.firstVisible.$index
           });
         }
       });
@@ -662,8 +633,8 @@ const testLackOfItemsOnFirstFetchCase = async (
   await fixture.adapter.relax();
 
   // Verify state after first inner loop
-  expect(result.firstLoopScrollPosition).toBe(result.firstLoopBwdPaddingSize);
-  expect(result.firstLoopFirstVisibleIndex).toEqual(startIndex);
+  expect(result.scrollPosition).toBe(result.bwdPaddingSize);
+  expect(result.firstVisibleIndex).toEqual(startIndex);
 
   // Verify final state
   const finalFirstVisibleIndex = (await fixture.adapter.firstVisible).$index;

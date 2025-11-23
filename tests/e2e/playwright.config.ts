@@ -19,13 +19,15 @@ export default defineConfig({
     screenshot: 'only-on-failure'
     // headless: true,
     // slowMo: 500,
-    // viewport: { width: 1024, height: 570 }
   },
 
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] }
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1024, height: 517 }
+      }
     }
   ]
 });

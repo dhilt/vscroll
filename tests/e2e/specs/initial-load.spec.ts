@@ -113,6 +113,78 @@ const tunedItemSizeConfigList: ITestConfig[] = [
     },
     noRelaxOnStart: true,
     templateSettings: { viewportHeight: 100, itemHeight: 20 }
+  },
+  {
+    datasourceGet: makeUnlimitedDatasource(),
+    datasourceSettings: {
+      startIndex: -50,
+      bufferSize: 2,
+      padding: 0.5,
+      itemSize: 30,
+      adapter: true
+    },
+    noRelaxOnStart: true,
+    templateSettings: { viewportHeight: 120, itemHeight: 20 }
+  },
+  {
+    datasourceGet: makeUnlimitedDatasource(),
+    datasourceSettings: {
+      startIndex: -77,
+      padding: 0.82,
+      itemSize: 200,
+      horizontal: true,
+      adapter: true
+    },
+    noRelaxOnStart: true,
+    templateSettings: { viewportWidth: 450, itemWidth: 100, horizontal: true }
+  },
+  {
+    datasourceGet: makeUnlimitedDatasource(),
+    datasourceSettings: {
+      startIndex: -47,
+      padding: 0.3,
+      itemSize: 60,
+      windowViewport: true,
+      adapter: true
+    },
+    noRelaxOnStart: true,
+    templateSettings: {
+      noViewportClass: true,
+      viewportHeight: 0,
+      itemHeight: 40
+    }
+  }
+];
+
+const tunedItemSizeAndBigBufferSizeConfigList: ITestConfig[] = [
+  {
+    datasourceGet: makeUnlimitedDatasource(),
+    datasourceSettings: {
+      startIndex: -50,
+      bufferSize: 7,
+      padding: 0.5,
+      itemSize: 30,
+      adapter: true
+    },
+    noRelaxOnStart: true,
+    templateSettings: { viewportHeight: 120, itemHeight: 20 }
+  },
+  {
+    datasourceGet: makeUnlimitedDatasource(),
+    datasourceSettings: {
+      startIndex: 50,
+      padding: 0.33,
+      itemSize: 35,
+      bufferSize: 20,
+      windowViewport: true,
+      adapter: true
+    },
+    noRelaxOnStart: true,
+    templateSettings: {
+      noViewportClass: true,
+      viewportHeight: 0,
+      itemHeight: 20
+    }
   }
 ];
 
@@ -461,12 +533,12 @@ test.describe('Initial Load Spec', () => {
         testNotSetItemSizeCase
       )
     );
-    // tunedItemSizeAndBigBufferSizeConfigList.forEach((config, i) =>
-    //   makeTest(
-    //     `should make 3 fetches to overflow padding limits (bufferSize is big enough) (config ${i})`,
-    //     config,
-    //     testNotSetItemSizeCase
-    //   )
-    // );
+    tunedItemSizeAndBigBufferSizeConfigList.forEach((config, i) =>
+      makeTest(
+        `should make 3 fetches to overflow padding limits (bufferSize is big enough) (config ${i})`,
+        config,
+        testNotSetItemSizeCase
+      )
+    );
   });
 });

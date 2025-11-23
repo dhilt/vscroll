@@ -188,6 +188,31 @@ const tunedItemSizeAndBigBufferSizeConfigList: ITestConfig[] = [
   }
 ];
 
+const noItemSizeConfigList: ITestConfig[] = tunedItemSizeConfigList.map(
+  ({
+    datasourceGet,
+    datasourceSettings: { itemSize: _, ...restDatasourceSettings },
+    ...config
+  }) => ({
+    ...config,
+    datasourceGet,
+    datasourceSettings: { ...restDatasourceSettings }
+  })
+);
+
+const noItemSizeAndBigBufferConfigList: ITestConfig[] =
+  tunedItemSizeAndBigBufferSizeConfigList.map(
+    ({
+      datasourceGet,
+      datasourceSettings: { itemSize: _, ...restDatasourceSettings },
+      ...config
+    }) => ({
+      ...config,
+      datasourceGet,
+      datasourceSettings: { ...restDatasourceSettings }
+    })
+  );
+
 interface ItemsCounter {
   backward: { count: number; index: number; padding: number };
   forward: { count: number; index: number; padding: number };
@@ -534,6 +559,23 @@ test.describe('Initial Load Spec', () => {
       )
     );
     tunedItemSizeAndBigBufferSizeConfigList.forEach((config, i) =>
+      makeTest(
+        `should make 3 fetches to overflow padding limits (bufferSize is big enough) (config ${i})`,
+        config,
+        testNotSetItemSizeCase
+      )
+    );
+  });
+
+  test.describe('No itemSize', () => {
+    noItemSizeConfigList.forEach((config, i) =>
+      makeTest(
+        `should make 3 fetches to satisfy padding limits (config ${i})`,
+        config,
+        testNotSetItemSizeCase
+      )
+    );
+    noItemSizeAndBigBufferConfigList.forEach((config, i) =>
       makeTest(
         `should make 3 fetches to overflow padding limits (bufferSize is big enough) (config ${i})`,
         config,

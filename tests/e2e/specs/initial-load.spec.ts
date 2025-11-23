@@ -213,6 +213,111 @@ const noItemSizeAndBigBufferConfigList: ITestConfig[] =
     })
   );
 
+const lackOfItemsOnFirstFetchConfigList: ITestConfig[] = [
+  {
+    datasourceGet: (
+      index: number,
+      count: number,
+      success: (data: unknown[]) => void
+    ) => {
+      const data = [];
+      for (let i = index; i < index + count; i++) {
+        if (i >= 1) {
+          data.push({ id: i, text: `item #${i}` });
+        }
+      }
+      setTimeout(() => success(data), 25);
+    },
+    datasourceSettings: {
+      startIndex: 100,
+      padding: 0.5,
+      bufferSize: 10,
+      minIndex: 1,
+      adapter: true
+    },
+    noRelaxOnStart: true,
+    templateSettings: { viewportHeight: 300, itemHeight: 20 }
+  },
+  {
+    datasourceGet: (
+      index: number,
+      count: number,
+      success: (data: unknown[]) => void
+    ) => {
+      const data = [];
+      for (let i = index; i < index + count; i++) {
+        if (i >= -75) {
+          data.push({ id: i, text: `item #${i}` });
+        }
+      }
+      setTimeout(() => success(data), 25);
+    },
+    datasourceSettings: {
+      startIndex: -70,
+      padding: 0.5,
+      bufferSize: 2,
+      minIndex: -75,
+      adapter: true
+    },
+    noRelaxOnStart: true,
+    templateSettings: { viewportHeight: 200, itemHeight: 20 }
+  },
+  {
+    datasourceGet: (
+      index: number,
+      count: number,
+      success: (data: unknown[]) => void
+    ) => {
+      const data = [];
+      for (let i = index; i < index + count; i++) {
+        if (i >= -9) {
+          data.push({ id: i, text: `item #${i}` });
+        }
+      }
+      setTimeout(() => success(data), 25);
+    },
+    datasourceSettings: {
+      startIndex: 1,
+      padding: 0.1,
+      bufferSize: 12,
+      minIndex: -9,
+      windowViewport: true,
+      adapter: true
+    },
+    noRelaxOnStart: true,
+    templateSettings: {
+      noViewportClass: true,
+      viewportHeight: 0,
+      itemHeight: 20
+    }
+  },
+  {
+    datasourceGet: (
+      index: number,
+      count: number,
+      success: (data: unknown[]) => void
+    ) => {
+      const data = [];
+      for (let i = index; i < index + count; i++) {
+        if (i >= -120) {
+          data.push({ id: i, text: `item #${i}` });
+        }
+      }
+      setTimeout(() => success(data), 25);
+    },
+    datasourceSettings: {
+      startIndex: -99,
+      padding: 0.3,
+      bufferSize: 4,
+      minIndex: -120,
+      horizontal: true,
+      adapter: true
+    },
+    noRelaxOnStart: true,
+    templateSettings: { horizontal: true, viewportWidth: 300, itemWidth: 40 }
+  }
+];
+
 interface ItemsCounter {
   backward: { count: number; index: number; padding: number };
   forward: { count: number; index: number; padding: number };
@@ -520,6 +625,51 @@ const testNotSetItemSizeCase = async (
   }
 };
 
+const testLackOfItemsOnFirstFetchCase = async (
+  fixture: VScrollFixture,
+  config: ITestConfig
+) => {
+  const startIndex = config.datasourceSettings.startIndex as number;
+
+  // Capture state after the first inner loop completes
+  const result = await fixture.page.evaluate(() => {
+    return new Promise<{
+      firstLoopScrollPosition: number;
+      firstLoopBwdPaddingSize: number;
+      firstLoopFirstVisibleIndex: number;
+    }>(resolve => {
+      const workflow = window.__vscroll__.workflow;
+      const innerLoop = workflow.scroller.state.cycle.innerLoop;
+      let resolved = false;
+
+      innerLoop.busy.on((loopPending: boolean) => {
+        if (!loopPending && !resolved) {
+          // First inner loop just completed
+          resolved = true;
+          const viewport = workflow.scroller.viewport;
+          resolve({
+            firstLoopScrollPosition: viewport.scrollPosition,
+            firstLoopBwdPaddingSize: viewport.paddings.backward.size,
+            firstLoopFirstVisibleIndex:
+              workflow.scroller.adapter.firstVisible.$index
+          });
+        }
+      });
+    });
+  });
+
+  // Start workflow and wait for it to complete
+  await fixture.adapter.relax();
+
+  // Verify state after first inner loop
+  expect(result.firstLoopScrollPosition).toBe(result.firstLoopBwdPaddingSize);
+  expect(result.firstLoopFirstVisibleIndex).toEqual(startIndex);
+
+  // Verify final state
+  const finalFirstVisibleIndex = (await fixture.adapter.firstVisible).$index;
+  expect(finalFirstVisibleIndex).toEqual(startIndex);
+};
+
 const makeTest = (
   title: string,
   config: ITestConfig,
@@ -583,4 +733,13 @@ test.describe('Initial Load Spec', () => {
       )
     );
   });
+
+  test.describe('Lack of items after the 1st fetch', () =>
+    lackOfItemsOnFirstFetchConfigList.forEach((config, i) =>
+      makeTest(
+        `should stretch the forward padding element (${i})`,
+        config,
+        testLackOfItemsOnFirstFetchCase
+      )
+    ));
 });

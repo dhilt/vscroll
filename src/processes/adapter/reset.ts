@@ -5,10 +5,8 @@ import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../mis
 import { IDatasourceOptional, ProcessPayload } from '../../interfaces/index';
 
 export default class Reset extends BaseAdapterProcessFactory(AdapterProcess.reset) {
-
   static run(scroller: Scroller, options?: IDatasourceOptional): void {
-    const { datasource, buffer, viewport: { paddings }, state: { cycle } } = scroller;
-
+    const { datasource, buffer, viewport, state } = scroller;
     if (options) {
       const { data } = Reset.parseInput(scroller, options);
       if (!data.isValid) {
@@ -25,13 +23,13 @@ export default class Reset extends BaseAdapterProcessFactory(AdapterProcess.rese
     }
 
     buffer.reset(true);
-    paddings.backward.reset();
-    paddings.forward.reset();
+    viewport.paddings.backward.reset();
+    viewport.paddings.forward.reset();
 
     const payload: ProcessPayload = { datasource };
-    if (cycle.busy.get()) {
+    if (state.cycle.busy.get()) {
       payload.finalize = true;
-      cycle.interrupter = Reset.process;
+      state.cycle.interrupter = Reset.process;
     }
 
     scroller.workflow.call({
@@ -40,5 +38,4 @@ export default class Reset extends BaseAdapterProcessFactory(AdapterProcess.rese
       payload
     });
   }
-
 }

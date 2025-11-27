@@ -6,7 +6,7 @@ const { OBJECT, FUNC_WITH_X_AND_MORE_ARGUMENTS } = VALIDATORS;
 export enum DatasourceProps {
   get = 'get',
   settings = 'settings',
-  devSettings = 'devSettings',
+  devSettings = 'devSettings'
 }
 
 export const DATASOURCE: ICommonProps<DatasourceProps> = {

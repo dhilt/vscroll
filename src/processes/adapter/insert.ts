@@ -6,7 +6,6 @@ import { Direction } from '../../inputs/index';
 import { AdapterInsertOptions, AdapterUpdateOptions } from '../../interfaces/index';
 
 export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.insert) {
-
   static run(scroller: Scroller, options: AdapterInsertOptions): void {
     const { params } = Insert.parseInput(scroller, options);
     if (!params) {
@@ -32,25 +31,34 @@ export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.ins
   }
 
   static insertEmpty(scroller: Scroller, params: AdapterInsertOptions): boolean {
-    const { buffer, routines, state: { fetch } } = scroller;
+    const { buffer, routines, state } = scroller;
     if (buffer.size) {
       return false;
     }
     const { beforeIndex, afterIndex, items, decrease } = params;
-    if (!buffer.fillEmpty(
-      items, beforeIndex, afterIndex, !!decrease,
-      (index, data) => new Item(index, data, routines)
-    )) {
+    if (
+      !buffer.fillEmpty(
+        items,
+        beforeIndex,
+        afterIndex,
+        !!decrease,
+        (index, data) => new Item(index, data, routines)
+      )
+    ) {
       return false;
     }
-    fetch.fill(buffer.items, buffer.startIndex);
+    state.fetch.fill(buffer.items, buffer.startIndex);
 
     return true;
   }
 
   static insertInBuffer(scroller: Scroller, params: AdapterInsertOptions): boolean {
     const { before, after, beforeIndex, afterIndex, items, decrease } = params;
-    const indexToInsert = scroller.buffer.getIndexToInsert(before || after, beforeIndex, afterIndex);
+    const indexToInsert = scroller.buffer.getIndexToInsert(
+      before || after,
+      beforeIndex,
+      afterIndex
+    );
 
     if (params.virtualize || isNaN(indexToInsert)) {
       return false;
@@ -72,7 +80,7 @@ export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.ins
 
   static insertVirtually(scroller: Scroller, params: AdapterInsertOptions): boolean {
     const { beforeIndex, afterIndex, items, decrease } = params;
-    const { buffer, state: { fetch }, viewport } = scroller;
+    const { buffer, state, viewport } = scroller;
     const direction = Number.isInteger(beforeIndex) ? Direction.backward : Direction.forward;
     const indexToInsert = (direction === Direction.backward ? beforeIndex : afterIndex) as number;
 
@@ -80,14 +88,14 @@ export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.ins
       return false;
     }
 
+    const { fetch } = state;
     const { index, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
     fetch.firstVisible.index = index;
     if (!isNaN(index)) {
       fetch.simulate = true;
-      fetch.firstVisible.delta = - buffer.getSizeByIndex(index) + diff;
+      fetch.firstVisible.delta = -buffer.getSizeByIndex(index) + diff;
     }
 
     return true;
   }
-
 }

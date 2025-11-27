@@ -5,7 +5,6 @@ import { Direction } from '../../inputs/index';
 import { AdapterRemoveOptions, AdapterUpdateOptions, ItemsPredicate } from '../../interfaces/index';
 
 export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.remove) {
-
   static run(scroller: Scroller, options: AdapterRemoveOptions): void {
     const { params } = Remove.parseInput(scroller, options);
     if (!params) {
@@ -33,8 +32,8 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
       if (params.indexes && params.indexes.length) {
         const diffLeft = (params.increase ? 1 : 0) * removed.length;
         const diffRight = (params.increase ? 0 : -1) * removed.length;
-        params.indexes = params.indexes.map(index =>
-          index + (index < removed[0] ? diffLeft : diffRight)
+        params.indexes = params.indexes.map(
+          index => index + (index < removed[0] ? diffLeft : diffRight)
         );
       }
     }
@@ -52,11 +51,11 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
       return [];
     }
     const newPredicate: ItemsPredicate = item =>
-      (predicate && predicate(item)) ||
-      (!!indexes && indexes.includes(item.$index));
+      (predicate && predicate(item)) || (!!indexes && indexes.includes(item.$index));
 
-    const indexesToRemove: number[] = scroller.buffer.items.reduce((acc, item) =>
-      newPredicate(item) ? [...acc, item.$index] : acc, [] as number[]
+    const indexesToRemove: number[] = scroller.buffer.items.reduce(
+      (acc, item) => (newPredicate(item) ? [...acc, item.$index] : acc),
+      [] as number[]
     );
     const updateOptions: AdapterUpdateOptions = {
       predicate: item => !newPredicate(item),
@@ -71,7 +70,7 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     if (!indexes || !indexes.length) {
       return false;
     }
-    const { buffer, viewport, state: { fetch } } = scroller;
+    const { buffer, viewport, state } = scroller;
 
     // get items to remove
     const { finiteAbsMinIndex, firstIndex, finiteAbsMaxIndex, lastIndex } = buffer;
@@ -92,11 +91,12 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     }
 
     // what should be shown after remove; Buffer removal has priority
+    const { fetch } = state;
     if (isNaN(fetch.firstVisible.index)) {
       const { index, diff } = viewport.getEdgeVisibleItem(buffer.items, Direction.backward);
       fetch.firstVisible.index = index;
       if (!isNaN(index)) {
-        fetch.firstVisible.delta = - buffer.getSizeByIndex(index) + diff;
+        fetch.firstVisible.delta = -buffer.getSizeByIndex(index) + diff;
       }
     }
 
@@ -109,15 +109,23 @@ export default class Remove extends BaseAdapterProcessFactory(AdapterProcess.rem
     return true;
   }
 
-  static shiftFirstVisibleIndex(scroller: Scroller, listToRemove: number[], increase: boolean): void {
+  static shiftFirstVisibleIndex(
+    scroller: Scroller,
+    listToRemove: number[],
+    increase: boolean
+  ): void {
     const { firstVisible } = scroller.state.fetch;
     if (isNaN(firstVisible.index)) {
       return;
     }
-    const shift = listToRemove.reduce((acc, index) => acc + (
-      ((increase && index > firstVisible.index) || (!increase && index < firstVisible.index)) ? 1 : 0
-    ), 0);
+    const shift = listToRemove.reduce(
+      (acc, index) =>
+        acc +
+        ((increase && index > firstVisible.index) || (!increase && index < firstVisible.index)
+          ? 1
+          : 0),
+      0
+    );
     firstVisible.index = firstVisible.index + (increase ? shift : -shift);
   }
-
 }

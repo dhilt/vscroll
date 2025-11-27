@@ -11,7 +11,6 @@ interface AppendRunOptions {
 }
 
 export default class Append extends BaseAdapterProcessFactory(AdapterProcess.append) {
-
   static run(scroller: Scroller, { process, options }: AppendRunOptions): void {
     const { params } = Append.parseInput(scroller, options, false, process);
     if (!params) {
@@ -26,17 +25,24 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
     });
   }
 
-  static doAppend(scroller: Scroller, process: AdapterProcess, params: AdapterAppendPrependOptions): boolean {
+  static doAppend(
+    scroller: Scroller,
+    process: AdapterProcess,
+    params: AdapterAppendPrependOptions
+  ): boolean {
     const { bof, eof, increase, decrease } = params;
     const { buffer } = scroller;
     const prepend = process === AdapterProcess.prepend;
     const opposite = prepend ? !increase : decrease;
-    let beforeIndex, afterIndex, items = params.items;
+    let beforeIndex,
+      afterIndex,
+      items = params.items;
     if (prepend) {
       beforeIndex = (bof ? buffer.absMinIndex : buffer.minIndex) + (!buffer.size ? 1 : 0);
       items = [...items].reverse();
     } else {
-      afterIndex = (eof ? buffer.absMaxIndex : buffer.maxIndex) - (!buffer.size && !opposite ? 1 : 0);
+      afterIndex =
+        (eof ? buffer.absMaxIndex : buffer.maxIndex) - (!buffer.size && !opposite ? 1 : 0);
     }
     return Insert.doInsert(scroller, {
       items,
@@ -46,5 +52,4 @@ export default class Append extends BaseAdapterProcessFactory(AdapterProcess.app
       virtualize: params.virtualize
     });
   }
-
 }

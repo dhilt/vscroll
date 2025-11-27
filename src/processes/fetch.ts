@@ -16,15 +16,15 @@ interface FetchBox {
 }
 
 export default class Fetch extends BaseProcessFactory(CommonProcess.fetch) {
-
   static run(scroller: Scroller): void {
     const { workflow } = scroller;
 
     const box = {
       success: (data: unknown[]) => {
-        scroller.logger.log(() =>
-          `resolved ${data.length} items ` +
-          `(index = ${scroller.state.fetch.index}, count = ${scroller.state.fetch.count})`
+        scroller.logger.log(
+          () =>
+            `resolved ${data.length} items ` +
+            `(index = ${scroller.state.fetch.index}, count = ${scroller.state.fetch.count})`
         );
         scroller.state.fetch.newItemsData = data;
         workflow.call({
@@ -53,7 +53,8 @@ export default class Fetch extends BaseProcessFactory(CommonProcess.fetch) {
         box.fail(error);
       }
     } else {
-      const { state: { scroll, fetch }, viewport } = scroller;
+      const { state, viewport } = scroller;
+      const { scroll, fetch } = state;
       if (scroll.positionBeforeAsync === null) {
         scroll.positionBeforeAsync = viewport.scrollPosition;
       }
@@ -62,8 +63,8 @@ export default class Fetch extends BaseProcessFactory(CommonProcess.fetch) {
         box.fail = () => null;
       };
       (result as Promise<unknown[]>).then(
-        (data) => box.success(data),
-        (error) => box.fail(error)
+        data => box.success(data),
+        error => box.fail(error)
       );
     }
   }
@@ -105,9 +106,10 @@ export default class Fetch extends BaseProcessFactory(CommonProcess.fetch) {
       }
     }
 
-    if (immediateData || immediateError) { // callback case or immediate observable
+    if (immediateData || immediateError) {
+      // callback case or immediate observable
       return {
-        data: immediateError ? null : (immediateData || []),
+        data: immediateError ? null : immediateData || [],
         error: immediateError,
         isError: !!immediateError
       };
@@ -118,5 +120,4 @@ export default class Fetch extends BaseProcessFactory(CommonProcess.fetch) {
       reject = _reject;
     });
   }
-
 }

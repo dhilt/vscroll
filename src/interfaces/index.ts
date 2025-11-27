@@ -4,7 +4,7 @@ import {
   IDatasourceParams,
   IDatasourceOptional,
   IDatasource,
-  IDatasourceConstructed,
+  IDatasourceConstructed
 } from './datasource';
 import {
   OnDataChanged,
@@ -15,7 +15,7 @@ import {
   WorkflowError,
   InterruptParams,
   StateMachineMethods,
-  StateMachineParams,
+  StateMachineParams
 } from './workflow';
 import { Item } from './item';
 import {
@@ -43,7 +43,7 @@ import {
   AdapterUpdateOptions,
   AdapterFixOptions,
   AdapterMethodResult,
-  IAdapter,
+  IAdapter
 } from './adapter';
 import { Settings, DevSettings } from './settings';
 import { IRoutines, RoutinesClassType } from './routines';
@@ -55,7 +55,7 @@ import {
   ProcessSubject,
   AdapterProcessMap,
   IBaseProcess,
-  IBaseAdapterProcess,
+  IBaseAdapterProcess
 } from './process';
 import {
   ValidatedValue,
@@ -63,7 +63,7 @@ import {
   ICommonProp,
   ICommonProps,
   IValidatedCommonProps,
-  IValidatedData,
+  IValidatedData
 } from './validation';
 
 export {
@@ -126,5 +126,5 @@ export {
   ICommonProp,
   ICommonProps,
   IValidatedCommonProps,
-  IValidatedData,
+  IValidatedData
 };

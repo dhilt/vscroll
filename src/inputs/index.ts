@@ -18,5 +18,5 @@ export {
   DEV_SETTINGS,
   AdapterMethods,
   ADAPTER_METHODS,
-  WORKFLOW,
+  WORKFLOW
 };

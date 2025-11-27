@@ -14,7 +14,7 @@ import {
   IAdapterConfig,
   ItemAdapter,
   IAdapter,
-  Item,
+  Item
 } from './interfaces/index';
 
 // export entities
@@ -28,7 +28,7 @@ export {
   EMPTY_ITEM,
   getDefaultAdapterProps,
   Direction,
-  SizeStrategy,
+  SizeStrategy
 };
 
 // export interfaces
@@ -40,5 +40,5 @@ export {
   IAdapterConfig,
   ItemAdapter as IAdapterItem,
   IAdapter,
-  Item,
+  Item
 };

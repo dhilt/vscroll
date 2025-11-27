@@ -5,7 +5,6 @@ import { ProcessName } from '../interfaces/index';
 const initProcesses = [CommonProcess.init, AdapterProcess.reset, AdapterProcess.reload];
 
 export default class Init extends BaseProcessFactory(CommonProcess.init) {
-
   static run(scroller: Scroller, process: ProcessName): void {
     const { state, workflow } = scroller;
     const isInitial = initProcesses.includes(process);
@@ -16,5 +15,4 @@ export default class Init extends BaseProcessFactory(CommonProcess.init) {
       status: ProcessStatus.next
     });
   }
-
 }

@@ -3,7 +3,6 @@ import { Scroller } from '../scroller';
 import { Direction } from '../inputs/index';
 
 export default class PreClip extends BaseProcessFactory(CommonProcess.preClip) {
-
   static run(scroller: Scroller): void {
     PreClip.prepareClip(scroller);
 
@@ -17,15 +16,17 @@ export default class PreClip extends BaseProcessFactory(CommonProcess.preClip) {
   }
 
   static prepareClip(scroller: Scroller): void {
-    const { state: { fetch, clip } } = scroller;
+    const { fetch, clip } = scroller.state;
     if (PreClip.shouldNotClip(scroller)) {
       return;
     }
     const firstIndex = fetch.first.indexBuffer;
     const lastIndex = fetch.last.indexBuffer;
-    scroller.logger.log(() =>
-      `looking for ${fetch.direction ? 'anti-' + fetch.direction + ' ' : ''}items ` +
-      `that are out of [${firstIndex}..${lastIndex}] range`);
+    scroller.logger.log(
+      () =>
+        `looking for ${fetch.direction ? 'anti-' + fetch.direction + ' ' : ''}items ` +
+        `that are out of [${firstIndex}..${lastIndex}] range`
+    );
     if (PreClip.isBackward(scroller, firstIndex)) {
       PreClip.prepareClipByDirection(scroller, Direction.backward, firstIndex);
     }
@@ -56,7 +57,8 @@ export default class PreClip extends BaseProcessFactory(CommonProcess.preClip) {
   }
 
   static isBackward(scroller: Scroller, firstIndex: number): boolean {
-    const { buffer, state: { clip, fetch } } = scroller;
+    const { buffer, state } = scroller;
+    const { clip, fetch } = state;
     if (clip.force) {
       return clip.forceBackward;
     }
@@ -69,7 +71,8 @@ export default class PreClip extends BaseProcessFactory(CommonProcess.preClip) {
   }
 
   static isForward(scroller: Scroller, lastIndex: number): boolean {
-    const { buffer, state: { clip, fetch } } = scroller;
+    const { buffer, state } = scroller;
+    const { clip, fetch } = state;
     if (clip.force) {
       return clip.forceForward;
     }
@@ -84,15 +87,11 @@ export default class PreClip extends BaseProcessFactory(CommonProcess.preClip) {
   static prepareClipByDirection(scroller: Scroller, direction: Direction, edgeIndex: number): void {
     const forward = direction === Direction.forward;
     scroller.buffer.items.forEach(item => {
-      if (
-        (!forward && item.$index < edgeIndex) ||
-        (forward && item.$index > edgeIndex)
-      ) {
+      if ((!forward && item.$index < edgeIndex) || (forward && item.$index > edgeIndex)) {
         item.toRemove = true;
         item.removeDirection = direction;
         scroller.state.clip.doClip = true;
       }
     });
   }
-
 }

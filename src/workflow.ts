@@ -2,7 +2,7 @@ import { Scroller } from './scroller';
 import { runStateMachine } from './workflow-transducer';
 import { Reactive } from './classes/reactive';
 import { Item } from './classes/item';
-import { AdapterProcess, CommonProcess, ProcessStatus as Status, } from './processes/index';
+import { AdapterProcess, CommonProcess, ProcessStatus as Status } from './processes/index';
 import { WORKFLOW, validate } from './inputs/index';
 import {
   WorkflowParams,
@@ -13,11 +13,10 @@ import {
   WorkflowError,
   InterruptParams,
   StateMachineMethods,
-  ScrollerWorkflow,
+  ScrollerWorkflow
 } from './interfaces/index';
 
 export class Workflow<ItemData = unknown> {
-
   isInitialized: boolean;
   disposed: boolean;
   initTimer: ReturnType<typeof setTimeout> | null;
@@ -59,7 +58,11 @@ export class Workflow<ItemData = unknown> {
     };
 
     this.scroller = new Scroller<ItemData>({
-      element, datasource, consumer, workflow: this.getUpdater(), Routines
+      element,
+      datasource,
+      consumer,
+      workflow: this.getUpdater(),
+      Routines
     });
 
     if (this.scroller.settings.initializeDelay) {
@@ -77,8 +80,8 @@ export class Workflow<ItemData = unknown> {
 
     // set up scroll event listener
     const { routines } = this.scroller;
-    const onScrollHandler: EventListener =
-      event => this.callWorkflow({
+    const onScrollHandler: EventListener = event =>
+      this.callWorkflow({
         process: CommonProcess.scroll,
         status: Status.start,
         payload: { event }
@@ -118,17 +121,19 @@ export class Workflow<ItemData = unknown> {
   getUpdater(): ScrollerWorkflow<ItemData> {
     return {
       call: this.callWorkflow.bind(this),
-      onDataChanged: this.changeItems.bind(this),
+      onDataChanged: this.changeItems.bind(this)
     };
   }
 
   process(data: ProcessSubject): void {
     const { status, process, payload } = data;
     if (this.scroller.settings.logProcessRun) {
-      const _fire = this.scroller.settings.logColor
-        ? ['%cfire%c', 'color: #cc7777;', 'color: #000000;']
-        : ['fire'];
-      this.scroller.logger.log(() => [..._fire, process, `"${status}"`, ...(payload !== void 0 ? [payload] : [])]);
+      this.scroller.logger.log(() => {
+        const _fire = this.scroller.settings.logColor
+          ? ['%cfire%c', 'color: #cc7777;', 'color: #000000;']
+          : ['fire'];
+        return [..._fire, process, `"${status}"`, ...(payload !== void 0 ? [payload] : [])];
+      });
     }
     this.scroller.logger.logProcess(data);
 
@@ -145,17 +150,19 @@ export class Workflow<ItemData = unknown> {
     return ({ run, process, name }: ProcessClass) =>
       (...args: unknown[]): void => {
         if (this.scroller.settings.logProcessRun) {
-          const _run = this.scroller.settings.logColor
-            ? ['%crun%c', 'color: #333399;', 'color: #000000;']
-            : ['run'];
-          this.scroller.logger.log(() => [..._run, process || name, ...args]);
+          this.scroller.logger.log(() => {
+            const _run = this.scroller.settings.logColor
+              ? ['%crun%c', 'color: #333399;', 'color: #000000;']
+              : ['run'];
+            return [..._run, process || name, ...args];
+          });
         }
         run(this.scroller as Scroller, ...args);
       };
   }
 
   onError(process: ProcessName, payload?: ProcessPayload): void {
-    const message: string = payload && String(payload.error) || '';
+    const message: string = (payload && String(payload.error)) || '';
     const { time, cycle } = this.scroller.state;
     this.errors.push({
       process,
@@ -171,14 +178,16 @@ export class Workflow<ItemData = unknown> {
       const { workflow, logger } = this.scroller;
       // we are going to create a new reference for the scroller.workflow object
       // calling the old version of the scroller.workflow by any outstanding async processes will be skipped
-      workflow.call = (_: ProcessSubject) => // eslint-disable-line @typescript-eslint/no-unused-vars
-        logger.log('[skip wf call]');
+      workflow.call = (_: ProcessSubject) => logger.log('[skip wf call]');
       workflow.call.interrupted = true;
       this.scroller.workflow = this.getUpdater();
       this.interruptionCount++;
-      logger.log(() => `workflow had been interrupted by the ${process} process (${this.interruptionCount})`);
+      logger.log(
+        () => `workflow had been interrupted by the ${process} process (${this.interruptionCount})`
+      );
     }
-    if (datasource) { // Scroller re-initialization case
+    if (datasource) {
+      // Scroller re-initialization case
       const reInit = () => {
         this.scroller.logger.log('new Scroller instantiation');
         const scroller = new Scroller<ItemData>({ datasource, scroller: this.scroller });
@@ -220,7 +229,5 @@ export class Workflow<ItemData = unknown> {
     this.disposed = true;
   }
 
-  finalize(): void {
-  }
-
+  finalize(): void {}
 }

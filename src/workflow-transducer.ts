@@ -23,7 +23,7 @@ import {
   PreClip,
   Clip,
   Adjust,
-  End,
+  End
 } from './processes/index';
 
 import { StateMachineParams } from './interfaces/index';
@@ -42,7 +42,8 @@ export const runStateMachine = ({
   const { options } = payload;
   switch (process) {
     case CommonProcess.init:
-      if (status === Status.start) { // App start
+      if (status === Status.start) {
+        // App start
         run(Init)(process);
       }
       if (status === Status.next) {

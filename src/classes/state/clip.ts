@@ -20,5 +20,4 @@ export class ClipModel {
       this.forceBackward = false;
     }
   }
-
 }

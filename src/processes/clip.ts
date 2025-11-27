@@ -3,7 +3,6 @@ import { Scroller } from '../scroller';
 import { Direction } from '../inputs/index';
 
 export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
-
   static run(scroller: Scroller): void {
     const { workflow } = scroller;
 
@@ -16,10 +15,10 @@ export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
   }
 
   static doClip(scroller: Scroller): void {
-    const { buffer, viewport: { paddings }, state: { clip }, logger } = scroller;
+    const { buffer, viewport, state, logger } = scroller;
     const size = { [Direction.backward]: 0, [Direction.forward]: 0 };
 
-    logger.stat(`before clip (${++clip.callCount})`);
+    logger.stat(`before clip (${++state.clip.callCount})`);
 
     const itemsToRemove = buffer.items.filter(item => {
       if (!item.toRemove) {
@@ -32,10 +31,10 @@ export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
 
     if (itemsToRemove.length) {
       if (size[Direction.backward]) {
-        paddings.byDirection(Direction.backward).size += size[Direction.backward];
+        viewport.paddings.byDirection(Direction.backward).size += size[Direction.backward];
       }
       if (size[Direction.forward]) {
-        paddings.byDirection(Direction.forward).size += size[Direction.forward];
+        viewport.paddings.byDirection(Direction.forward).size += size[Direction.forward];
       }
       if (scroller.settings.onBeforeClip) {
         scroller.settings.onBeforeClip(itemsToRemove.map(item => item.get()));
@@ -48,15 +47,14 @@ export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
       const list = itemsToRemove.map(({ $index }) => $index);
       return list.length
         ? [
-          `clipped ${list.length} item(s) from Buffer` +
-          (size.backward ? `, +${size.backward} fwd px` : '') +
-          (size.forward ? `, +${size.forward} bwd px` : '') +
-          `, range: [${list[0]}..${list[list.length - 1]}]`
-        ]
+            `clipped ${list.length} item(s) from Buffer` +
+              (size.backward ? `, +${size.backward} fwd px` : '') +
+              (size.forward ? `, +${size.forward} bwd px` : '') +
+              `, range: [${list[0]}..${list[list.length - 1]}]`
+          ]
         : 'clipped 0 items from Buffer';
     });
 
     logger.stat('after clip');
   }
-
 }

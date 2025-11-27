@@ -3,46 +3,48 @@ import { Scroller } from '../scroller';
 import { Item } from '../classes/item';
 
 export default class Render extends BaseProcessFactory(CommonProcess.render) {
-
   static run(scroller: Scroller): void {
-    const { workflow, state: { cycle, render, scroll, fetch }, viewport, routines } = scroller;
+    const { workflow, state, viewport, routines } = scroller;
+    const { cycle, render, scroll, fetch } = state;
     scroller.logger.stat('before new items render');
     if (scroll.positionBeforeAsync === null) {
       scroll.positionBeforeAsync = viewport.scrollPosition;
     }
-    render.cancel = routines.render(() => {
-      render.cancel = null;
-      if (Render.doRender(scroller)) {
-        workflow.call({
-          process: Render.process,
-          status: render.noSize ? ProcessStatus.done : ProcessStatus.next,
-          payload: { process: cycle.initiator }
-        });
-      } else {
-        workflow.call({
-          process: Render.process,
-          status: ProcessStatus.error,
-          payload: { error: 'Can\'t associate item with element' }
-        });
-      }
-    }, { items: fetch.items.map(i => i.get()) });
+    render.cancel = routines.render(
+      () => {
+        render.cancel = null;
+        if (Render.doRender(scroller)) {
+          workflow.call({
+            process: Render.process,
+            status: render.noSize ? ProcessStatus.done : ProcessStatus.next,
+            payload: { process: cycle.initiator }
+          });
+        } else {
+          workflow.call({
+            process: Render.process,
+            status: ProcessStatus.error,
+            payload: { error: 'Can not associate item with element' }
+          });
+        }
+      },
+      { items: fetch.items.map(i => i.get()) }
+    );
   }
 
   static doRender(scroller: Scroller): boolean {
-    const { state: { fetch, render }, viewport, buffer, logger } = scroller;
+    const { state, viewport, buffer, logger } = scroller;
+    const { fetch, render } = state;
     render.positionBefore = viewport.scrollPosition;
     if (!fetch.isCheck) {
       render.sizeBefore = viewport.getScrollableSize();
-      if (!fetch.items.every(item =>
-        Render.processElement(scroller, item)
-      )) {
+      if (!fetch.items.every(item => Render.processElement(scroller, item))) {
         return false;
       }
     }
     buffer.checkDefaultSize();
     render.sizeAfter = viewport.getScrollableSize();
     logger.stat('after new items render');
-    logger.log(() => render.noSize ? 'viewport size has not been changed' : void 0);
+    logger.log(() => (render.noSize ? 'viewport size has not been changed' : void 0));
     return true;
   }
 
@@ -58,5 +60,4 @@ export default class Render extends BaseProcessFactory(CommonProcess.render) {
     buffer.cacheItem(item);
     return true;
   }
-
 }

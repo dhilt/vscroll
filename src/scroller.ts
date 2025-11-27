@@ -10,7 +10,12 @@ import { Reactive } from './classes/reactive';
 import { validate, DATASOURCE } from './inputs/index';
 import core from './version';
 import {
-  ScrollerWorkflow, IDatasource, IDatasourceConstructed, ScrollerParams, IPackages, ProcessSubject
+  ScrollerWorkflow,
+  IDatasource,
+  IDatasourceConstructed,
+  ScrollerParams,
+  IPackages,
+  ProcessSubject
 } from './interfaces/index';
 
 export const INVALID_DATASOURCE_PREFIX = 'Invalid datasource:';
@@ -30,9 +35,14 @@ export class Scroller<Data = unknown> {
   public adapter: Adapter<Data>;
 
   constructor({
-    datasource, consumer, element, workflow, Routines: CustomRoutines, scroller
+    datasource,
+    consumer,
+    element,
+    workflow,
+    Routines: CustomRoutines,
+    scroller
   }: ScrollerParams<Data>) {
-    const { params: { get } } = validate(datasource, DATASOURCE);
+    const { get } = validate(datasource, DATASOURCE).params;
     if (!get.isValid) {
       throw new Error(`${INVALID_DATASOURCE_PREFIX} ${get.errors[0]}`);
     }
@@ -44,17 +54,23 @@ export class Scroller<Data = unknown> {
     // In general, custom Routines must extend the original Routines. If not, we provide implicit extending.
     // This is undocumented feature. It should be removed in vscroll v2.
     if (CustomRoutines && !(CustomRoutines.prototype instanceof Routines)) {
-      class __Routines extends Routines { }
+      class __Routines extends Routines {}
       Object.getOwnPropertyNames(CustomRoutines.prototype)
         .filter(method => method !== 'constructor')
-        .forEach(method =>
-          (__Routines.prototype as unknown as Record<string, unknown>)[method] = CustomRoutines?.prototype[method]
+        .forEach(
+          method =>
+            ((__Routines.prototype as unknown as Record<string, unknown>)[method] =
+              CustomRoutines?.prototype[method])
         );
       CustomRoutines = __Routines;
     }
 
     this.workflow = workflow;
-    this.settings = new Settings<Data>(datasource.settings, datasource.devSettings, ++instanceCount);
+    this.settings = new Settings<Data>(
+      datasource.settings,
+      datasource.devSettings,
+      ++instanceCount
+    );
     this.logger = new Logger(this as Scroller, packageInfo, datasource.adapter);
     this.routines = new (CustomRoutines || Routines)(element, this.settings);
     this.state = new State(packageInfo, this.settings, scroller ? scroller.state : void 0);
@@ -66,7 +82,8 @@ export class Scroller<Data = unknown> {
   }
 
   initDatasource(datasource: IDatasource<Data>, scroller?: Scroller<Data>): void {
-    if (scroller) { // scroller re-instantiating case
+    if (scroller) {
+      // scroller re-instantiating case
       this.datasource = datasource as IDatasourceConstructed<Data>;
       this.adapter = scroller.adapter;
       // todo: what about (this.settings.adapter !== scroller.setting.adapter) case?
@@ -75,9 +92,11 @@ export class Scroller<Data = unknown> {
     // scroller is being instantiated for the first time
     const constructed = datasource instanceof DatasourceGeneric;
     const mockAdapter = !constructed && !this.settings.adapter;
-    if (constructed) { // datasource is already instantiated
+    if (constructed) {
+      // datasource is already instantiated
       this.datasource = datasource as IDatasourceConstructed<Data>;
-    } else { // datasource as POJO
+    } else {
+      // datasource as POJO
       const DS = makeDatasource(() => ({ mock: mockAdapter }));
       this.datasource = new DS<Data>(datasource);
       if (this.settings.adapter) {
@@ -103,14 +122,13 @@ export class Scroller<Data = unknown> {
 
   dispose(forever?: boolean): void {
     this.logger.log(() => 'disposing scroller' + (forever ? ' (forever)' : ''));
-    if (forever) { // Adapter is not re-instantiated on reset
+    if (forever) {
+      // Adapter is not re-instantiated on reset
       this.adapter.dispose();
     }
     this.buffer.dispose();
     this.state.dispose();
   }
 
-  finalize(): void {
-  }
-
+  finalize(): void {}
 }

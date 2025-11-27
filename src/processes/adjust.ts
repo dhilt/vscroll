@@ -3,13 +3,12 @@ import { Scroller } from '../scroller';
 import End from './end';
 
 export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
-
   static run(scroller: Scroller): void {
-    const { workflow, viewport, state: { scroll } } = scroller;
+    const { workflow, viewport, state } = scroller;
 
-    scroll.positionBeforeAdjust = viewport.scrollPosition;
+    state.scroll.positionBeforeAdjust = viewport.scrollPosition;
     Adjust.setPaddings(scroller);
-    scroll.positionAfterAdjust = viewport.scrollPosition;
+    state.scroll.positionAfterAdjust = viewport.scrollPosition;
 
     // scroll position adjustments
     const position = Adjust.calculatePosition(scroller);
@@ -27,7 +26,7 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
   }
 
   static setPaddings(scroller: Scroller): void {
-    const { viewport, buffer, settings: { inverse }, state: { fetch } } = scroller;
+    const { viewport, buffer, settings, state } = scroller;
     const firstItem = buffer.getFirstVisibleItem();
     const lastItem = buffer.getLastVisibleItem();
     let first, last;
@@ -35,11 +34,14 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
       first = firstItem.$index;
       last = lastItem.$index;
     } else {
+      const { fetch } = state;
       first = !isNaN(fetch.firstVisible.index) ? fetch.firstVisible.index : buffer.startIndex;
       last = first - 1;
     }
     const { forward, backward } = viewport.paddings;
-    let index, bwdSize = 0, fwdSize = 0;
+    let index,
+      bwdSize = 0,
+      fwdSize = 0;
 
     // new backward and forward paddings size
     for (index = buffer.finiteAbsMinIndex; index < first; index++) {
@@ -54,13 +56,15 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
     const scrollSize = bwdSize + bufferSize + fwdSize;
     const viewportSizeDiff = viewport.getSize() - scrollSize;
     if (viewportSizeDiff > 0) {
-      if (inverse) {
+      if (settings.inverse) {
         bwdSize += viewportSizeDiff;
       } else {
         fwdSize += viewportSizeDiff;
       }
       scroller.logger.log(() =>
-        inverse ? 'backward' : 'forward' + ` padding will be increased by ${viewportSizeDiff} to fill the viewport`
+        settings.inverse
+          ? 'backward'
+          : 'forward' + ` padding will be increased by ${viewportSizeDiff} to fill the viewport`
       );
     }
 
@@ -71,12 +75,15 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
   }
 
   static calculatePosition(scroller: Scroller): number {
-    const { viewport, buffer, state: { fetch, render, scroll } } = scroller;
+    const { viewport, buffer, state } = scroller;
+    const { fetch, render, scroll } = state;
     let position = viewport.paddings.backward.size;
 
     // increase the position to meet the expectation of the first visible item
     if (!isNaN(fetch.firstVisible.index) && !isNaN(buffer.firstIndex)) {
-      scroller.logger.log(`first index = ${fetch.firstVisible.index}, delta = ${fetch.firstVisible.delta}`);
+      scroller.logger.log(
+        `first index = ${fetch.firstVisible.index}, delta = ${fetch.firstVisible.delta}`
+      );
       const shouldCheckPreSizeExpectation = fetch.shouldCheckPreSizeExpectation(buffer.lastIndex);
       buffer.items.forEach(item => {
         // 1) shift of the buffered items before the first visible item
@@ -113,8 +120,8 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
   }
 
   static setAdditionalForwardPadding(scroller: Scroller, position: number): void {
-    const { viewport, buffer, state: { cycle } } = scroller;
-    if (!cycle.isInitial || !End.shouldContinueRun(scroller, null)) {
+    const { viewport, buffer, state } = scroller;
+    if (!state.cycle.isInitial || !End.shouldContinueRun(scroller, null)) {
       return;
     }
     const diff = position - viewport.getMaxScrollPosition();
@@ -138,7 +145,8 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
   }
 
   static setPosition(scroller: Scroller, position: number, done: () => void): void {
-    const { state: { scroll }, viewport, routines } = scroller;
+    const { state, viewport, routines } = scroller;
+    const { scroll } = state;
     if (!scroll.hasPositionChanged(position)) {
       return done();
     }
@@ -160,5 +168,4 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
       done();
     });
   }
-
 }

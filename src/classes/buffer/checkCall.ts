@@ -26,13 +26,13 @@ export class CheckBufferCall<Data> {
   }
 
   insertInBuffer(predicate?: ItemsPredicate, before?: number, after?: number): number {
-    const index = Number.isInteger(before) ? before : (Number.isInteger(after) ? after : NaN);
-    const found = this.context.items.find(item =>
-      (predicate && predicate(item.get())) ||
-      (Number.isInteger(index) && index === item.$index)
+    const index = Number.isInteger(before) ? before : Number.isInteger(after) ? after : NaN;
+    const found = this.context.items.find(
+      item =>
+        (predicate && predicate(item.get())) || (Number.isInteger(index) && index === item.$index)
     );
     if (!found) {
-      this.logger.log('no items to insert in buffer; empty predicate\'s result');
+      this.logger.log('no items to insert in buffer; empty predicate result');
       return NaN;
     }
     return found.$index;
@@ -45,15 +45,16 @@ export class CheckBufferCall<Data> {
     }
     const { firstIndex, lastIndex, finiteAbsMinIndex, finiteAbsMaxIndex } = this.context;
     if (index < finiteAbsMinIndex || index > finiteAbsMaxIndex) {
-      this.logger.log(() =>
-        'no items to insert virtually; ' +
-        `selected index (${index}) does not match virtual area [${finiteAbsMinIndex}..${finiteAbsMaxIndex}]`
+      this.logger.log(
+        () =>
+          'no items to insert virtually; ' +
+          `selected index (${index}) does not match virtual area [${finiteAbsMinIndex}..${finiteAbsMaxIndex}]`
       );
       return false;
     }
     const before = direction === Direction.backward;
     if (!(index < firstIndex + (before ? 1 : 0) || index > lastIndex - (before ? 0 : 1))) {
-      this.logger.log(() =>
+      this.logger.log(
         `no items to insert virtually; selected index (${index}) belongs Buffer [${firstIndex}..${lastIndex}]`
       );
       return false;
@@ -61,5 +62,4 @@ export class CheckBufferCall<Data> {
     this.logger.log(() => `going to insert ${items.length} item(s) virtually`);
     return true;
   }
-
 }

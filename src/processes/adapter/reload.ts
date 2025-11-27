@@ -3,7 +3,6 @@ import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../mis
 import { ProcessPayload } from '../../interfaces/index';
 
 export default class Reload extends BaseAdapterProcessFactory(AdapterProcess.reload) {
-
   static run(scroller: Scroller, reloadIndex: number): void {
     const { viewport, state, buffer } = scroller;
 
@@ -24,5 +23,4 @@ export default class Reload extends BaseAdapterProcessFactory(AdapterProcess.rel
       payload
     });
   }
-
 }

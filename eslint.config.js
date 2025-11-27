@@ -36,6 +36,14 @@ export default [
       semi: ['error', 'always'],
       '@typescript-eslint/no-empty-function': 'off',
       '@typescript-eslint/no-explicit-any': ['error', { ignoreRestArgs: true }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_'
+        }
+      ],
 
       // Disable no-undef for TypeScript as TypeScript compiler handles this
       'no-undef': 'off'

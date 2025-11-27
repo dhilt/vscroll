@@ -2,7 +2,6 @@ import { BaseProcessFactory, CommonProcess, ProcessStatus } from './misc/index';
 import { Scroller } from '../scroller';
 
 export default class Start extends BaseProcessFactory(CommonProcess.start) {
-
   static run(scroller: Scroller): void {
     const payload = scroller.state.startInnerLoop();
 
@@ -12,5 +11,4 @@ export default class Start extends BaseProcessFactory(CommonProcess.start) {
       payload
     });
   }
-
 }

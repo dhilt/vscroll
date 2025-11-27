@@ -7,7 +7,6 @@ import { Scroller } from '../scroller';
 
 export type OnDataChanged<Data> = (items: Item<Data>[]) => void;
 
-
 export interface WorkflowParams<ItemData> {
   datasource: IDatasource<ItemData>;
   consumer: IPackage;

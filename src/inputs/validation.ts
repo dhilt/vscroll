@@ -5,7 +5,7 @@ import {
   IValidatedData,
   IValidatedCommonProps,
   ICommonProps,
-  ICommonProp,
+  ICommonProp
 } from '../interfaces/index';
 
 export enum ValidatorType {
@@ -24,16 +24,14 @@ export enum ValidatorType {
   oneOfCan = 'can be present as only one item of {arg1} list',
   oneOfMust = 'must be present as only one item of {arg1} list',
   or = 'must satisfy at least 1 validator from {arg1} list',
-  enum = 'must belong to {arg1} list',
+  enum = 'must belong to {arg1} list'
 }
 
 const getError = (msg: ValidatorType, args?: string[]) =>
   (args || ['']).reduce((acc, arg, index) => acc.replace(`{arg${index + 1}}`, arg), msg);
 
 const getNumber = (value: unknown): number =>
-  typeof value === 'number' || (typeof value === 'string' && value !== '')
-    ? Number(value)
-    : NaN;
+  typeof value === 'number' || (typeof value === 'string' && value !== '') ? Number(value) : NaN;
 
 const onNumber = (value: unknown): ValidatedValue => {
   const parsedValue = getNumber(value);
@@ -69,22 +67,24 @@ const onIntegerUnlimited = (value: unknown): ValidatedValue => {
   return { value: parsedValue, isSet: true, isValid: !errors.length, errors };
 };
 
-const onMoreOrEqual = (limit: number, fallback?: boolean) => (value: unknown): ValidatedValue => {
-  const result = onNumber(value);
-  if (!result.isValid) {
-    return result;
-  }
-  let parsedValue = result.value as number;
-  const errors = [];
-  if (parsedValue < limit) {
-    if (!fallback) {
-      errors.push(getError(ValidatorType.moreOrEqual, [String(limit)]));
-    } else {
-      parsedValue = limit;
+const onMoreOrEqual =
+  (limit: number, fallback?: boolean) =>
+  (value: unknown): ValidatedValue => {
+    const result = onNumber(value);
+    if (!result.isValid) {
+      return result;
     }
-  }
-  return { value: parsedValue, isSet: true, isValid: !errors.length, errors };
-};
+    let parsedValue = result.value as number;
+    const errors = [];
+    if (parsedValue < limit) {
+      if (!fallback) {
+        errors.push(getError(ValidatorType.moreOrEqual, [String(limit)]));
+      } else {
+        parsedValue = limit;
+      }
+    }
+    return { value: parsedValue, isSet: true, isValid: !errors.length, errors };
+  };
 
 const onBoolean = (value: unknown): ValidatedValue => {
   const errors = [];
@@ -159,81 +159,93 @@ const onFunctionWithXArguments = (argsCount: number) => (value: unknown) => {
   return { value: value as Func, isSet: true, isValid: !errors.length, errors };
 };
 
-const onFunctionWithXAndMoreArguments = (argsCount: number) => (value: unknown): ValidatedValue => {
-  const result = onFunction(value);
-  if (!result.isValid) {
-    return result;
-  }
-  value = result.value;
-  const errors = [];
-  if ((value as Func).length < argsCount) {
-    errors.push(getError(ValidatorType.funcOfxArguments, [String(argsCount)]));
-  }
-  return { value: value as Func, isSet: true, isValid: !errors.length, errors };
-};
+const onFunctionWithXAndMoreArguments =
+  (argsCount: number) =>
+  (value: unknown): ValidatedValue => {
+    const result = onFunction(value);
+    if (!result.isValid) {
+      return result;
+    }
+    value = result.value;
+    const errors = [];
+    if ((value as Func).length < argsCount) {
+      errors.push(getError(ValidatorType.funcOfxArguments, [String(argsCount)]));
+    }
+    return { value: value as Func, isSet: true, isValid: !errors.length, errors };
+  };
 
-const onFunctionWithXToYArguments = (from: number, to: number) => (value: unknown): ValidatedValue => {
-  const result = onFunction(value);
-  if (!result.isValid) {
-    return result;
-  }
-  value = result.value;
-  const errors = [];
-  if ((value as Func).length < from || (value as Func).length > to) {
-    errors.push(getError(ValidatorType.funcOfXToYArguments, [String(from), String(to)]));
-  }
-  return { value: value as Func, isSet: true, isValid: !errors.length, errors };
-};
+const onFunctionWithXToYArguments =
+  (from: number, to: number) =>
+  (value: unknown): ValidatedValue => {
+    const result = onFunction(value);
+    if (!result.isValid) {
+      return result;
+    }
+    value = result.value;
+    const errors = [];
+    if ((value as Func).length < from || (value as Func).length > to) {
+      errors.push(getError(ValidatorType.funcOfXToYArguments, [String(from), String(to)]));
+    }
+    return { value: value as Func, isSet: true, isValid: !errors.length, errors };
+  };
 
-const onOneOf = (tokens: string[], must: boolean) => (value: unknown, context?: IValidationContext): ValidatedValue => {
-  const errors = [];
-  const isSet = value !== void 0;
-  let noOneIsPresent = !isSet;
-  const err = must ? ValidatorType.oneOfMust : ValidatorType.oneOfCan;
-  if (!Array.isArray(tokens) || !tokens.length) {
-    errors.push(getError(err, ['undefined']));
-  } else {
-    for (let i = tokens.length - 1; i >= 0; i--) {
-      const token = tokens[i];
-      if (typeof token !== 'string') {
-        errors.push(getError(err, [tokens.join('", "')]) + ' (non-string token)');
-        break;
+const onOneOf =
+  (tokens: string[], must: boolean) =>
+  (value: unknown, context?: IValidationContext): ValidatedValue => {
+    const errors = [];
+    const isSet = value !== void 0;
+    let noOneIsPresent = !isSet;
+    const err = must ? ValidatorType.oneOfMust : ValidatorType.oneOfCan;
+    if (!Array.isArray(tokens) || !tokens.length) {
+      errors.push(getError(err, ['undefined']));
+    } else {
+      for (let i = tokens.length - 1; i >= 0; i--) {
+        const token = tokens[i];
+        if (typeof token !== 'string') {
+          errors.push(getError(err, [tokens.join('", "')]) + ' (non-string token)');
+          break;
+        }
+        const isAnotherPresent = context && Object.prototype.hasOwnProperty.call(context, token);
+        if (isSet && isAnotherPresent) {
+          errors.push(getError(err, [tokens.join('", "')]) + ` (${token} is present)`);
+          break;
+        }
+        if (noOneIsPresent && isAnotherPresent) {
+          noOneIsPresent = false;
+        }
       }
-      const isAnotherPresent = context && Object.prototype.hasOwnProperty.call(context, token);
-      if (isSet && isAnotherPresent) {
-        errors.push(getError(err, [tokens.join('", "')]) + ` (${token} is present)`);
-        break;
-      }
-      if (noOneIsPresent && isAnotherPresent) {
-        noOneIsPresent = false;
+      if (must && noOneIsPresent) {
+        errors.push(getError(err, [tokens.join('", "')]));
       }
     }
-    if (must && noOneIsPresent) {
-      errors.push(getError(err, [tokens.join('", "')]));
-    }
-  }
-  return { value, isSet, isValid: !errors.length, errors };
-};
+    return { value, isSet, isValid: !errors.length, errors };
+  };
 
-const onOr = (validators: IValidator[]) => (value: unknown): ValidatedValue => {
-  const errors = [];
-  if (validators.every(validator => !validator.method(value).isValid)) {
-    errors.push(validators.map(v => v.type).join(' OR '));
-  }
-  return { value, isSet: true, isValid: !errors.length, errors };
-};
+const onOr =
+  (validators: IValidator[]) =>
+  (value: unknown): ValidatedValue => {
+    const errors = [];
+    if (validators.every(validator => !validator.method(value).isValid)) {
+      errors.push(validators.map(v => v.type).join(' OR '));
+    }
+    return { value, isSet: true, isValid: !errors.length, errors };
+  };
 
 type AbstractEnum = Record<string, string | number>;
 type TEnum = AbstractEnum;
 
-const onEnum = (list: TEnum) => (value: unknown): ValidatedValue => {
-  const errors = [];
-  const values = Object.keys(list).filter(k => isNaN(Number(k))).map(k => list[k as unknown as number]);
-  if (!values.some(item => item === value)) {
-    errors.push(getError(ValidatorType.enum, ['[' + values.join(',') + ']']));
-  }
-  return { value, isSet: true, isValid: !errors.length, errors };
-};
+const onEnum =
+  (list: TEnum) =>
+  (value: unknown): ValidatedValue => {
+    const errors = [];
+    const values = Object.keys(list)
+      .filter(k => isNaN(Number(k)))
+      .map(k => list[k as unknown as number]);
+    if (!values.some(item => item === value)) {
+      errors.push(getError(ValidatorType.enum, ['[' + values.join(',') + ']']));
+    }
+    return { value, isSet: true, isValid: !errors.length, errors };
+  };
 
 export const VALIDATORS = {
   NUMBER: {
@@ -303,7 +315,6 @@ export const VALIDATORS = {
 };
 
 export class ValidatedData implements IValidatedData {
-
   context: IValidationContext;
   isValidContext: boolean;
   isValid: boolean;
@@ -331,9 +342,10 @@ export class ValidatedData implements IValidatedData {
   }
 
   private setValidity() {
-    this.errors = Object.keys(this.params).reduce((acc: string[], key: string) => [
-      ...acc, ...this.params[key].errors
-    ], []);
+    this.errors = Object.keys(this.params).reduce(
+      (acc: string[], key: string) => [...acc, ...this.params[key].errors],
+      []
+    );
     this.isValid = !this.errors.length;
   }
 
@@ -347,18 +359,14 @@ export class ValidatedData implements IValidatedData {
     if (!value.isValid) {
       value.errors = !value.isSet
         ? [`"${token}" must be set`]
-        : value.errors.map((err: string) =>
-          `"${token}" ${err}`
-        );
+        : value.errors.map((err: string) => `"${token}" ${err}`);
     }
     this.params[token] = value;
     this.setValidity();
   }
 
   showErrors(): string {
-    return this.errors.length
-      ? 'validation failed: ' + this.errors.join(', ')
-      : '';
+    return this.errors.length ? 'validation failed: ' + this.errors.join(', ') : '';
   }
 }
 
@@ -382,7 +390,7 @@ const getDefault = (value: unknown, prop: ICommonProp): ValidatedValue => {
   const empty = value === void 0;
   const auto = !prop.mandatory && prop.defaultValue !== void 0;
   return {
-    value: !empty ? value : (auto ? prop.defaultValue : void 0),
+    value: !empty ? value : auto ? prop.defaultValue : void 0,
     isSet: !empty || auto,
     isValid: !empty || !prop.mandatory,
     errors: []
@@ -390,7 +398,9 @@ const getDefault = (value: unknown, prop: ICommonProp): ValidatedValue => {
 };
 
 export const validateOne = (
-  context: IValidationContext, name: string, prop: ICommonProp
+  context: IValidationContext,
+  name: string,
+  prop: ICommonProp
 ): ValidatedValue => {
   const result = getDefault(context[name], prop);
   if (!result.isSet) {
@@ -415,14 +425,12 @@ export const validateOne = (
   return result;
 };
 
-export const validate = (
-  context: unknown, params: ICommonProps<PropertyKey>
-): IValidatedData => {
+export const validate = (context: unknown, params: ICommonProps<PropertyKey>): IValidatedData => {
   const data = new ValidatedData(context);
   Object.entries(params).forEach(([key, prop]) =>
-    data.setParam(key, data.isValidContext
-      ? validateOne(data.context, key, prop)
-      : getDefault(void 0, prop)
+    data.setParam(
+      key,
+      data.isValidContext ? validateOne(data.context, key, prop) : getDefault(void 0, prop)
     )
   );
   return data;

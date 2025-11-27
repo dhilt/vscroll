@@ -5,13 +5,12 @@ import {
   ItemsPredicate,
   ItemsUpdater,
   AdapterFixOptions,
-  IValidatedData,
+  IValidatedData
 } from '../../interfaces/index';
 
 const { [AdapterProcess.fix]: FixParams } = AdapterMethods;
 
 export default class Fix extends BaseAdapterProcessFactory(AdapterProcess.fix) {
-
   static run(scroller: Scroller, options: AdapterFixOptions): void {
     const { workflow } = scroller;
 
@@ -32,7 +31,12 @@ export default class Fix extends BaseAdapterProcessFactory(AdapterProcess.fix) {
     });
   }
 
-  static runByType(scroller: Scroller, token: string, value: unknown, methodData: IValidatedData): void {
+  static runByType(
+    scroller: Scroller,
+    token: string,
+    value: unknown,
+    methodData: IValidatedData
+  ): void {
     switch (token) {
       case FixParams.scrollPosition:
         return Fix.setScrollPosition(scroller, value as number);
@@ -45,7 +49,9 @@ export default class Fix extends BaseAdapterProcessFactory(AdapterProcess.fix) {
       case FixParams.scrollToItem:
         if (methodData.params) {
           const scrollToItemOpt = methodData.params[FixParams.scrollToItemOpt];
-          const options = scrollToItemOpt ? scrollToItemOpt.value as AdapterFixOptions['scrollToItemOpt'] : void 0;
+          const options = scrollToItemOpt
+            ? (scrollToItemOpt.value as AdapterFixOptions['scrollToItemOpt'])
+            : void 0;
           return Fix.scrollToItem(scroller, value as ItemsPredicate, options);
         }
         return;
@@ -76,7 +82,7 @@ export default class Fix extends BaseAdapterProcessFactory(AdapterProcess.fix) {
 
   static updateItems({ buffer, logger }: Scroller, value: ItemsUpdater): void {
     let updateReference = false;
-    const updater = () => updateReference = true;
+    const updater = () => (updateReference = true);
     buffer.items.forEach(item => value(item.get(), updater));
     if (updateReference) {
       logger.log(() => 'update Buffer.items reference');
@@ -84,7 +90,11 @@ export default class Fix extends BaseAdapterProcessFactory(AdapterProcess.fix) {
     }
   }
 
-  static scrollToItem(scroller: Scroller, value: ItemsPredicate, options?: boolean | ScrollIntoViewOptions): void {
+  static scrollToItem(
+    scroller: Scroller,
+    value: ItemsPredicate,
+    options?: boolean | ScrollIntoViewOptions
+  ): void {
     const found = scroller.buffer.items.find(item => value(item.get()));
     if (!found) {
       scroller.logger.log(() => 'scrollToItem cancelled, item not found');
@@ -92,5 +102,4 @@ export default class Fix extends BaseAdapterProcessFactory(AdapterProcess.fix) {
     }
     found.scrollTo(options);
   }
-
 }

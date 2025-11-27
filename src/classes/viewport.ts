@@ -7,7 +7,6 @@ import { Logger } from './logger';
 import { Direction } from '../inputs/index';
 
 export class Viewport {
-
   offset: number;
   paddings: Paddings;
 
@@ -40,7 +39,9 @@ export class Viewport {
     this.routines.setScrollPosition(value);
     const position = this.scrollPosition;
     this.logger.log(() => [
-      'setting scroll position at', position, ...(position !== value ? [`(${value})`] : [])
+      'setting scroll position at',
+      position,
+      ...(position !== value ? [`(${value})`] : [])
     ]);
     return position;
   }
@@ -81,11 +82,15 @@ export class Viewport {
     return this.routines.findItemElement(id);
   }
 
-  getEdgeVisibleItem(items: Item[], direction: Direction): { item?: Item, index: number, diff: number } {
+  getEdgeVisibleItem(
+    items: Item[],
+    direction: Direction
+  ): { item?: Item; index: number; diff: number } {
     const bwd = direction === Direction.backward;
     const opposite = bwd ? Direction.forward : Direction.backward;
     const viewportEdge = this.getEdge(direction);
-    let item, diff = 0;
+    let item,
+      diff = 0;
     for (
       let i = bwd ? 0 : items.length - 1;
       bwd ? i <= items.length - 1 : i >= 0;
@@ -93,12 +98,11 @@ export class Viewport {
     ) {
       const itemEdge = this.routines.getEdge(items[i].element, opposite);
       diff = itemEdge - viewportEdge;
-      if (bwd && diff > 0 || !bwd && diff < 0) {
+      if ((bwd && diff > 0) || (!bwd && diff < 0)) {
         item = items[i];
         break;
       }
     }
     return { item, index: item ? item.$index : NaN, diff };
   }
-
 }

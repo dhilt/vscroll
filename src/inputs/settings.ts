@@ -2,7 +2,8 @@ import { VALIDATORS } from './validation';
 import { ICommonProps } from '../interfaces/index';
 import { SizeStrategy, Direction } from './common';
 
-const { NUMBER, INTEGER, INTEGER_UNLIMITED, MORE_OR_EQUAL, BOOLEAN, ELEMENT, FUNC, OR, ENUM } = VALIDATORS;
+const { NUMBER, INTEGER, INTEGER_UNLIMITED, MORE_OR_EQUAL, BOOLEAN, ELEMENT, FUNC, OR, ENUM } =
+  VALIDATORS;
 
 enum Settings {
   adapter = 'adapter',
@@ -18,7 +19,7 @@ enum Settings {
   viewportElement = 'viewportElement',
   inverse = 'inverse',
   onBeforeClip = 'onBeforeClip',
-  sizeStrategy = 'sizeStrategy',
+  sizeStrategy = 'sizeStrategy'
 }
 
 enum DevSettings {
@@ -33,7 +34,7 @@ enum DevSettings {
   cacheData = 'cacheData',
   cacheOnReload = 'cacheOnReload',
   dismissOverflowAnchor = 'dismissOverflowAnchor',
-  directionPriority = 'directionPriority',
+  directionPriority = 'directionPriority'
 }
 
 export const MIN = {
@@ -42,7 +43,7 @@ export const MIN = {
   [Settings.padding]: 0.01,
   [DevSettings.throttle]: 0,
   [DevSettings.initDelay]: 0,
-  [DevSettings.initWindowDelay]: 0,
+  [DevSettings.initWindowDelay]: 0
 };
 
 export const SETTINGS: ICommonProps<Settings> = {
@@ -101,7 +102,7 @@ export const SETTINGS: ICommonProps<Settings> = {
   [Settings.sizeStrategy]: {
     validators: [ENUM(SizeStrategy)],
     defaultValue: SizeStrategy.Average
-  },
+  }
 };
 
 export const DEV_SETTINGS: ICommonProps<DevSettings> = {
@@ -152,5 +153,5 @@ export const DEV_SETTINGS: ICommonProps<DevSettings> = {
   [DevSettings.directionPriority]: {
     validators: [ENUM(Direction)],
     defaultValue: Direction.backward
-  },
+  }
 };

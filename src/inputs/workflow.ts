@@ -8,7 +8,7 @@ export enum WorkflowProps {
   element = 'element',
   datasource = 'datasource',
   run = 'run',
-  Routines = 'Routines',
+  Routines = 'Routines'
 }
 
 export const WORKFLOW: ICommonProps<WorkflowProps> = {

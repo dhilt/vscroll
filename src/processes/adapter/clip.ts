@@ -3,7 +3,6 @@ import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../mis
 import { AdapterClipOptions } from '../../interfaces/index';
 
 export default class UserClip extends BaseAdapterProcessFactory(AdapterProcess.clip) {
-
   static run(scroller: Scroller, options?: AdapterClipOptions): void {
     const { params } = UserClip.parseInput(scroller, options);
 
@@ -15,5 +14,4 @@ export default class UserClip extends BaseAdapterProcessFactory(AdapterProcess.c
       status: ProcessStatus.next
     });
   }
-
 }

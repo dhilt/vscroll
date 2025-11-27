@@ -1,8 +1,20 @@
-import { SETTINGS, DEV_SETTINGS, validate, validateOne, VALIDATORS, SizeStrategy, Direction } from '../inputs/index';
-import { Settings as ISettings, DevSettings as IDevSettings, ICommonProps, ItemsProcessor } from '../interfaces/index';
+import {
+  SETTINGS,
+  DEV_SETTINGS,
+  validate,
+  validateOne,
+  VALIDATORS,
+  SizeStrategy,
+  Direction
+} from '../inputs/index';
+import {
+  Settings as ISettings,
+  DevSettings as IDevSettings,
+  ICommonProps,
+  ItemsProcessor
+} from '../interfaces/index';
 
 export class Settings<Data = unknown> implements ISettings, IDevSettings {
-
   // user settings
   adapter: boolean;
   startIndex: number;
@@ -25,7 +37,7 @@ export class Settings<Data = unknown> implements ISettings, IDevSettings {
    * Default value: false.
    * @type {boolean}
    */
-  debug: boolean; // if true, 
+  debug: boolean; // if true,
 
   /**
    * Development setting.
@@ -139,7 +151,9 @@ export class Settings<Data = unknown> implements ISettings, IDevSettings {
   viewport: HTMLElement | null;
 
   constructor(
-    settings: ISettings<Data> | undefined, devSettings: IDevSettings | undefined, instanceIndex: number
+    settings: ISettings<Data> | undefined,
+    devSettings: IDevSettings | undefined,
+    instanceIndex: number
   ) {
     this.parseInput(settings, SETTINGS);
     this.parseInput(devSettings, DEV_SETTINGS);
@@ -149,7 +163,10 @@ export class Settings<Data = unknown> implements ISettings, IDevSettings {
     // todo: min/max indexes must be ignored if infinite mode is enabled ??
   }
 
-  parseInput(input: ISettings<Data> | IDevSettings | undefined, props: ICommonProps<PropertyKey>): void {
+  parseInput(
+    input: ISettings<Data> | IDevSettings | undefined,
+    props: ICommonProps<PropertyKey>
+  ): void {
     const result = validate(input, props);
     if (!result.isValid) {
       throw new Error('Invalid settings');

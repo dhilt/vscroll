@@ -14,15 +14,14 @@ interface IRoutinesSettings {
    */
   horizontal: boolean;
 
-  /** Determines wether the entire window is the scroller's viewport or not. 
+  /** Determines wether the entire window is the scroller's viewport or not.
    * The value is equal to settings.window.
    */
   window: boolean;
 }
 
 export interface IRoutines {
-
-  /** Internal prop that is available after instantiation. 
+  /** Internal prop that is available after instantiation.
    * Reduced version of the App settings object.
    */
   readonly settings: IRoutinesSettings;
@@ -47,7 +46,7 @@ export interface IRoutines {
    * "settings.viewport", "settings.window" and "element".
    * This method is being called during Routines instantiation
    * to determine the "viewport" prop:
-   * 
+   *
    * this.viewport = this.getViewportElement();
    * @returns {HTMLElement} HTML element.
    */
@@ -191,7 +190,6 @@ export interface IRoutines {
    * @returns {function} Callback to dismiss scroll event listener.
    */
   onScroll: (handler: EventListener) => () => void;
-
 }
 
 export type RoutinesClassType = new (...args: ConstructorParameters<typeof Routines>) => Routines;

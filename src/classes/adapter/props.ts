@@ -1,6 +1,11 @@
 import { Reactive } from '../reactive';
 import {
-  IAdapterProp, IBufferInfo, ItemAdapter, IPackages, AdapterMethodResult, IReactivePropsStore
+  IAdapterProp,
+  IBufferInfo,
+  ItemAdapter,
+  IPackages,
+  AdapterMethodResult,
+  IReactivePropsStore
 } from '../../interfaces/index';
 
 export enum AdapterPropName {
@@ -41,14 +46,14 @@ export enum AdapterPropName {
   resume = 'resume',
   fix = 'fix',
   relax = 'relax',
-  showLog = 'showLog',
+  showLog = 'showLog'
 }
 
 export enum AdapterPropType {
   Scalar,
   Reactive,
   WorkflowRunner,
-  Function,
+  Function
 }
 
 const Name = AdapterPropName;
@@ -88,7 +93,7 @@ const bufferInfoDefault: IBufferInfo = {
   maxIndex: NaN,
   absMinIndex: -Infinity,
   absMaxIndex: +Infinity,
-  defaultSize: NaN,
+  defaultSize: NaN
 };
 
 export const EMPTY_ITEM = {

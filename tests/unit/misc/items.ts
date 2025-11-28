@@ -1,5 +1,5 @@
-import { Item } from '../../src/classes/item';
-import { ItemCache } from '../../src/classes/buffer/cache';
+import { Item } from '../../../src/classes/item';
+import { ItemCache } from '../../../src/classes/buffer/cache';
 import { Id, Data } from './types';
 
 const MIN_SIZE = 1;
@@ -29,12 +29,19 @@ export const generateBufferItem = (index: number, data: Data): Item<Data> => {
 export const generateItems = (start: number, length: number): Data[] =>
   Array.from({ length }).map((j, i) => generateItem(start + i));
 
-export const generateBufferItems = (start: number, length: number): Item<Data>[] =>
+export const generateBufferItems = (
+  start: number,
+  length: number
+): Item<Data>[] =>
   generateItems(start, length).map((item, index) =>
     generateBufferItem(start + index, item)
   );
 
-export const generateCacheItems = (start: number, length: number): ItemCache<Data>[] =>
-  generateItems(start, length).map((item, index) =>
-    new ItemCache(generateBufferItem(start + index, item), false)
+export const generateCacheItems = (
+  start: number,
+  length: number
+): ItemCache<Data>[] =>
+  generateItems(start, length).map(
+    (item, index) =>
+      new ItemCache(generateBufferItem(start + index, item), false)
   );

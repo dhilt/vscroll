@@ -14,10 +14,10 @@ const {
   FUNC_WITH_X_TO_Y_ARGUMENTS,
   ONE_OF_MUST,
   ONE_OF_CAN,
-  OR,
+  OR
 } = VALIDATORS;
 
-enum AdapterNoParams { }
+enum AdapterNoParams {}
 const NO_METHOD_PARAMS: ICommonProps<AdapterNoParams> = {};
 
 const RESET_METHOD_PARAMS: ICommonProps<AdapterResetParams> = {
@@ -29,24 +29,24 @@ const RESET_METHOD_PARAMS: ICommonProps<AdapterResetParams> = {
   },
   [AdapterResetParams.devSettings]: {
     validators: [OBJECT]
-  },
+  }
 };
 
 enum AdapterReloadParams {
-  reloadIndex = 'reloadIndex',
+  reloadIndex = 'reloadIndex'
 }
 
 const RELOAD_METHOD_PARAMS: ICommonProps<AdapterReloadParams> = {
   [AdapterReloadParams.reloadIndex]: {
     validators: [INTEGER]
-  },
+  }
 };
 
 enum AdapterPrependParams {
   items = 'items',
   bof = 'bof',
   increase = 'increase',
-  virtualize = 'virtualize',
+  virtualize = 'virtualize'
 }
 
 const PREPEND_METHOD_PARAMS: ICommonProps<AdapterPrependParams> = {
@@ -65,14 +65,14 @@ const PREPEND_METHOD_PARAMS: ICommonProps<AdapterPrependParams> = {
   [AdapterPrependParams.virtualize]: {
     validators: [BOOLEAN, ONE_OF_CAN([AdapterPrependParams.bof])],
     defaultValue: false
-  },
+  }
 };
 
 enum AdapterAppendParams {
   items = 'items',
   eof = 'eof',
   decrease = 'decrease',
-  virtualize = 'virtualize',
+  virtualize = 'virtualize'
 }
 
 const APPEND_METHOD_PARAMS: ICommonProps<AdapterAppendParams> = {
@@ -91,13 +91,13 @@ const APPEND_METHOD_PARAMS: ICommonProps<AdapterAppendParams> = {
   [AdapterPrependParams.virtualize]: {
     validators: [BOOLEAN, ONE_OF_CAN([AdapterAppendParams.eof])],
     defaultValue: false
-  },
+  }
 };
 
 enum AdapterRemoveParams {
   predicate = 'predicate',
   indexes = 'indexes',
-  increase = 'increase',
+  increase = 'increase'
 }
 
 const REMOVE_METHOD_PARAMS: ICommonProps<AdapterRemoveParams> = {
@@ -110,12 +110,12 @@ const REMOVE_METHOD_PARAMS: ICommonProps<AdapterRemoveParams> = {
   [AdapterRemoveParams.increase]: {
     validators: [BOOLEAN],
     defaultValue: false
-  },
+  }
 };
 
 enum AdapterClipParams {
   backwardOnly = 'backwardOnly',
-  forwardOnly = 'forwardOnly',
+  forwardOnly = 'forwardOnly'
 }
 
 const CLIP_METHOD_PARAMS: ICommonProps<AdapterClipParams> = {
@@ -126,7 +126,7 @@ const CLIP_METHOD_PARAMS: ICommonProps<AdapterClipParams> = {
   [AdapterClipParams.forwardOnly]: {
     validators: [BOOLEAN, ONE_OF_CAN([AdapterClipParams.backwardOnly])],
     defaultValue: false
-  },
+  }
 };
 
 enum AdapterInsertParams {
@@ -135,7 +135,7 @@ enum AdapterInsertParams {
   after = 'after',
   beforeIndex = 'beforeIndex',
   afterIndex = 'afterIndex',
-  decrease = 'decrease',
+  decrease = 'decrease'
 }
 
 const INSERT_METHOD_PARAMS: ICommonProps<AdapterInsertParams> = {
@@ -144,35 +144,55 @@ const INSERT_METHOD_PARAMS: ICommonProps<AdapterInsertParams> = {
     mandatory: true
   },
   [AdapterInsertParams.before]: {
-    validators: [FUNC_WITH_X_ARGUMENTS(1), ONE_OF_MUST([
-      AdapterInsertParams.after, AdapterInsertParams.beforeIndex, AdapterInsertParams.afterIndex
-    ])]
+    validators: [
+      FUNC_WITH_X_ARGUMENTS(1),
+      ONE_OF_MUST([
+        AdapterInsertParams.after,
+        AdapterInsertParams.beforeIndex,
+        AdapterInsertParams.afterIndex
+      ])
+    ]
   },
   [AdapterInsertParams.after]: {
-    validators: [FUNC_WITH_X_ARGUMENTS(1), ONE_OF_MUST([
-      AdapterInsertParams.before, AdapterInsertParams.beforeIndex, AdapterInsertParams.afterIndex
-    ])]
+    validators: [
+      FUNC_WITH_X_ARGUMENTS(1),
+      ONE_OF_MUST([
+        AdapterInsertParams.before,
+        AdapterInsertParams.beforeIndex,
+        AdapterInsertParams.afterIndex
+      ])
+    ]
   },
   [AdapterInsertParams.beforeIndex]: {
-    validators: [INTEGER, ONE_OF_MUST([
-      AdapterInsertParams.before, AdapterInsertParams.after, AdapterInsertParams.afterIndex
-    ])]
+    validators: [
+      INTEGER,
+      ONE_OF_MUST([
+        AdapterInsertParams.before,
+        AdapterInsertParams.after,
+        AdapterInsertParams.afterIndex
+      ])
+    ]
   },
   [AdapterInsertParams.afterIndex]: {
-    validators: [INTEGER, ONE_OF_MUST([
-      AdapterInsertParams.before, AdapterInsertParams.after, AdapterInsertParams.beforeIndex
-    ])]
+    validators: [
+      INTEGER,
+      ONE_OF_MUST([
+        AdapterInsertParams.before,
+        AdapterInsertParams.after,
+        AdapterInsertParams.beforeIndex
+      ])
+    ]
   },
   [AdapterInsertParams.decrease]: {
     validators: [BOOLEAN],
     defaultValue: false
-  },
+  }
 };
 
 enum AdapterReplaceParams {
   items = 'items',
   predicate = 'predicate',
-  fixRight = 'fixRight',
+  fixRight = 'fixRight'
 }
 
 const REPLACE_METHOD_PARAMS: ICommonProps<AdapterReplaceParams> = {
@@ -192,7 +212,7 @@ const REPLACE_METHOD_PARAMS: ICommonProps<AdapterReplaceParams> = {
 
 enum AdapterUpdateParams {
   predicate = 'predicate',
-  fixRight = 'fixRight',
+  fixRight = 'fixRight'
 }
 
 const UPDATE_METHOD_PARAMS: ICommonProps<AdapterUpdateParams> = {
@@ -203,7 +223,7 @@ const UPDATE_METHOD_PARAMS: ICommonProps<AdapterUpdateParams> = {
   [AdapterUpdateParams.fixRight]: {
     validators: [BOOLEAN],
     defaultValue: false
-  },
+  }
 };
 
 enum AdapterFixParams {
@@ -212,7 +232,7 @@ enum AdapterFixParams {
   maxIndex = 'maxIndex',
   updater = 'updater',
   scrollToItem = 'scrollToItem',
-  scrollToItemOpt = 'scrollToItemOpt',
+  scrollToItemOpt = 'scrollToItemOpt'
 }
 
 const FIX_METHOD_PARAMS: ICommonProps<AdapterFixParams> = {
@@ -233,7 +253,7 @@ const FIX_METHOD_PARAMS: ICommonProps<AdapterFixParams> = {
   },
   [AdapterFixParams.scrollToItemOpt]: {
     validators: [OR([BOOLEAN, OBJECT])]
-  },
+  }
 };
 
 export const AdapterMethods: AdapterProcessMap<{ [key: string]: string }> = {
@@ -248,7 +268,7 @@ export const AdapterMethods: AdapterProcessMap<{ [key: string]: string }> = {
   [Process.replace]: AdapterReplaceParams,
   [Process.update]: AdapterUpdateParams,
   [Process.pause]: AdapterNoParams,
-  [Process.fix]: AdapterFixParams,
+  [Process.fix]: AdapterFixParams
 };
 
 export const ADAPTER_METHODS: AdapterProcessMap<ICommonProps<PropertyKey>> = {
@@ -263,5 +283,5 @@ export const ADAPTER_METHODS: AdapterProcessMap<ICommonProps<PropertyKey>> = {
   [Process.replace]: REPLACE_METHOD_PARAMS,
   [Process.update]: UPDATE_METHOD_PARAMS,
   [Process.pause]: NO_METHOD_PARAMS,
-  [Process.fix]: FIX_METHOD_PARAMS,
+  [Process.fix]: FIX_METHOD_PARAMS
 };

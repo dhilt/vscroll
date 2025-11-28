@@ -5,9 +5,9 @@ import { ScrollerWorkflow } from '../interfaces/index';
 const isInterrupted = ({ call }: ScrollerWorkflow): boolean => !!call.interrupted;
 
 export default class End extends BaseProcessFactory(CommonProcess.end) {
-
   static run(scroller: Scroller, { error }: { error?: unknown } = {}): void {
-    const { workflow, state: { cycle: { interrupter } } } = scroller;
+    const { workflow, state } = scroller;
+    const { interrupter } = state.cycle;
 
     if (!error && !interrupter) {
       // set out params accessible via Adapter
@@ -61,5 +61,4 @@ export default class End extends BaseProcessFactory(CommonProcess.end) {
     }
     return false;
   }
-
 }

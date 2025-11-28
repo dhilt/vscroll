@@ -8,7 +8,6 @@ import { Direction } from '../inputs/index';
 import { OnDataChanged, BufferUpdater, ItemsPredicate } from '../interfaces/index';
 
 export class Buffer<Data> {
-
   private _items: Item<Data>[] = [];
   private _absMinIndex: number;
   private _absMaxIndex: number;
@@ -69,11 +68,15 @@ export class Buffer<Data> {
       index = start;
     }
     if (index < min) {
-      this.logger.log(() => `setting startIndex to settings.minIndex (${min}) because ${index} < ${min}`);
+      this.logger.log(
+        () => `setting startIndex to settings.minIndex (${min}) because ${index} < ${min}`
+      );
       index = min;
     }
     if (index > max) {
-      this.logger.log(() => `setting startIndex to settings.maxIndex (${max}) because ${index} > ${max}`);
+      this.logger.log(
+        () => `setting startIndex to settings.maxIndex (${max}) because ${index} > ${max}`
+      );
       index = max;
     }
     this.startIndex = index;
@@ -94,7 +97,8 @@ export class Buffer<Data> {
 
   set absMinIndex(value: number) {
     if (this._absMinIndex !== value) {
-      this._absMinIndex = Number.isFinite(this._absMaxIndex) && value > this._absMaxIndex ? this._absMaxIndex : value;
+      this._absMinIndex =
+        Number.isFinite(this._absMaxIndex) && value > this._absMaxIndex ? this._absMaxIndex : value;
     }
     if (!this.pristine) {
       this.checkBOF();
@@ -107,7 +111,8 @@ export class Buffer<Data> {
 
   set absMaxIndex(value: number) {
     if (this._absMaxIndex !== value) {
-      this._absMaxIndex = Number.isFinite(this._absMinIndex) && value < this._absMinIndex ? this._absMinIndex : value;
+      this._absMaxIndex =
+        Number.isFinite(this._absMinIndex) && value < this._absMinIndex ? this._absMinIndex : value;
     }
     if (!this.pristine) {
       this.checkEOF();
@@ -121,7 +126,7 @@ export class Buffer<Data> {
   private checkBOF() {
     // since bof has no setter, need to call checkBOF() on items and absMinIndex change
     const bof = this.items.length
-      ? (this.items[0].$index === this.absMinIndex)
+      ? this.items[0].$index === this.absMinIndex
       : isFinite(this.absMinIndex);
     this.bof.set(bof);
   }
@@ -129,7 +134,7 @@ export class Buffer<Data> {
   private checkEOF() {
     // since eof has no setter, need to call checkEOF() on items and absMaxIndex change
     const eof = this.items.length
-      ? (this.items[this.items.length - 1].$index === this.absMaxIndex)
+      ? this.items[this.items.length - 1].$index === this.absMaxIndex
       : isFinite(this.absMaxIndex);
     this.eof.set(eof);
   }
@@ -231,16 +236,13 @@ export class Buffer<Data> {
   removeVirtually(indexes: number[], fixRight: boolean): void {
     const length = this.items.length;
     let shifted = false;
-    for (
-      let i = fixRight ? length - 1 : 0;
-      fixRight ? i >= 0 : i < length;
-      fixRight ? i-- : i++
-    ) {
+    for (let i = fixRight ? length - 1 : 0; fixRight ? i >= 0 : i < length; fixRight ? i-- : i++) {
       const item = this.items[i];
-      const diff = indexes.reduce((acc, index) => acc + (fixRight
-        ? (item.$index < index ? 1 : 0)
-        : (item.$index > index ? -1 : 0)
-      ), 0);
+      const diff = indexes.reduce(
+        (acc, index) =>
+          acc + (fixRight ? (item.$index < index ? 1 : 0) : item.$index > index ? -1 : 0),
+        0
+      );
       shifted = shifted || !!diff;
       item.updateIndex(item.$index + diff);
     }
@@ -252,18 +254,19 @@ export class Buffer<Data> {
   }
 
   fillEmpty(
-    items: Data[], beforeIndex: number | undefined, afterIndex: number | undefined, fixRight: boolean,
-    generator: (index: number, data: Data) => Item<Data>,
+    items: Data[],
+    beforeIndex: number | undefined,
+    afterIndex: number | undefined,
+    fixRight: boolean,
+    generator: (index: number, data: Data) => Item<Data>
   ): boolean {
     if (!this.checkCall.fillEmpty(items, beforeIndex, afterIndex)) {
       return false;
     }
     const before = Number.isInteger(beforeIndex);
     const index = (before ? beforeIndex : afterIndex) as number;
-    const shift = (fixRight ? items.length : (before ? 1 : 0));
-    this.items = items.map((data, i) =>
-      generator(index + i + (!before ? 1 : 0) - shift, data)
-    );
+    const shift = fixRight ? items.length : before ? 1 : 0;
+    this.items = items.map((data, i) => generator(index + i + (!before ? 1 : 0) - shift, data));
     this._absMinIndex = this.items[0].$index;
     this._absMaxIndex = this.items[this.size - 1].$index;
     if (this.startIndex <= this.absMinIndex) {
@@ -279,7 +282,7 @@ export class Buffer<Data> {
     generator: (index: number, data: Data) => Item<Data>,
     indexToTrack: number,
     fixRight: boolean
-  ): { trackedIndex: number, toRemove: Item<Data>[] } {
+  ): { trackedIndex: number; toRemove: Item<Data>[] } {
     if (!this.size || Number.isNaN(this.firstIndex)) {
       return { trackedIndex: NaN, toRemove: [] };
     }
@@ -299,7 +302,7 @@ export class Buffer<Data> {
       // if predicate result is falsy or empty array -> delete
       if (!result || (Array.isArray(result) && !result.length)) {
         item.toRemove = true;
-        trackedIndex += item.$index >= indexToTrack ? (fixRight ? 1 : 0) : (fixRight ? 0 : -1);
+        trackedIndex += item.$index >= indexToTrack ? (fixRight ? 1 : 0) : fixRight ? 0 : -1;
         this.shiftExtremum(-1, fixRight);
         continue;
       }
@@ -394,8 +397,9 @@ export class Buffer<Data> {
   }
 
   getEdgeVisibleItem(direction: Direction, opposite?: boolean): Item<Data> | undefined {
-    return direction === (!opposite ? Direction.forward : Direction.backward) ?
-      this.getLastVisibleItem() : this.getFirstVisibleItem();
+    return direction === (!opposite ? Direction.forward : Direction.backward)
+      ? this.getLastVisibleItem()
+      : this.getFirstVisibleItem();
   }
 
   getVisibleItemsCount(): number {
@@ -409,5 +413,4 @@ export class Buffer<Data> {
   checkDefaultSize(): boolean {
     return this.cache.recalculateDefaultSize();
   }
-
 }

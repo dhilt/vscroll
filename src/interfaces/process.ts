@@ -34,12 +34,15 @@ export type AdapterProcessMap<T> = {
 };
 
 export interface IBaseProcess {
-  new(): any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  new (): any; // eslint-disable-line @typescript-eslint/no-explicit-any
   process: ProcessName;
 }
 
 export interface IBaseAdapterProcess extends IBaseProcess {
   parseInput: <T>(
-    scroller: Scroller, options: T, ignoreErrors?: boolean, process?: AdapterProcess
+    scroller: Scroller,
+    options: T,
+    ignoreErrors?: boolean,
+    process?: AdapterProcess
   ) => IAdapterInput<T>;
 }

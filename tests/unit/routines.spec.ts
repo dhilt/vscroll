@@ -1,12 +1,11 @@
-import { Routines } from '../src/classes/domRoutines';
-import { Settings } from '../src/classes/settings';
+import { Routines } from '../../src/classes/domRoutines';
+import { Settings } from '../../src/classes/settings';
 
 const settings = new Settings(void 0, void 0, 0);
 const element = { parentElement: { style: {} } } as unknown as HTMLElement;
 const elementBad = { parentElement: null } as unknown as HTMLElement;
 
 describe('Routines', () => {
-
   describe('Standard instantiation', () => {
     it('should instantiate if element & settings are correct', () => {
       const routines = new Routines(element, settings);
@@ -79,5 +78,4 @@ describe('Routines', () => {
       });
     });
   });
-
 });

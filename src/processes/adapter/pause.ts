@@ -2,7 +2,6 @@ import { Scroller } from '../../scroller';
 import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../misc/index';
 
 export default class Pause extends BaseAdapterProcessFactory(AdapterProcess.pause) {
-
   static run(scroller: Scroller, options?: { resume: boolean }): void {
     const resume = !!options?.resume;
 
@@ -24,5 +23,4 @@ export default class Pause extends BaseAdapterProcessFactory(AdapterProcess.paus
       status: ProcessStatus.next
     });
   }
-
 }

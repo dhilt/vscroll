@@ -8,7 +8,6 @@ import { ScrollModel } from './state/scroll';
 import { State as IState, IPackages, ProcessName } from '../interfaces/index';
 
 export class State implements IState {
-
   readonly packageInfo: IPackages;
   private settings: Settings;
   initTime: number;
@@ -45,7 +44,7 @@ export class State implements IState {
     this.cycle.end(count);
   }
 
-  startInnerLoop(): { process?: ProcessName, doRender?: boolean } {
+  startInnerLoop(): { process?: ProcessName; doRender?: boolean } {
     const { cycle, scroll: scroll, fetch, render, clip } = this;
 
     cycle.innerLoop.start();
@@ -58,10 +57,12 @@ export class State implements IState {
     render.reset();
 
     return {
-      ...(cycle.innerLoop.first ? {
-        process: cycle.initiator,
-        doRender: fetch.simulate && fetch.items.length > 0
-      } : {})
+      ...(cycle.innerLoop.first
+        ? {
+            process: cycle.initiator,
+            doRender: fetch.simulate && fetch.items.length > 0
+          }
+        : {})
     };
   }
 
@@ -86,5 +87,4 @@ export class State implements IState {
     this.paused.dispose();
     this.endInnerLoop();
   }
-
 }

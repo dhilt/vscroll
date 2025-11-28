@@ -12,7 +12,6 @@ interface Options {
 }
 
 export class Reactive<T> {
-
   private initialValue: T;
   private value: T;
   private id: number;

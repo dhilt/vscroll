@@ -10,7 +10,7 @@ const CONF_DIR = 'build';
 const configJsonString = readFileSync('./package.json', { encoding: 'utf8' });
 const config = JSON.parse(configJsonString);
 
-// Package version 
+// Package version
 shell.echo('Setup package version');
 const versionContent = `export default {
   name: '${config.name}',

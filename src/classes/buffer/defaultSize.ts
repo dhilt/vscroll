@@ -77,7 +77,8 @@ export class DefaultSize {
     if (removed.length) {
       const removedSize = removed.reduce((acc, item) => acc + item.size, 0);
       const averageSize = this.averageSizeFloat || 0;
-      this.averageSizeFloat = ((cacheSize + removed.length) * averageSize - removedSize) / cacheSize;
+      this.averageSizeFloat =
+        ((cacheSize + removed.length) * averageSize - removedSize) / cacheSize;
     }
     this.averageSize = Math.round(this.averageSizeFloat);
   }
@@ -89,11 +90,17 @@ export class DefaultSize {
       newItems.forEach(({ size }) => this.sizeMap.set(size, (this.sizeMap.get(size) || 0) + 1));
     }
     if (oldItems.length) {
-      oldItems.forEach(({ size }) => this.sizeMap.set(size, Math.max((this.sizeMap.get(size) || 0) - 1, 0)));
-      oldItems.forEach(({ newSize: s }) => this.sizeMap.set(s as number, (this.sizeMap.get(s as number) || 0) + 1));
+      oldItems.forEach(({ size }) =>
+        this.sizeMap.set(size, Math.max((this.sizeMap.get(size) || 0) - 1, 0))
+      );
+      oldItems.forEach(({ newSize: s }) =>
+        this.sizeMap.set(s as number, (this.sizeMap.get(s as number) || 0) + 1)
+      );
     }
     if (removed.length) {
-      removed.forEach(({ size }) => this.sizeMap.set(size, Math.max((this.sizeMap.get(size) || 0) - 1, 0)));
+      removed.forEach(({ size }) =>
+        this.sizeMap.set(size, Math.max((this.sizeMap.get(size) || 0) - 1, 0))
+      );
     }
     const sorted = [...this.sizeMap.entries()].sort((a, b) => b[1] - a[1]);
     const mostFrequentCount = sorted[0][1];

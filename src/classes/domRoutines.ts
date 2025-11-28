@@ -3,7 +3,6 @@ import { Direction } from '../inputs/index';
 import { IRoutines, ItemAdapter } from '../interfaces/index';
 
 export class Routines implements IRoutines {
-
   readonly settings: IRoutines['settings'];
   readonly element: HTMLElement;
   readonly viewport: HTMLElement;
@@ -93,17 +92,18 @@ export class Routines implements IRoutines {
   }
 
   getWindowParams(): DOMRect {
-    const { clientWidth, clientHeight, clientLeft, clientTop } = this.viewport;
+    const height = window.innerHeight;
+    const width = window.innerWidth;
     return {
-      'height': clientHeight,
-      'width': clientWidth,
-      'top': clientTop,
-      'bottom': clientTop + clientHeight,
-      'left': clientLeft,
-      'right': clientLeft + clientWidth,
-      'x': clientLeft,
-      'y': clientTop,
-      'toJSON': () => null,
+      height: height,
+      width: width,
+      top: 0,
+      bottom: height,
+      left: 0,
+      right: width,
+      x: 0,
+      y: 0,
+      toJSON: () => null
     };
   }
 
@@ -138,7 +138,7 @@ export class Routines implements IRoutines {
     const { horizontal } = this.settings;
     const params = this.getElementParams(element);
     const isFwd = direction === Direction.forward;
-    return params[isFwd ? (horizontal ? 'right' : 'bottom') : (horizontal ? 'left' : 'top')];
+    return params[isFwd ? (horizontal ? 'right' : 'bottom') : horizontal ? 'left' : 'top'];
   }
 
   getViewportEdge(direction: Direction): number {
@@ -146,7 +146,7 @@ export class Routines implements IRoutines {
     if (window) {
       const params = this.getWindowParams();
       const isFwd = direction === Direction.forward;
-      return params[isFwd ? (horizontal ? 'right' : 'bottom') : (horizontal ? 'left' : 'top')];
+      return params[isFwd ? (horizontal ? 'right' : 'bottom') : horizontal ? 'left' : 'top'];
     }
     return this.getEdge(this.viewport, direction);
   }
@@ -174,8 +174,7 @@ export class Routines implements IRoutines {
     element.scrollIntoView(argument);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  render(cb: () => void, params: { items: ItemAdapter[] }): () => void {
+  render(cb: () => void, _params: { items: ItemAdapter[] }): () => void {
     const timeoutId = setTimeout(() => cb());
     return () => clearTimeout(timeoutId);
   }
@@ -190,5 +189,4 @@ export class Routines implements IRoutines {
     eventReceiver.addEventListener('scroll', handler);
     return () => eventReceiver.removeEventListener('scroll', handler);
   }
-
 }

@@ -8,7 +8,12 @@ export interface ObservableLike<T = unknown> {
   subscribe(next: SuccessFn<T>, error: ErrorFn, complete: () => void): { unsubscribe: () => void };
 }
 
-type DSGetCallback<T> = (index: number, count: number, success: SuccessFn<T>, fail?: ErrorFn) => void;
+type DSGetCallback<T> = (
+  index: number,
+  count: number,
+  success: SuccessFn<T>,
+  fail?: ErrorFn
+) => void;
 type DSGetObservable<T> = (index: number, count: number) => ObservableLike<T[]>;
 type DSGetPromise<T> = (index: number, count: number) => PromiseLike<T[]>;
 

@@ -24,8 +24,29 @@ import End from './end';
 import { CommonProcess, AdapterProcess, ProcessStatus } from './misc/enums';
 
 export {
-  Init, Scroll,
-  Reset, Reload, Append, Check, Remove, UserClip, Insert, Replace, Update, Pause, Fix,
-  Start, PreFetch, Fetch, PostFetch, Render, PreClip, Clip, Adjust, End,
-  CommonProcess, AdapterProcess, ProcessStatus,
+  Init,
+  Scroll,
+  Reset,
+  Reload,
+  Append,
+  Check,
+  Remove,
+  UserClip,
+  Insert,
+  Replace,
+  Update,
+  Pause,
+  Fix,
+  Start,
+  PreFetch,
+  Fetch,
+  PostFetch,
+  Render,
+  PreClip,
+  Clip,
+  Adjust,
+  End,
+  CommonProcess,
+  AdapterProcess,
+  ProcessStatus
 };

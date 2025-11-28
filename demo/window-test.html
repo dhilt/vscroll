@@ -1,0 +1,184 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>vscroll window viewport test</title>
+  <meta charset="utf-8">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    .item {
+      height: 20px;
+      line-height: 20px;
+      padding: 0 10px;
+    }
+
+    .item span {
+      font-size: small;
+      color: #666;
+    }
+
+    .info {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid #ccc;
+      padding: 10px;
+      font-size: 12px;
+      font-family: monospace;
+      z-index: 1000;
+    }
+
+    .info div {
+      margin: 2px 0;
+    }
+  </style>
+  <script src="../dist/bundles/vscroll.umd.js"></script>
+</head>
+
+<body>
+  <div class="info">
+    <div><strong>Window Viewport Test</strong></div>
+    <div id="info-html-height">html.clientHeight: -</div>
+    <div id="info-html-scroll">html.scrollHeight: -</div>
+    <div id="info-window-height">window.innerHeight: -</div>
+    <div id="info-buffer-size">Buffer size: -</div>
+    <div id="info-fetch-count">Fetches: 0</div>
+  </div>
+  <div id="vscroll">
+    <div data-padding-backward></div>
+    <div data-padding-forward></div>
+  </div>
+  <script>
+    (() => {
+
+      const MAX = 2000;
+      const MIN = 1;
+      let fetchCount = 0;
+
+      function updateInfo() {
+        document.getElementById('info-html-height').textContent =
+          'html.clientHeight: ' + document.documentElement.clientHeight;
+        document.getElementById('info-html-scroll').textContent =
+          'html.scrollHeight: ' + document.documentElement.scrollHeight;
+        document.getElementById('info-window-height').textContent =
+          'window.innerHeight: ' + window.innerHeight;
+        document.getElementById('info-buffer-size').textContent =
+          'Buffer size: ' + (window.workflow ? window.workflow.scroller.buffer.size : 0);
+        document.getElementById('info-fetch-count').textContent =
+          'Fetches: ' + fetchCount;
+      }
+
+      // virtual scroll engine params
+      const workflowParams = {
+        consumer: {
+          name: 'VScroll Window Test',
+          version: '1.0.0'
+        },
+        element: document.getElementById('vscroll'),
+        datasource: {
+          get: (index, count, success) => {
+            fetchCount++;
+            console.log(`[Fetch #${fetchCount}] Requesting [${index}..${index + count - 1}]`);
+
+            const start = Math.max(index, MIN);
+            const end = Math.min(index + count - 1, MAX);
+            const data = [];
+
+            if (start <= end) {
+              for (let i = start; i <= end; i++) {
+                data.push({ id: i, text: 'item #' + i });
+              }
+            }
+
+            console.log(`[Fetch #${fetchCount}] Resolved ${data.length} items`);
+            setTimeout(() => {
+              success(data);
+              updateInfo();
+            }, 25);
+          },
+          settings: {
+            startIndex: 100,
+            padding: 0.25,
+            bufferSize: 1,
+            itemSize: 20,
+            windowViewport: true
+          },
+          devSettings: {
+            debug: true,
+            immediateLog: true,
+            logProcessRun: true,
+            logColor: false
+          }
+        },
+        run: (newItems) => {
+          if (!newItems.length && !oldItems.length) {
+            return;
+          }
+          processItems(newItems, oldItems);
+          oldItems = newItems;
+          updateInfo();
+        },
+      };
+
+      // old items storage
+      let oldItems = [];
+
+      // the renderer
+      const processItems = (newItems, oldItems) => {
+        // remove elements not present
+        oldItems
+          .filter(item => !newItems.includes(item))
+          .forEach(item => item.element.remove());
+        // create and insert new elements
+        const elements = [];
+        let beforeElement =
+          workflowParams.element.querySelector('[data-padding-forward]');
+        for (let i = newItems.length - 1; i >= 0; i--) {
+          if (oldItems.includes(newItems[i])) {
+            if (!elements.length) {
+              beforeElement = newItems[i].element;
+              continue;
+            } else {
+              break;
+            }
+          }
+          elements.unshift(createItemElement(newItems[i]));
+        }
+        elements.forEach(elt =>
+          beforeElement.insertAdjacentElement('beforebegin', elt)
+        );
+      };
+
+      // creates single item HTML element
+      const createItemElement = item => {
+        const element = document.createElement('div');
+        element.setAttribute('data-sid', item.nodeId);
+        if (item.invisible) {
+          element.style.position = 'fixed';
+          element.style.top = '-99px';
+        }
+        element.innerHTML =
+          `<div class="item">
+        <span>${item.$index}</span>)
+        ${item.data.text}
+      </div>`;
+        return element;
+      };
+
+      // run the VScroll Workflow
+      window.workflow = new VScroll.Workflow(workflowParams);
+
+      // Update info every second
+      setInterval(updateInfo, 1000);
+      setTimeout(updateInfo, 500);
+
+    })();
+  </script>
+</body>
+
+</html>

@@ -4,9 +4,7 @@ import { Direction } from '../inputs/index';
 import { ScrollEventData, ScrollerWorkflow } from '../interfaces/index';
 
 export default class Scroll extends BaseProcessFactory(CommonProcess.scroll) {
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  static run(scroller: Scroller, payload?: { event?: Event }): void {
+  static run(scroller: Scroller, _payload?: { event?: Event }): void {
     const { workflow, viewport } = scroller;
     const position = viewport.scrollPosition;
 
@@ -14,9 +12,7 @@ export default class Scroll extends BaseProcessFactory(CommonProcess.scroll) {
       return;
     }
 
-    Scroll.onThrottle(scroller, position, () =>
-      Scroll.onScroll(scroller, workflow)
-    );
+    Scroll.onThrottle(scroller, position, () => Scroll.onScroll(scroller, workflow));
   }
 
   static onSynthetic(scroller: Scroller, position: number): boolean {
@@ -28,29 +24,35 @@ export default class Scroll extends BaseProcessFactory(CommonProcess.scroll) {
       }
       if (!scroll.syntheticFulfill || synthPos === position) {
         scroller.logger.log(() => [
-          'skipping scroll', position, `[${scroll.syntheticFulfill ? '' : 'pre-'}synthetic]`
+          'skipping scroll',
+          position,
+          `[${scroll.syntheticFulfill ? '' : 'pre-'}synthetic]`
         ]);
         return true;
       }
       scroller.logger.log(() => [
-        'synthetic scroll has been fulfilled:', position, position < synthPos ? '<' : '>', synthPos
+        'synthetic scroll has been fulfilled:',
+        position,
+        position < synthPos ? '<' : '>',
+        synthPos
       ]);
     }
     return false;
   }
 
   static onThrottle(scroller: Scroller, position: number, done: () => void): void {
-    const { state: { scroll }, settings: { throttle }, logger } = scroller;
+    const { state, settings, logger } = scroller;
+    const { scroll } = state;
     scroll.current = Scroll.getScrollEvent(position, scroll.previous);
     const { direction, time } = scroll.current;
     const timeDiff = scroll.previous ? time - scroll.previous.time : Infinity;
-    const delta = throttle - timeDiff;
+    const delta = settings.throttle - timeDiff;
     const shouldDelay = isFinite(delta) && delta > 0;
     const alreadyDelayed = !!scroll.scrollTimer;
     logger.log(() => [
       direction === Direction.backward ? '\u2934' : '\u2935',
       position,
-      shouldDelay ? (timeDiff + 'ms') : '0ms',
+      shouldDelay ? timeDiff + 'ms' : '0ms',
       shouldDelay ? (alreadyDelayed ? 'delayed' : `/ ${delta}ms delay`) : ''
     ]);
     if (!shouldDelay) {
@@ -68,7 +70,7 @@ export default class Scroll extends BaseProcessFactory(CommonProcess.scroll) {
           return [
             curr.direction === Direction.backward ? '\u2934' : '\u2935',
             curr.position,
-            (curr.time - time) + 'ms',
+            curr.time - time + 'ms',
             'triggered by timer set on',
             position
           ];
@@ -93,12 +95,16 @@ export default class Scroll extends BaseProcessFactory(CommonProcess.scroll) {
   }
 
   static onScroll(scroller: Scroller, workflow: ScrollerWorkflow): void {
-    const { state: { scroll, cycle } } = scroller;
+    const { scroll, cycle } = scroller.state;
     scroll.previous = { ...(scroll.current as ScrollEventData) };
     scroll.current = null;
 
     if (cycle.busy.get()) {
-      scroller.logger.log(() => ['skipping scroll', (scroll.previous as ScrollEventData).position, '[pending]']);
+      scroller.logger.log(() => [
+        'skipping scroll',
+        (scroll.previous as ScrollEventData).position,
+        '[pending]'
+      ]);
       return;
     }
 
@@ -107,5 +113,4 @@ export default class Scroll extends BaseProcessFactory(CommonProcess.scroll) {
       status: ProcessStatus.next
     });
   }
-
 }

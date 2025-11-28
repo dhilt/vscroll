@@ -1,4 +1,9 @@
-import { AdapterPropName, AdapterPropType, getDefaultAdapterProps, reactiveConfigStorage } from './props';
+import {
+  AdapterPropName,
+  AdapterPropType,
+  getDefaultAdapterProps,
+  reactiveConfigStorage
+} from './props';
 import core from '../../version';
 import { Reactive } from '../reactive';
 import { wantedStorage, wantedUtils } from './wanted';
@@ -7,7 +12,6 @@ import { IReactivePropsStore, IAdapterConfig } from '../../interfaces/index';
 let instanceCount = 0;
 
 export class AdapterContext {
-
   constructor(config: IAdapterConfig) {
     const { mock, reactive } = config;
     const id = ++instanceCount;
@@ -51,7 +55,8 @@ export class AdapterContext {
         });
       });
 
-    if (reactive) { // save both configured and default reactive props in the store
+    if (reactive) {
+      // save both configured and default reactive props in the store
       reactiveConfigStorage.set(id, reactivePropsStore);
     }
   }

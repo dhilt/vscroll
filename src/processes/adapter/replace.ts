@@ -4,7 +4,6 @@ import { BaseAdapterProcessFactory, AdapterProcess, ProcessStatus } from '../mis
 import { AdapterReplaceOptions, AdapterUpdateOptions } from '../../interfaces/index';
 
 export default class Replace extends BaseAdapterProcessFactory(AdapterProcess.replace) {
-
   static run(scroller: Scroller, options: AdapterReplaceOptions): void {
     const { params } = Replace.parseInput(scroller, options);
     if (!params) {
@@ -14,7 +13,7 @@ export default class Replace extends BaseAdapterProcessFactory(AdapterProcess.re
 
     scroller.workflow.call({
       process: Replace.process,
-      status: shouldReplace ? ProcessStatus.next : ProcessStatus.done,
+      status: shouldReplace ? ProcessStatus.next : ProcessStatus.done
     });
   }
 
@@ -45,5 +44,4 @@ export default class Replace extends BaseAdapterProcessFactory(AdapterProcess.re
 
     return Update.doUpdate(scroller, updateOptions);
   }
-
 }

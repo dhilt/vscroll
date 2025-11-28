@@ -122,7 +122,7 @@ export class FetchModel {
   }
 
   get hasNewItems(): boolean {
-    return !!((this._newItemsData && this._newItemsData.length));
+    return !!(this._newItemsData && this._newItemsData.length);
   }
 
   get index(): number {
@@ -130,7 +130,9 @@ export class FetchModel {
   }
 
   get count(): number {
-    return !isNaN(this.first.index) && !isNaN(this.last.index) ? this.last.index - this.first.index + 1 : 0;
+    return !isNaN(this.first.index) && !isNaN(this.last.index)
+      ? this.last.index - this.first.index + 1
+      : 0;
   }
 
   shouldCheckPreSizeExpectation(lastBufferedIndex: number): boolean {

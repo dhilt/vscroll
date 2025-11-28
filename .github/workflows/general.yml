@@ -1,0 +1,58 @@
+name: vscroll build and tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      cause:
+        description: "Reason"
+        required: true
+        default: "Manual triggering"
+
+jobs:
+  build_and_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatched?
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "This is dispatched"
+          echo "Test reason: ${{ github.event.inputs.cause }}"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Install test dependencies
+        run: cd tests && npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Install Playwright Browsers
+        run: cd tests && npx playwright install --with-deps chromium
+
+      - name: Run e2e tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: tests/e2e/playwright-report/
+          retention-days: 30
+

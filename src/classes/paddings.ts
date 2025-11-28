@@ -3,7 +3,6 @@ import { Settings } from './settings';
 import { Direction } from '../inputs/index';
 
 export class Padding {
-
   element: HTMLElement;
   direction: Direction;
   routines: Routines;
@@ -27,7 +26,6 @@ export class Padding {
   set size(value: number) {
     this.routines.setSizeStyle(this.element, value);
   }
-
 }
 
 export class Paddings {
@@ -43,8 +41,12 @@ export class Paddings {
 
   byDirection(direction: Direction, opposite?: boolean): Padding {
     return direction === Direction.backward
-      ? (opposite ? this.forward : this.backward)
-      : (opposite ? this.backward : this.forward);
+      ? opposite
+        ? this.forward
+        : this.backward
+      : opposite
+        ? this.backward
+        : this.forward;
   }
 
   reset(viewportSize: number, startIndex: number, offset: number): void {
@@ -67,7 +69,6 @@ export class Paddings {
         this.forward.size += diff;
       }
     }
-
   }
 
   getPositiveSize(startIndex: number, viewportSize: number, offset: number): number {

@@ -9,7 +9,7 @@ export enum CommonProcess {
   preClip = 'preClip',
   clip = 'clip',
   adjust = 'adjust',
-  end = 'end',
+  end = 'end'
 }
 
 export enum AdapterProcess {
@@ -24,7 +24,7 @@ export enum AdapterProcess {
   clip = 'adapter.clip',
   insert = 'adapter.insert',
   pause = 'adapter.pause',
-  fix = 'adapter.fix',
+  fix = 'adapter.fix'
 }
 
 export enum ProcessStatus {

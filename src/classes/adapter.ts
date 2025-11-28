@@ -34,21 +34,23 @@ import {
   IPackages,
   IBufferInfo,
   State,
-  ProcessSubject,
+  ProcessSubject
 } from '../interfaces/index';
 
 type MethodResolver = (...args: unknown[]) => Promise<AdapterMethodResult>;
 type InitializationParams<Item> = {
-  buffer: Buffer<Item>,
-  state: State,
-  viewport: Viewport,
-  logger: Logger,
-  adapterRun$?: Reactive<ProcessSubject>,
-  getWorkflow?: WorkflowGetter<Item>
-}
+  buffer: Buffer<Item>;
+  state: State;
+  viewport: Viewport;
+  logger: Logger;
+  adapterRun$?: Reactive<ProcessSubject>;
+  getWorkflow?: WorkflowGetter<Item>;
+};
 
 const ADAPTER_PROPS_STUB = getDefaultAdapterProps();
-const ALLOWED_METHODS_WHEN_PAUSED = ADAPTER_PROPS_STUB.filter(v => !!v.allowedWhenPaused).map(v => v.name);
+const ALLOWED_METHODS_WHEN_PAUSED = ADAPTER_PROPS_STUB.filter(v => !!v.allowedWhenPaused).map(
+  v => v.name
+);
 
 const _has = (obj: unknown, prop: string): boolean =>
   !!obj && typeof obj === 'object' && Object.prototype.hasOwnProperty.call(obj, prop);
@@ -80,8 +82,11 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   private demand: { [key: string]: unknown } = {}; // for Scalars on demand
   private disposed: boolean;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setFirstOrLastVisible = (_: { first?: boolean, last?: boolean, workflow?: ScrollerWorkflow }) => { };
+  setFirstOrLastVisible = (_: {
+    first?: boolean;
+    last?: boolean;
+    workflow?: ScrollerWorkflow;
+  }) => {};
 
   get workflow(): ScrollerWorkflow<Item> {
     return this.getWorkflow();
@@ -138,7 +143,6 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       if (this.paused && !ALLOWED_METHODS_WHEN_PAUSED.includes(name)) {
         this.logger?.log?.(() => 'scroller is paused: ' + name + ' method is ignored');
         return Promise.resolve(methodPausedResult);
-
       }
       return this.getPromisifiedMethod(method, args);
     };
@@ -153,7 +157,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     const contextId = context?.id || -1;
 
     // public context (if exists) should provide access to Reactive props config by id
-    const reactivePropsStore = context && reactiveConfigStorage.get(context.id) || {};
+    const reactivePropsStore = (context && reactiveConfigStorage.get(context.id)) || {};
 
     // the Adapter initialization should not trigger "wanted" props setting;
     // after the initialization is completed, "wanted" functionality must be unblocked
@@ -162,16 +166,16 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     // make array of the original values from public context if present
     const adapterProps = context
       ? ADAPTER_PROPS_STUB.map(prop => {
-        let value = context[prop.name];
-        // if context is augmented, we need to replace external reactive props with inner ones
-        if (context.augmented) {
-          const reactiveProp = reactivePropsStore[prop.name];
-          if (reactiveProp) {
-            value = reactiveProp.default as Reactive<boolean>; // boolean doesn't matter here
+          let value = context[prop.name];
+          // if context is augmented, we need to replace external reactive props with inner ones
+          if (context.augmented) {
+            const reactiveProp = reactivePropsStore[prop.name];
+            if (reactiveProp) {
+              value = reactiveProp.default as Reactive<boolean>; // boolean doesn't matter here
+            }
           }
-        }
-        return ({ ...prop, value });
-      })
+          return { ...prop, value };
+        })
       : getDefaultAdapterProps();
 
     // restore default reactive props if they were configured
@@ -208,9 +212,11 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     // so this method should be called when accessing the "wanted" props through one of the following getters
     const processWanted = (prop: IAdapterProp) => {
       if (wantedUtils.setBox(prop, contextId)) {
-        if ([AdapterPropName.firstVisible, AdapterPropName.firstVisible$].some(n => n === prop.name)) {
+        const firstPropList = [AdapterPropName.firstVisible, AdapterPropName.firstVisible$];
+        const lastPropList = [AdapterPropName.lastVisible, AdapterPropName.lastVisible$];
+        if (firstPropList.some(n => n === prop.name)) {
           this.setFirstOrLastVisible({ first: true });
-        } else if ([AdapterPropName.lastVisible, AdapterPropName.lastVisible$].some(n => n === prop.name)) {
+        } else if (lastPropList.some(n => n === prop.name)) {
           this.setFirstOrLastVisible({ last: true });
         }
       }
@@ -263,39 +269,43 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     }
 
     // Adapter public context augmentation
-    adapterProps
-      .forEach((prop: IAdapterProp) => {
-        const { name, type, permanent } = prop;
-        let value = (this as IAdapter)[name];
-        if (type === AdapterPropType.Function) {
-          value = (value as () => void).bind(this);
-        } else if (type === AdapterPropType.WorkflowRunner) {
-          value = this.getWorkflowRunnerMethod(value as MethodResolver, name);
-        } else if (type === AdapterPropType.Reactive && reactivePropsStore[name]) {
-          value = (context as IAdapter)[name];
-        } else if (name === AdapterPropName.augmented) {
-          value = true;
-        }
-        const nonPermanentScalar = !permanent && type === AdapterPropType.Scalar;
-        Object.defineProperty(context, name, {
-          configurable: true,
-          get: () => {
-            processWanted(prop); // consider accessing "wanted" Reactive props
-            if (nonPermanentScalar) {
-              return (this as IAdapter)[name]; // non-permanent Scalars should be taken in runtime
-            }
-            return value; // other props (Reactive/Functions/WorkflowRunners) can be defined once
+    adapterProps.forEach((prop: IAdapterProp) => {
+      const { name, type, permanent } = prop;
+      let value = (this as IAdapter)[name];
+      if (type === AdapterPropType.Function) {
+        value = (value as () => void).bind(this);
+      } else if (type === AdapterPropType.WorkflowRunner) {
+        value = this.getWorkflowRunnerMethod(value as MethodResolver, name);
+      } else if (type === AdapterPropType.Reactive && reactivePropsStore[name]) {
+        value = (context as IAdapter)[name];
+      } else if (name === AdapterPropName.augmented) {
+        value = true;
+      }
+      const nonPermanentScalar = !permanent && type === AdapterPropType.Scalar;
+      Object.defineProperty(context, name, {
+        configurable: true,
+        get: () => {
+          processWanted(prop); // consider accessing "wanted" Reactive props
+          if (nonPermanentScalar) {
+            return (this as IAdapter)[name]; // non-permanent Scalars should be taken in runtime
           }
-        });
+          return value; // other props (Reactive/Functions/WorkflowRunners) can be defined once
+        }
       });
+    });
 
     this.externalContext = context;
     wantedUtils.setBlock(false, contextId);
   }
 
-  initialize(
-    { buffer, state, viewport, logger, adapterRun$, getWorkflow }: InitializationParams<Item>
-  ): void {
+  initialize({
+    buffer,
+    state,
+    viewport,
+    logger,
+    adapterRun$,
+    getWorkflow
+  }: InitializationParams<Item>): void {
     // buffer
     Object.defineProperty(this.demand, AdapterPropName.itemsCount, {
       get: () => buffer.getVisibleItemsCount()
@@ -308,24 +318,24 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         maxIndex: buffer.maxIndex,
         absMinIndex: buffer.absMinIndex,
         absMaxIndex: buffer.absMaxIndex,
-        defaultSize: buffer.defaultSize,
+        defaultSize: buffer.defaultSize
       })
     });
     this.bof = buffer.bof.get();
-    buffer.bof.on(bof => this.bof = bof);
+    buffer.bof.on(bof => (this.bof = bof));
     this.eof = buffer.eof.get();
-    buffer.eof.on(eof => this.eof = eof);
+    buffer.eof.on(eof => (this.eof = eof));
 
     // state
     Object.defineProperty(this.demand, AdapterPropName.packageInfo, {
       get: () => state.packageInfo
     });
     this.loopPending = state.cycle.innerLoop.busy.get();
-    state.cycle.innerLoop.busy.on(busy => this.loopPending = busy);
+    state.cycle.innerLoop.busy.on(busy => (this.loopPending = busy));
     this.isLoading = state.cycle.busy.get();
-    state.cycle.busy.on(busy => this.isLoading = busy);
+    state.cycle.busy.on(busy => (this.isLoading = busy));
     this.paused = state.paused.get();
-    state.paused.on(paused => this.paused = paused);
+    state.paused.on(paused => (this.paused = paused));
 
     //viewport
     this.setFirstOrLastVisible = ({ first, last, workflow }) => {
@@ -337,7 +347,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         return;
       }
       if (buffer.items.some(({ element }) => !element)) {
-        logger.log('skipping first/lastVisible set because not all buffered items are rendered at this moment');
+        logger.log(
+          'skipping first/lastVisible set because not all buffered items are rendered at this moment'
+        );
         return;
       }
       const direction = first ? Direction.backward : Direction.forward;
@@ -357,7 +369,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       }
       const relax$ = this.relax$;
       adapterRun$.on(({ status, payload }) => {
-        let unSubRelax = () => { };
+        let unSubRelax = () => {};
         if (status === ProcessStatus.start) {
           unSubRelax = this.isLoading$.on(value => {
             if (!value) {
@@ -400,24 +412,23 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
 
   resetContext(): void {
     const reactiveStore = reactiveConfigStorage.get(this.externalContext?.id);
-    ADAPTER_PROPS_STUB
-      .forEach(({ type, permanent, name, value }) => {
-        // assign initial values to non-reactive non-permanent props
-        if (type !== AdapterPropType.Reactive && !permanent) {
-          Object.defineProperty(this.externalContext, name, {
-            configurable: true,
-            get: () => value
-          });
+    ADAPTER_PROPS_STUB.forEach(({ type, permanent, name, value }) => {
+      // assign initial values to non-reactive non-permanent props
+      if (type !== AdapterPropType.Reactive && !permanent) {
+        Object.defineProperty(this.externalContext, name, {
+          configurable: true,
+          get: () => value
+        });
+      }
+      // reset reactive props
+      if (type === AdapterPropType.Reactive && reactiveStore) {
+        const property = reactiveStore[name];
+        if (property) {
+          property.default.reset();
+          property.emit(property.source, property.default.get());
         }
-        // reset reactive props
-        if (type === AdapterPropType.Reactive && reactiveStore) {
-          const property = reactiveStore[name];
-          if (property) {
-            property.default.reset();
-            property.emit(property.source, property.default.get());
-          }
-        }
-      });
+      }
+    });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -553,8 +564,12 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     });
   }
 
-  relaxUnchained(callback: (() => void) | undefined, reloadId: string): Promise<AdapterMethodResult> {
-    const runCallback = () => typeof callback === 'function' && reloadId === this.reloadId && callback();
+  relaxUnchained(
+    callback: (() => void) | undefined,
+    reloadId: string
+  ): Promise<AdapterMethodResult> {
+    const runCallback = () =>
+      typeof callback === 'function' && reloadId === this.reloadId && callback();
     if (!this.isLoading) {
       runCallback();
     }
@@ -576,7 +591,9 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         };
       }
       const success = reloadId === this.reloadId;
-      this.logger?.log?.(() => !success ? `relax promise cancelled due to ${reloadId} != ${this.reloadId}` : void 0);
+      this.logger?.log?.(() =>
+        !success ? `relax promise cancelled due to ${reloadId} != ${this.reloadId}` : void 0
+      );
       return {
         immediate,
         success,
@@ -591,12 +608,12 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     if (!this.init) {
       return Promise.resolve(methodPreResult);
     }
-    return this.relaxRun = this.relaxRun
+    return (this.relaxRun = this.relaxRun
       ? this.relaxRun.then(() => this.relaxUnchained(callback, reloadId))
-      : this.relaxUnchained(callback, reloadId).then((result) => {
-        this.relaxRun = null;
-        return result;
-      });
+      : this.relaxUnchained(callback, reloadId).then(result => {
+          this.relaxRun = null;
+          return result;
+        }));
   }
 
   showLog(): void {

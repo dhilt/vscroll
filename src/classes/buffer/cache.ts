@@ -76,7 +76,7 @@ export class Cache<Data = unknown> {
 
   getSizeByIndex(index: number): number {
     const item = this.get(index);
-    return item && item.size || this.defaultSize.get();
+    return (item && item.size) || this.defaultSize.get();
   }
 
   getDefaultSize(): number {
@@ -96,12 +96,12 @@ export class Cache<Data = unknown> {
    * Maintains min/max indexes and default item size.
    *
    * @param {Item<Data>} item A Buffer item to be cached, an objects with { $index, data, size } props.
-   * 
    * @returns {ItemCache<Data>} Cached item.
    */
   add(item: Item<Data>): ItemCache<Data> {
     let itemCache = this.get(item.$index);
-    if (itemCache) { // adding item is already cached
+    if (itemCache) {
+      // adding item is already cached
       if (this.saveData) {
         itemCache.data = item.data;
       }
@@ -142,7 +142,8 @@ export class Cache<Data = unknown> {
   insertItems(toInsert: Data[], index: number, direction: Direction, fixRight: boolean): void {
     const items = new Map<number, ItemCache<Data>>();
     const length = toInsert.length;
-    let min = Infinity, max = -Infinity;
+    let min = Infinity,
+      max = -Infinity;
     const set = (item: ItemCache<Data>) => {
       items.set(item.$index, item);
       min = item.$index < min ? item.$index : min;
@@ -168,9 +169,11 @@ export class Cache<Data = unknown> {
       }
       set(item);
     });
-    if (this.saveData) { // persist data with no sizes
+    if (this.saveData) {
+      // persist data with no sizes
       toInsert.forEach((data, i) => {
-        const $index = index + i - (fixRight ? length : 0) + (direction === Direction.forward ? 1 : 0);
+        const $index =
+          index + i - (fixRight ? length : 0) + (direction === Direction.forward ? 1 : 0);
         const item = new ItemCache<Data>({ $index, data }, this.saveData);
         set(item);
       });
@@ -192,7 +195,8 @@ export class Cache<Data = unknown> {
    */
   removeItems(toRemove: number[], fixRight: boolean): void {
     const items = new Map<number, ItemCache<Data>>();
-    let min = Infinity, max = -Infinity;
+    let min = Infinity,
+      max = -Infinity;
     this.items.forEach(item => {
       if (toRemove.some(index => index === item.$index)) {
         if (item.size) {
@@ -229,10 +233,12 @@ export class Cache<Data = unknown> {
     if (!this.size || !before.length) {
       return;
     }
-    const minB = before[0].$index, maxB = before[before.length - 1].$index;
+    const minB = before[0].$index,
+      maxB = before[before.length - 1].$index;
     let leftDiff: number, rightDiff: number;
     if (after.length) {
-      const minA = after[0].$index, maxA = after[after.length - 1].$index;
+      const minA = after[0].$index,
+        maxA = after[after.length - 1].$index;
       leftDiff = minA - minB;
       rightDiff = maxA - maxB;
     } else {
@@ -241,18 +247,22 @@ export class Cache<Data = unknown> {
     }
     const items = new Map<number, ItemCache<Data>>();
     this.items.forEach(item => {
-      if (item.$index < minB) { // items to the left of the subset
+      if (item.$index < minB) {
+        // items to the left of the subset
         item.changeIndex(item.$index + leftDiff);
         items.set(item.$index, item);
         return;
-      } else if (item.$index > maxB) { // items to the right of the subset
+      } else if (item.$index > maxB) {
+        // items to the right of the subset
         item.changeIndex(item.$index + rightDiff);
         items.set(item.$index, item);
         return;
       }
     });
-    after.forEach(item => // subset items
-      items.set(item.$index, new ItemCache<Data>(item, this.saveData))
+    after.forEach(
+      (
+        item // subset items
+      ) => items.set(item.$index, new ItemCache<Data>(item, this.saveData))
     );
     before // to maintain default size on remove
       .filter(item => item.toRemove)
@@ -271,7 +281,8 @@ export class Cache<Data = unknown> {
    */
   shiftIndexes(delta: number): void {
     const items = new Map<number, ItemCache<Data>>();
-    let min = Infinity, max = -Infinity;
+    let min = Infinity,
+      max = -Infinity;
     this.items.forEach(item => {
       item.changeIndex(item.$index + delta);
       items.set(item.$index, item);

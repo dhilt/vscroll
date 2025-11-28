@@ -1,6 +1,7 @@
 import { AdapterContext } from './adapter/context';
-import { reactiveConfigStorage } from './adapter/props';
+import { reactiveConfigStorage, AdapterPropType, getDefaultAdapterProps } from './adapter/props';
 import { wantedStorage } from './adapter/wanted';
+import { Reactive } from './reactive';
 import {
   IDatasourceParams,
   IDatasourceConstructed,
@@ -9,7 +10,25 @@ import {
   DevSettings,
   IAdapter,
   IAdapterConfig,
+  IReactivePropConfig
 } from '../interfaces/index';
+
+const getDefaultAdapterConfig = (): IAdapterConfig => {
+  const reactive = getDefaultAdapterProps()
+    .filter(({ type }) => type === AdapterPropType.Reactive)
+    .reduce(
+      (acc, { name, value }) => {
+        acc[name] = {
+          source: value,
+          emit: (source, val) => (source as Reactive<unknown>).set(val)
+        };
+        return acc;
+      },
+      {} as Record<string, IReactivePropConfig>
+    );
+
+  return { mock: false, reactive };
+};
 
 export class DatasourceGeneric<Data> implements IDatasourceConstructed<Data> {
   get: DatasourceGet<Data>;
@@ -25,19 +44,20 @@ export class DatasourceGeneric<Data> implements IDatasourceConstructed<Data> {
     this.adapter = adapterContext as unknown as IAdapter<Data>;
   }
 
-  dispose(): void { // todo: should it be published?
+  // todo: should it be published?
+  dispose(): void {
     reactiveConfigStorage.delete(this.adapter.id);
     wantedStorage.delete(this.adapter.id);
   }
 }
 
-
 export const makeDatasource = <DSClassType = typeof DatasourceGeneric>(
-  getConfig?: () => IAdapterConfig
+  getAdapterConfig?: () => IAdapterConfig
 ) =>
-  class <Data = unknown> extends DatasourceGeneric<Data> {
+  class<Data = unknown> extends DatasourceGeneric<Data> {
     constructor(datasource: IDatasourceParams<Data>) {
-      const config = typeof getConfig === 'function' ? getConfig() : void 0;
+      const config =
+        typeof getAdapterConfig === 'function' ? getAdapterConfig() : getDefaultAdapterConfig();
       super(datasource, config);
     }
   } as DSClassType;

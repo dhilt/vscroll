@@ -23,6 +23,7 @@ export interface DevSettings {
   immediateLog?: boolean;
   logProcessRun?: boolean;
   logTime?: boolean;
+  logColor?: boolean;
   throttle?: number;
   initDelay?: number;
   initWindowDelay?: number;

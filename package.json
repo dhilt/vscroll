@@ -1,6 +1,6 @@
 {
   "name": "vscroll",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Virtual scroll engine",
   "main": "dist/bundles/vscroll.umd.js",
   "module": "dist/bundles/vscroll.esm5.js",
@@ -33,7 +33,7 @@
     "test:e2e:debug": "cd tests && npm run test:e2e:debug",
     "prepack": "npm run build",
     "checkGit": "sh ./uncommited.sh",
-    "prepublishOnly": "npm run checkGit && npm run test && npm run build && npm run checkGit"
+    "prepublishOnly": "npm run checkGit && npm run build && npm run test && npm run checkGit"
   },
   "dependencies": {
     "tslib": "^2.8.1"
@@ -57,9 +57,12 @@
   },
   "keywords": [
     "vscroll",
+    "lazy-loading",
     "virtual",
     "virtualizing",
     "virtualization",
+    "virtual-scroll",
+    "infinite-scroll",
     "scroll",
     "scrolling",
     "scroller",

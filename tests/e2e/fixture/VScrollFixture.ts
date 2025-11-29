@@ -160,8 +160,7 @@ export class VScrollFixture {
         datasourceSettings,
         datasourceDevSettings,
         templateFnStr,
-        noAdapter,
-        manualRun
+        noAdapter
       }) => {
         const VScroll = window.VScroll;
 
@@ -268,21 +267,27 @@ export class VScrollFixture {
         const makeScroller = () =>
           (window.__vscroll__.workflow = workflowFactory()());
         window.__vscroll__.makeScroller = makeScroller;
-
-        // Create initial workflow (unless manualRun)
-        if (!manualRun) {
-          makeScroller();
-        }
       },
       {
         datasourceGetStr,
         datasourceSettings,
         datasourceDevSettings,
         templateFnStr,
-        noAdapter: !!noAdapter,
-        manualRun: !!manualRun
+        noAdapter: !!noAdapter
       }
     );
+
+    // Run onBefore hook
+    // Workflow is ready but not initialized
+    // Datasource is instantiated, so subscriptions can be made
+    if (this.config.onBefore) {
+      await this.config.onBefore(this.page);
+    }
+
+    // Create initial workflow (unless manualRun)
+    if (!manualRun) {
+      await this.page.evaluate(() => window.__vscroll__.makeScroller?.());
+    }
   }
 
   /**

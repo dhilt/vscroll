@@ -26,7 +26,8 @@ export const createFixture = async ({
       data: { id: number; text: string };
     }) => `<div class="item">${item.$index}: ${item.data.text}</div>`,
     noAdapter: config.noAdapter,
-    manualRun: config.manualRun
+    manualRun: config.manualRun,
+    onBefore: config.onBefore
   });
 
   if (!config.manualRun && !config.noRelaxOnStart) {

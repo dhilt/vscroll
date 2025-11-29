@@ -22,8 +22,7 @@ const configList: ITestConfig[] = [
       padding: 0.5,
       itemSize: 20,
       minIndex: -49,
-      maxIndex: 100,
-      adapter: true
+      maxIndex: 100
     },
     templateSettings: { viewportHeight: 200, itemHeight: 20 }
   },
@@ -42,8 +41,7 @@ const configList: ITestConfig[] = [
       padding: 1.2,
       itemSize: 40,
       minIndex: -69,
-      maxIndex: 1300,
-      adapter: true
+      maxIndex: 1300
     },
     templateSettings: { viewportHeight: 100, itemHeight: 40 }
   },
@@ -62,8 +60,7 @@ const configList: ITestConfig[] = [
       padding: 0.7,
       itemSize: 25,
       minIndex: 169,
-      maxIndex: 230,
-      adapter: true
+      maxIndex: 230
     },
     templateSettings: { viewportHeight: 50, itemHeight: 25 }
   },
@@ -83,8 +80,7 @@ const configList: ITestConfig[] = [
       itemSize: 100,
       minIndex: 20,
       maxIndex: 230,
-      horizontal: true,
-      adapter: true
+      horizontal: true
     },
     templateSettings: { viewportWidth: 450, itemWidth: 100, horizontal: true }
   },
@@ -104,8 +100,7 @@ const configList: ITestConfig[] = [
       itemSize: 20,
       minIndex: -40,
       maxIndex: 159,
-      windowViewport: true,
-      adapter: true
+      windowViewport: true
     },
     templateSettings: {
       noViewportClass: true,

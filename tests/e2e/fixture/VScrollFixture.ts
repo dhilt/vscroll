@@ -136,7 +136,7 @@ export class VScrollFixture {
    * 2. Datasource class with adapter (adapter tests)
    */
   private async initializeWorkflow(): Promise<void> {
-    const { datasource, templateFn, noAdapter, manualRun } = this.config;
+    const { datasource, templateFn, noAdapter } = this.config;
 
     // Serialize functions and config
     const datasourceGetStr = datasource.get ? datasource.get.toString() : null;
@@ -145,8 +145,8 @@ export class VScrollFixture {
     // debug enabled, colors disabled, immediateLog disabled (to store logs in logger for retrieval on test failure)
     const datasourceDevSettings = {
       debug: true,
-      logProcessRun: true,
-      immediateLog: false,
+      logProcessRun: false,
+      immediateLog: true,
       logColor: false,
       ...(datasource.devSettings || {})
     };
@@ -284,10 +284,8 @@ export class VScrollFixture {
       await this.config.onBefore(this.page);
     }
 
-    // Create initial workflow (unless manualRun)
-    if (!manualRun) {
-      await this.page.evaluate(() => window.__vscroll__.makeScroller?.());
-    }
+    // Create initial workflow
+    await this.page.evaluate(() => window.__vscroll__.makeScroller?.());
   }
 
   /**

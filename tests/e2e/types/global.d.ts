@@ -12,7 +12,7 @@ interface VScrollTest<ItemData = unknown> {
   datasource: {
     adapter?: IAdapter<ItemData>;
   };
-  makeScroller?: () => Workflow<ItemData>; // Creates Workflow with fresh oldItems closure (when manualRun)
+  makeScroller?: () => Workflow<ItemData>; // Creates Workflow with fresh oldItems closure
   Direction: {
     forward: string;
     backward: string;

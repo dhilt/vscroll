@@ -27,8 +27,7 @@ test.describe('Delay Scroll Spec', () => {
         startIndex: 1,
         bufferSize: 5,
         padding: 0.5,
-        itemSize: 20,
-        adapter: true
+        itemSize: 20
       },
       datasourceDevSettings: {
         throttle: 500
@@ -89,8 +88,7 @@ test.describe('Delay Scroll Spec', () => {
         startIndex: 1,
         bufferSize: 5,
         padding: 0.5,
-        itemSize: 20,
-        adapter: true
+        itemSize: 20
       },
       templateSettings: {
         viewportHeight: 200,

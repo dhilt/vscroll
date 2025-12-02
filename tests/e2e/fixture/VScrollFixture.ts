@@ -136,7 +136,7 @@ export class VScrollFixture {
    * 2. Datasource class with adapter (adapter tests)
    */
   private async initializeWorkflow(): Promise<void> {
-    const { datasource, templateFn, noAdapter, manualRun } = this.config;
+    const { datasource, templateFn, noAdapter } = this.config;
 
     // Serialize functions and config
     const datasourceGetStr = datasource.get ? datasource.get.toString() : null;
@@ -145,8 +145,8 @@ export class VScrollFixture {
     // debug enabled, colors disabled, immediateLog disabled (to store logs in logger for retrieval on test failure)
     const datasourceDevSettings = {
       debug: true,
-      logProcessRun: true,
-      immediateLog: false,
+      logProcessRun: false,
+      immediateLog: true,
       logColor: false,
       ...(datasource.devSettings || {})
     };
@@ -160,8 +160,7 @@ export class VScrollFixture {
         datasourceSettings,
         datasourceDevSettings,
         templateFnStr,
-        noAdapter,
-        manualRun
+        noAdapter
       }) => {
         const VScroll = window.VScroll;
 
@@ -268,21 +267,25 @@ export class VScrollFixture {
         const makeScroller = () =>
           (window.__vscroll__.workflow = workflowFactory()());
         window.__vscroll__.makeScroller = makeScroller;
-
-        // Create initial workflow (unless manualRun)
-        if (!manualRun) {
-          makeScroller();
-        }
       },
       {
         datasourceGetStr,
         datasourceSettings,
         datasourceDevSettings,
         templateFnStr,
-        noAdapter: !!noAdapter,
-        manualRun: !!manualRun
+        noAdapter: !!noAdapter
       }
     );
+
+    // Run onBefore hook
+    // Workflow is ready but not initialized
+    // Datasource is instantiated, so subscriptions can be made
+    if (this.config.onBefore) {
+      await this.config.onBefore(this.page);
+    }
+
+    // Create initial workflow
+    await this.page.evaluate(() => window.__vscroll__.makeScroller?.());
   }
 
   /**
@@ -292,15 +295,12 @@ export class VScrollFixture {
     const page = this.page;
     return {
       get cyclesDone(): Promise<number> {
-        return page.evaluate(() => {
-          return window.__vscroll__.workflow.cyclesDone;
-        });
+        return page.evaluate(() => window.__vscroll__.workflow.cyclesDone);
       },
       get innerLoopCount(): Promise<number> {
-        return page.evaluate(() => {
-          return window.__vscroll__.workflow.scroller.state.cycle.innerLoop
-            .total;
-        });
+        return page.evaluate(
+          () => window.__vscroll__.workflow.scroller.state.cycle.innerLoop.total
+        );
       }
     };
   }
@@ -382,46 +382,37 @@ export class VScrollFixture {
   }
 
   /**
-   * Wait for workflow to start loading (a new cycle to begin)
-   * This ensures the workflow has started processing before we proceed
+   * Wait for the workflow cycle to complete
+   * @param cycle - The cycle to wait for, if not provided, wait for the current cycle to complete
+   * @returns A promise that resolves when the workflow has finished current or provided cycle
    */
-  waitForLoadingStart(): Promise<void> {
+  async relaxNext(cycle: number): Promise<void> {
     return this.page.evaluate(
-      () =>
+      ({ cycle }: { cycle: number }) =>
         new Promise<void>(resolve => {
           const workflow = window.__vscroll__.workflow;
           const ds = workflow.scroller.datasource;
-          const initialCycles = workflow.cyclesDone;
+          const cycleToComplete =
+            typeof cycle === 'number' ? cycle - 1 : workflow.cyclesDone;
 
-          // If already loading, we're good
+          // If already loading, we can wait for the adapter is relaxed
           if (ds?.adapter?.isLoading) {
-            resolve();
-            return;
+            return ds.adapter.relax().then(() => resolve());
           }
 
-          // Otherwise wait for a new cycle to start OR loading to begin
-          const check = async () => {
-            if (workflow.cyclesDone > initialCycles && ds?.adapter) {
+          // Otherwise, wait for the given cycle to complete
+          const waitForCycle = async () => {
+            if (workflow.cyclesDone > cycleToComplete && ds?.adapter) {
               await ds.adapter.relax();
-              resolve();
+              return resolve();
             } else {
-              requestAnimationFrame(check);
+              requestAnimationFrame(waitForCycle);
             }
           };
-          check();
-        })
-    );
-  }
 
-  /**
-   * Wait for the next workflow cycle to start and complete
-   * Equivalent to: waitForLoadingStart() + adapter.relax()
-   * This is the recommended way to wait for workflow operations to complete
-   */
-  async relaxNext(): Promise<void> {
-    await this.waitForLoadingStart();
-    await this.page.evaluate(() =>
-      window.__vscroll__.workflow.scroller.datasource.adapter.relax()
+          waitForCycle();
+        }),
+      { cycle }
     );
   }
 

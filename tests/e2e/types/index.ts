@@ -25,8 +25,9 @@ export interface ITestConfig<Custom = unknown> {
   templateSettings: ITemplateSettings;
   noAdapter?: boolean;
   noRelaxOnStart?: boolean;
-  manualRun?: boolean;
   custom?: Custom;
+  onBefore?: (page: Page) => Promise<void>;
+  templateFn?: (item: unknown) => string;
 }
 
 export interface VScrollFixtureConfig {
@@ -34,5 +35,5 @@ export interface VScrollFixtureConfig {
   noAdapter?: boolean;
   templateSettings?: ITemplateSettings;
   templateFn?: (item: unknown) => string;
-  manualRun?: boolean;
+  onBefore?: (page: Page) => Promise<void>;
 }

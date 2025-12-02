@@ -9,7 +9,6 @@ test.afterEach(afterEachLogs);
 interface ICustom {
   scrollTo?: number;
 }
-
 type IConfig = ITestConfig<ICustom>;
 
 // Datasource: limited callback (1-100)
@@ -32,7 +31,7 @@ const datasourceGet = (index, count, success) => {
 // Base config: windowViewport with 50px header
 const windowWith50HeaderConfig: IConfig = {
   datasourceGet,
-  datasourceSettings: { startIndex: 1, windowViewport: true, adapter: true },
+  datasourceSettings: { startIndex: 1, windowViewport: true },
   templateSettings: {
     itemHeight: 50,
     noViewportClass: true,

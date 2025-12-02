@@ -10,7 +10,7 @@ export const createFixture = async ({
   page,
   config
 }: FixtureParams): Promise<VScrollFixture> => {
-  const { templateSettings } = config;
+  const { templateSettings, templateFn } = config;
 
   const datasource: IDatasource = {
     get: config.datasourceGet,
@@ -21,17 +21,17 @@ export const createFixture = async ({
   const fixture = await VScrollFixture.create(page, {
     datasource,
     templateSettings,
-    templateFn: (item: {
-      $index: number;
-      data: { id: number; text: string };
-    }) => `<div class="item">${item.$index}: ${item.data.text}</div>`,
+    templateFn:
+      templateFn ||
+      ((item: { $index: number; data: { id: number; text: string } }) =>
+        `<div class="item">${item.$index}: ${item.data.text}</div>`),
     noAdapter: config.noAdapter,
     onBefore: config.onBefore
   });
 
   if (!config.noRelaxOnStart) {
     // Wait for initial workflow cycle to complete
-    await fixture.relaxNext();
+    await fixture.relaxNext(1);
   }
 
   // // Debug: log actual element dimensions

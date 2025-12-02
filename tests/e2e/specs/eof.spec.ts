@@ -10,13 +10,6 @@ import { ITestConfig } from 'types/index.js';
 
 test.afterEach(afterEachLogs);
 
-// // Capture console logs for comparison
-// test.beforeEach(async ({ page }) => {
-//   page.on('console', msg => {
-//     console.log('[BROWSER]', msg.text());
-//   });
-// });
-
 const min = 1;
 const max = 100;
 const scrollCount = 10;

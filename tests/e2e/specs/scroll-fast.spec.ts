@@ -47,8 +47,7 @@ const configList: IConfig[] = [
       bufferSize: 5,
       padding: 0.5,
       minIndex: 1,
-      maxIndex: 100,
-      adapter: true
+      maxIndex: 100
     },
     templateSettings: { viewportHeight: 100, itemHeight: 20 },
     custom: { items: 100, scrollCount: 5, start: Direction.backward }
@@ -60,8 +59,7 @@ const configList: IConfig[] = [
       bufferSize: 3,
       padding: 0.3,
       minIndex: 1,
-      maxIndex: 100,
-      adapter: true
+      maxIndex: 100
     },
     templateSettings: { viewportHeight: 110, itemHeight: 20 },
     custom: { items: 100, scrollCount: 8, start: Direction.backward }
@@ -73,8 +71,7 @@ const configList: IConfig[] = [
       bufferSize: 7,
       padding: 1.1,
       minIndex: 51,
-      maxIndex: 200,
-      adapter: true
+      maxIndex: 200
     },
     templateSettings: { viewportHeight: 69, itemHeight: 20 },
     custom: { items: 150, scrollCount: 6, start: Direction.backward }
@@ -87,8 +84,7 @@ const configList: IConfig[] = [
       padding: 0.2,
       windowViewport: true,
       minIndex: 51,
-      maxIndex: 200,
-      adapter: true
+      maxIndex: 200
     },
     templateSettings: {
       noViewportClass: true,

@@ -6,7 +6,7 @@ import { INVALID_DATASOURCE_PREFIX } from './scroller';
 import { AdapterPropName, EMPTY_ITEM, getDefaultAdapterProps } from './classes/adapter/props';
 import { Direction, SizeStrategy } from './inputs/index';
 
-import {
+import type {
   IDatasource,
   IDatasourceConstructed,
   IRoutines,

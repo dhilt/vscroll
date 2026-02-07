@@ -5,13 +5,6 @@ import { createFixture } from '../fixture/create-fixture.js';
 import { ITestConfig } from 'types/index.js';
 import { ItemsCounter } from '../helpers/itemsCounter.js';
 
-// // Capture console logs for comparison
-// test.beforeEach(async ({ page }) => {
-//   page.on('console', msg => {
-//     console.log('[BROWSER]', msg.text());
-//   });
-// });
-
 test.afterEach(afterEachLogs);
 
 // Basic unlimited datasource for all tests
@@ -29,8 +22,7 @@ const fixedItemSizeConfigList: ITestConfig[] = [
     datasourceSettings: {
       startIndex: 1,
       padding: 2,
-      itemSize: 15,
-      adapter: true
+      itemSize: 15
     },
     templateSettings: { viewportHeight: 20, itemHeight: 15 }
   },
@@ -39,8 +31,7 @@ const fixedItemSizeConfigList: ITestConfig[] = [
     datasourceSettings: {
       startIndex: 1,
       padding: 0.5,
-      itemSize: 20,
-      adapter: true
+      itemSize: 20
     },
     templateSettings: { viewportHeight: 120, itemHeight: 20 }
   },
@@ -49,8 +40,7 @@ const fixedItemSizeConfigList: ITestConfig[] = [
     datasourceSettings: {
       startIndex: -99,
       padding: 0.3,
-      itemSize: 25,
-      adapter: true
+      itemSize: 25
     },
     templateSettings: { viewportHeight: 200, itemHeight: 25 }
   },
@@ -60,8 +50,7 @@ const fixedItemSizeConfigList: ITestConfig[] = [
       startIndex: -77,
       padding: 0.62,
       itemSize: 100,
-      horizontal: true,
-      adapter: true
+      horizontal: true
     },
     templateSettings: { viewportWidth: 450, itemWidth: 100, horizontal: true }
   },
@@ -71,8 +60,7 @@ const fixedItemSizeConfigList: ITestConfig[] = [
       startIndex: 1,
       padding: 0.5,
       itemSize: 20,
-      windowViewport: true,
-      adapter: true
+      windowViewport: true
     },
     templateSettings: {
       noViewportClass: true,
@@ -89,8 +77,7 @@ const fixedItemSizeAndBigBufferSizeConfigList: ITestConfig[] = [
       startIndex: 100,
       padding: 0.1,
       itemSize: 20,
-      bufferSize: 20,
-      adapter: true
+      bufferSize: 20
     },
     templateSettings: { viewportHeight: 100, itemHeight: 20 }
   },
@@ -101,8 +88,7 @@ const fixedItemSizeAndBigBufferSizeConfigList: ITestConfig[] = [
       padding: 0.1,
       itemSize: 100,
       bufferSize: 10,
-      horizontal: true,
-      adapter: true
+      horizontal: true
     },
     templateSettings: { viewportWidth: 200, itemWidth: 100, horizontal: true }
   }
@@ -115,8 +101,7 @@ const tunedItemSizeConfigList: ITestConfig[] = [
       startIndex: 1,
       bufferSize: 1,
       padding: 0.5,
-      itemSize: 40,
-      adapter: true
+      itemSize: 40
     },
     noRelaxOnStart: true,
     templateSettings: { viewportHeight: 100, itemHeight: 20 }
@@ -127,8 +112,7 @@ const tunedItemSizeConfigList: ITestConfig[] = [
       startIndex: -50,
       bufferSize: 2,
       padding: 0.5,
-      itemSize: 30,
-      adapter: true
+      itemSize: 30
     },
     noRelaxOnStart: true,
     templateSettings: { viewportHeight: 120, itemHeight: 20 }
@@ -139,8 +123,7 @@ const tunedItemSizeConfigList: ITestConfig[] = [
       startIndex: -77,
       padding: 0.82,
       itemSize: 200,
-      horizontal: true,
-      adapter: true
+      horizontal: true
     },
     noRelaxOnStart: true,
     templateSettings: { viewportWidth: 450, itemWidth: 100, horizontal: true }
@@ -151,8 +134,7 @@ const tunedItemSizeConfigList: ITestConfig[] = [
       startIndex: -47,
       padding: 0.3,
       itemSize: 60,
-      windowViewport: true,
-      adapter: true
+      windowViewport: true
     },
     noRelaxOnStart: true,
     templateSettings: {
@@ -170,8 +152,7 @@ const tunedItemSizeAndBigBufferSizeConfigList: ITestConfig[] = [
       startIndex: -50,
       bufferSize: 7,
       padding: 0.5,
-      itemSize: 30,
-      adapter: true
+      itemSize: 30
     },
     noRelaxOnStart: true,
     templateSettings: { viewportHeight: 120, itemHeight: 20 }
@@ -183,8 +164,7 @@ const tunedItemSizeAndBigBufferSizeConfigList: ITestConfig[] = [
       padding: 0.33,
       itemSize: 35,
       bufferSize: 20,
-      windowViewport: true,
-      adapter: true
+      windowViewport: true
     },
     noRelaxOnStart: true,
     templateSettings: {
@@ -235,8 +215,7 @@ const lackOfItemsOnFirstFetchConfigList: ITestConfig[] = [
       startIndex: 100,
       padding: 0.5,
       bufferSize: 10,
-      minIndex: 1,
-      adapter: true
+      minIndex: 1
     },
     noRelaxOnStart: true,
     templateSettings: { viewportHeight: 300, itemHeight: 20 }
@@ -255,8 +234,7 @@ const lackOfItemsOnFirstFetchConfigList: ITestConfig[] = [
       startIndex: -70,
       padding: 0.5,
       bufferSize: 2,
-      minIndex: -75,
-      adapter: true
+      minIndex: -75
     },
     noRelaxOnStart: true,
     templateSettings: { viewportHeight: 200, itemHeight: 20 }
@@ -276,8 +254,7 @@ const lackOfItemsOnFirstFetchConfigList: ITestConfig[] = [
       padding: 0.1,
       bufferSize: 12,
       minIndex: -9,
-      windowViewport: true,
-      adapter: true
+      windowViewport: true
     },
     noRelaxOnStart: true,
     templateSettings: {
@@ -301,8 +278,7 @@ const lackOfItemsOnFirstFetchConfigList: ITestConfig[] = [
       padding: 0.3,
       bufferSize: 4,
       minIndex: -120,
-      horizontal: true,
-      adapter: true
+      horizontal: true
     },
     noRelaxOnStart: true,
     templateSettings: { horizontal: true, viewportWidth: 300, itemWidth: 40 }

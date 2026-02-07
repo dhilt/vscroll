@@ -1,4 +1,4 @@
-import {
+import type {
   ObservableLike,
   DatasourceGet,
   IDatasourceParams,
@@ -6,7 +6,7 @@ import {
   IDatasource,
   IDatasourceConstructed
 } from './datasource';
-import {
+import type {
   OnDataChanged,
   WorkflowParams,
   ScrollerWorkflow,
@@ -17,8 +17,8 @@ import {
   StateMachineMethods,
   StateMachineParams
 } from './workflow';
-import { Item } from './item';
-import {
+import type { Item } from './item';
+import type {
   IReactivePropConfig,
   IReactivePropsConfig,
   IReactivePropsStore,
@@ -45,10 +45,10 @@ import {
   AdapterMethodResult,
   IAdapter
 } from './adapter';
-import { Settings, DevSettings } from './settings';
-import { IRoutines, RoutinesClassType } from './routines';
-import { ScrollEventData, State } from './state';
-import {
+import type { Settings, DevSettings } from './settings';
+import type { IRoutines, RoutinesClassType } from './routines';
+import type { ScrollEventData, State } from './state';
+import type {
   ProcessName,
   ProcessClass,
   ProcessPayload,
@@ -57,7 +57,7 @@ import {
   IBaseProcess,
   IBaseAdapterProcess
 } from './process';
-import {
+import type {
   ValidatedValue,
   IValidator,
   ICommonProp,
@@ -66,7 +66,7 @@ import {
   IValidatedData
 } from './validation';
 
-export {
+export type {
   ObservableLike,
   DatasourceGet,
   IDatasourceParams,

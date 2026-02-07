@@ -264,7 +264,7 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
   {
     type: Type.Function,
     name: Name.relax,
-    value: noop
+    value: noopWF
   },
   {
     type: Type.Function,

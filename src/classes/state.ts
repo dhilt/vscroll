@@ -59,9 +59,9 @@ export class State implements IState {
     return {
       ...(cycle.innerLoop.first
         ? {
-            process: cycle.initiator,
-            doRender: fetch.simulate && fetch.items.length > 0
-          }
+          process: cycle.initiator,
+          doRender: fetch.simulate && fetch.items.length > 0
+        }
         : {})
     };
   }
@@ -69,7 +69,7 @@ export class State implements IState {
   endInnerLoop(): void {
     const { fetch, clip, render, cycle } = this;
     fetch.stopSimulate();
-    clip.reset(true);
+    clip.reset();
     if (fetch.cancel) {
       fetch.cancel();
       fetch.cancel = null;

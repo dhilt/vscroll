@@ -3,6 +3,7 @@ import { Direction } from '../inputs/index';
 import { Item as _Item, ItemAdapter } from '../interfaces/index';
 
 export class Item<Data = unknown> implements _Item<Data> {
+  private static nextUid = 1;
   nodeId: string;
   routines: Routines;
   preSize: number; // estimated size
@@ -13,6 +14,13 @@ export class Item<Data = unknown> implements _Item<Data> {
   removeDirection: Direction;
 
   private container: ItemAdapter<Data>;
+
+  get uid(): number {
+    return this.container.uid;
+  }
+  set uid(value: number) {
+    this.container.uid = value;
+  }
 
   get $index(): number {
     return this.container.$index;
@@ -37,6 +45,7 @@ export class Item<Data = unknown> implements _Item<Data> {
 
   constructor($index: number, data: Data, routines: Routines) {
     this.container = {
+      uid: Item.nextUid++,
       $index,
       data
     };

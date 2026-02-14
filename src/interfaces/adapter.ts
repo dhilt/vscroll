@@ -42,6 +42,7 @@ export interface IAdapterProp {
 }
 
 export interface ItemAdapter<Data = unknown> {
+  uid: number;
   $index: number;
   data: Data;
   element?: HTMLElement;

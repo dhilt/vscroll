@@ -1,110 +1,70 @@
-import { test, expect } from '@playwright/test';
-import { afterEachLogs } from '../fixture/after-each-logs.js';
-import { createFixture } from '../fixture/create-fixture.js';
-import { VScrollFixture } from '../fixture/VScrollFixture.js';
-import { ITestConfig } from 'types/index.js';
+import { Misc } from '../miscellaneous/misc';
+import { getDatasource } from '../scaffolding/datasources';
+import { makeTest, TestBedConfig } from '../scaffolding/runner';
 
-test.afterEach(afterEachLogs);
-
-interface ICustom {
+interface CustomConfig {
   scrollTo?: number;
 }
-type IConfig = ITestConfig<ICustom>;
 
-// Datasource: limited callback (1-100)
-const datasourceGet = (index, count, success) => {
-  const data = [];
-  const start = Math.max(1, index);
-  const end = index + count - 1;
-  if (start > 100 || end < 1) {
-    success(data);
-    return;
-  }
-  const first = Math.max(1, start);
-  const last = Math.min(100, end);
-  for (let i = first; i <= last; i++) {
-    data.push({ id: i, text: `item #${i}` });
-  }
-  success(data);
+type ViewportConfig = TestBedConfig<CustomConfig> & {
+  custom: CustomConfig;
+  datasourceSettings: NonNullable<TestBedConfig['datasourceSettings']>;
+  templateSettings: NonNullable<TestBedConfig['templateSettings']>;
 };
 
-// Base config: windowViewport with 50px header
-const windowWith50HeaderConfig: IConfig = {
-  datasourceGet,
+const baseConfig: ViewportConfig = {
+  datasource: () => getDatasource({ min: 1, max: 100, delay: 1 }),
   datasourceSettings: { startIndex: 1, windowViewport: true },
-  templateSettings: {
-    itemHeight: 50,
-    noViewportClass: true,
-    viewportHeight: 0,
-    headerHeight: 50
-  },
-  custom: { scrollTo: undefined }
+  templateSettings: { itemHeight: 50, noViewportClass: true, headerHeight: 50 },
+  custom: {}
 };
 
-// Config with 500px header
-const windowWith500HeaderConfig: IConfig = {
-  ...windowWith50HeaderConfig,
-  templateSettings: {
-    ...windowWith50HeaderConfig.templateSettings,
-    headerHeight: 500
-  }
+const tallHeaderConfig: ViewportConfig = {
+  ...baseConfig,
+  templateSettings: { ...baseConfig.templateSettings, headerHeight: 500 }
 };
 
-// All test configurations
-const windowWithHeaderConfigList: IConfig[] = [
-  windowWith50HeaderConfig,
-  windowWith500HeaderConfig,
-  { ...windowWith50HeaderConfig, custom: { scrollTo: 99999 } },
-  { ...windowWith500HeaderConfig, custom: { scrollTo: 99999 } },
-  { ...windowWith500HeaderConfig, custom: { scrollTo: 450 } },
-  { ...windowWith500HeaderConfig, custom: { scrollTo: 50 } },
-  { ...windowWith500HeaderConfig, custom: { scrollTo: 500 } }
+const configs: ViewportConfig[] = [
+  baseConfig,
+  tallHeaderConfig,
+  { ...baseConfig, custom: { scrollTo: 99999 } },
+  { ...tallHeaderConfig, custom: { scrollTo: 99999 } },
+  { ...tallHeaderConfig, custom: { scrollTo: 450 } },
+  { ...tallHeaderConfig, custom: { scrollTo: 50 } },
+  { ...tallHeaderConfig, custom: { scrollTo: 500 } }
 ];
 
-// Test implementation
-const shouldWorkOnWindowWithHeader = async (
-  fixture: VScrollFixture,
-  config: IConfig
-) => {
-  const itemHeight = config.templateSettings.itemHeight || 50;
-  const headerHeight = config.templateSettings.headerHeight || 0;
-  let position = 0;
-  let index = 1;
+const testWindowViewport =
+  (config: ViewportConfig) => (misc: Misc) => async () => {
+    await misc.relaxNext();
 
-  // Wait for initial load
-  await fixture.adapter.relax();
+    const itemHeight = config.templateSettings.itemHeight as number;
+    const headerHeight = config.templateSettings.headerHeight as number;
+    let position = 0;
+    let index = 1;
 
-  if (config.custom?.scrollTo !== undefined) {
-    // Scroll (synchronous in browser)
-    await fixture.adapter.fix({ scrollPosition: config.custom.scrollTo });
-    // Read position immediately after scroll (before workflow processes it)
-    position = await fixture.scroller.viewport.scrollPosition;
-    index = Math.max(1, Math.ceil((position - headerHeight) / itemHeight));
-    // Now wait for workflow to process the scroll
-    await fixture.adapter.relax();
-  }
+    if (config.custom.scrollTo !== undefined) {
+      await misc.scrollToRelax(config.custom.scrollTo);
+      position = misc.getScrollPosition();
+      index = Math.max(1, Math.ceil((position - headerHeight) / itemHeight));
+    }
 
-  const actualPosition = await fixture.scroller.viewport.scrollPosition;
-  const firstVisible = await fixture.adapter.firstVisible;
+    expect(misc.getScrollPosition()).toEqual(position);
+    expect(misc.adapter.firstVisible.$index).toEqual(index);
+  };
 
-  expect(actualPosition).toBe(position);
-  expect(firstVisible.$index).toBe(index);
-};
-
-test.describe('Viewport Spec', () => {
-  test.describe('Entire Window with Header', () => {
-    windowWithHeaderConfigList.forEach((config, idx) => {
-      const scrollToText =
-        config.custom?.scrollTo !== undefined
-          ? ` scroll to ${config.custom.scrollTo}`
-          : ' not scroll';
-      const headerText = `${config.templateSettings.headerHeight}-offset`;
-
-      test(`should${scrollToText} with ${headerText}`, async ({ page }) => {
-        const fixture = await createFixture({ page, config });
-        await shouldWorkOnWindowWithHeader(fixture, config);
-        await fixture.dispose();
-      });
-    });
+describe('Viewport Spec', () => {
+  describe('Entire Window with Header', () => {
+    configs.forEach(config =>
+      makeTest({
+        config,
+        title: `should${
+          config.custom.scrollTo === undefined
+            ? ' not scroll'
+            : ` scroll to ${config.custom.scrollTo}`
+        } with ${config.templateSettings.headerHeight}-offset`,
+        it: testWindowViewport(config)
+      })
+    );
   });
 });

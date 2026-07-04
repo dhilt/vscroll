@@ -6,9 +6,8 @@
   "type": "module",
   "scripts": {
     "test:unit": "jest",
-    "test:e2e": "playwright test --config=e2e/playwright.config.ts",
-    "test:e2e:ui": "playwright test --config=e2e/playwright.config.ts --ui",
-    "test:e2e:debug": "playwright test --config=e2e/playwright.config.ts --debug",
+    "test:e2e": "vitest run --config=e2e/vitest.config.ts",
+    "test:e2e:ui": "vitest --config=e2e/vitest.config.ts --browser.headless=false",
     "test": "npm run test:unit && npm run test:e2e",
     "watch": "jest --watch"
   },
@@ -16,10 +15,12 @@
     "@babel/core": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",
-    "@playwright/test": "^1.57.0",
     "@types/jest": "^30.0.0",
+    "@vitest/browser-playwright": "^4.1.9",
     "babel-jest": "^30.2.0",
     "jest": "^30.2.0",
-    "typescript": "^5.9.3"
+    "playwright": "^1.57.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.9"
   }
 }

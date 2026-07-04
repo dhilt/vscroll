@@ -1,182 +1,101 @@
-import { test, expect, Page } from '@playwright/test';
-import { afterEachLogs } from '../fixture/after-each-logs.js';
-import { createFixture } from '../fixture/create-fixture.js';
-import { ITestConfig } from 'types/index.js';
+import type { Workflow } from '../../../src/index';
+import { Misc } from '../miscellaneous/misc';
+import { makeTest, TestBedConfig } from '../scaffolding/runner';
 
-test.afterEach(afterEachLogs);
-
-const datasourceGet = (
-  index: number,
-  count: number,
-  success: (data: unknown[]) => void
-): void => {
-  const data = [];
-  for (let i = index; i < index + count; i++) {
-    data.push({ id: i, text: `item #${i}` });
-  }
-  setTimeout(() => success(data), 0);
-};
-
-const baseConfig: ITestConfig = {
-  datasourceGet,
+const baseConfig: TestBedConfig = {
   datasourceSettings: { startIndex: 1, bufferSize: 5, padding: 0.5 },
   templateSettings: { viewportHeight: 200, itemHeight: 20 }
 };
 
-type RecreationBox = {
-  adapterInitCount: number;
-  wfInitOnFirstMake: boolean;
-};
-type WithRecreationResult = Window & { __recreationBox?: RecreationBox };
+const getWorkflowState = <Data,>(workflow: Workflow<Data>) => ({
+  initialized: workflow.isInitialized,
+  internalAdapterInitialized: workflow.scroller?.adapter?.init,
+  disposed: workflow.disposed
+});
 
-const onBefore = async (page: Page) =>
-  page.evaluate(() => {
-    const w = window as WithRecreationResult;
-    const { datasource } = w.__vscroll__;
+const getInstanceState = (misc: Misc) => ({
+  initialized: misc.workflow.isInitialized,
+  scrollerId: misc.scroller.settings.instanceIndex,
+  internalAdapterId: misc.scroller.adapter.id,
+  adapterId: misc.adapter.id,
+  elementCount: misc.getElements().length
+});
 
-    // Subscribe to init$ BEFORE creating workflow
-    const box: RecreationBox = {
-      adapterInitCount: 0,
-      wfInitOnFirstMake: false
-    };
-    w.__recreationBox = box;
+describe('Recreation Spec', () => {
+  describe('Destroying (plain DS)', () => {
+    makeTest({
+      config: { ...baseConfig, noAdapter: true },
+      title: 'should not reset Datasource on destroy',
+      it: misc => async () => {
+        await misc.relaxNext();
+        const workflow = misc.workflow;
+        const before = getWorkflowState(workflow);
 
-    datasource.adapter.init$.on(value => {
-      if (!value) {
-        return;
-      }
-      if (++box.adapterInitCount === 1) {
-        // First init - capture initial workflow state
-        box.wfInitOnFirstMake = w.__vscroll__.workflow.isInitialized;
+        misc.dispose();
+        const after = getWorkflowState(workflow);
+
+        expect(before.initialized).toBe(true);
+        expect(before.internalAdapterInitialized).toBe(true);
+        expect(before.disposed).toBe(false);
+        expect(after.initialized).toBe(false);
+        expect(after.internalAdapterInitialized).toBe(undefined);
+        expect(after.disposed).toBe(true);
       }
     });
   });
 
-test.describe('Recreation Spec', () => {
-  test.describe('Destroying (plain DS)', () => {
-    test('should not reset Datasource on destroy', async ({ page }) => {
-      const fixture = await createFixture({
-        page,
-        config: { ...baseConfig, noAdapter: true }
-      });
+  describe('Recreation (instance DS)', () => {
+    makeTest({
+      config: baseConfig,
+      title: 'should switch Adapter.init three times',
+      it: misc => async () => {
+        let initCount = 0;
+        let initializedDuringFirstAdapterInit = true;
+        const off = misc.adapter.init$.on(initialized => {
+          if (initialized && ++initCount === 1) {
+            initializedDuringFirstAdapterInit = misc.workflow.isInitialized;
+          }
+        });
 
-      const getWorkflowData = () =>
-        page.evaluate(() => ({
-          workflowInit: window.__vscroll__.workflow.isInitialized,
-          internalAdapterInit:
-            window.__vscroll__.workflow?.scroller?.adapter?.init,
-          disposed: window.__vscroll__.workflow.disposed
-        }));
+        await misc.relaxNext();
+        await misc.recreate();
+        await misc.recreate();
+        off();
 
-      // Store workflow data before cleanup
-      const before = await getWorkflowData();
-
-      // Destroy the scroller
-      await fixture.dispose();
-
-      // Wait a bit to ensure no async errors
-      await page.waitForTimeout(25);
-
-      // Store workflow data after cleanup
-      const after = await getWorkflowData();
-
-      expect(before.workflowInit).toBe(true);
-      expect(after.workflowInit).toBe(false);
-      expect(before.internalAdapterInit).toBe(true);
-      expect(after.internalAdapterInit).toBe(undefined);
-      expect(before.disposed).toBe(false);
-      expect(after.disposed).toBe(true);
+        expect(initializedDuringFirstAdapterInit).toBe(false);
+        expect(initCount).toBe(3);
+      }
     });
 
-    // Note: Test 1.2 ('should not reset Datasource on destroy via ngIf') is deferred.
-    // It requires viewport removal detection feature (Routines.onViewportRemoved with MutationObserver)
-    // to automatically call workflow.dispose() when viewport element is removed from DOM.
-  });
+    makeTest({
+      config: baseConfig,
+      title: 'should re-render the viewport',
+      it: misc => async () => {
+        await misc.relaxNext();
+        const before = getInstanceState(misc);
 
-  test.describe('Recreation via ngIf (instance DS)', () => {
-    test('should switch Adapter.init trice', async ({ page }) => {
-      const fixture = await createFixture({
-        page,
-        config: { ...baseConfig, noRelaxOnStart: true, onBefore }
-      });
+        await misc.recreate();
+        const after = getInstanceState(misc);
 
-      const result = await page.evaluate(async () => {
-        const w = window as WithRecreationResult;
-        const { datasource, makeScroller } = w.__vscroll__;
-        // 3 recreation cycles: 1 from onBefore and 2 from this loop
-        for (let i = 0; i < 2; i++) {
-          // Recreate scroller workflow, and wait for adapter is initialized
-          w.__vscroll__.workflow.dispose();
-          makeScroller!();
-          await new Promise(r => datasource.adapter.init$.once(r));
-        }
-        return w.__recreationBox;
-      });
-
-      await fixture.adapter.relax();
-
-      // Workflow should not be initialized immediately after creation
-      expect(result.wfInitOnFirstMake).toBe(false);
-
-      // Adapter should be initialized 3 times
-      expect(result.adapterInitCount).toBe(3);
-
-      await fixture.dispose();
+        expect(after.initialized).toBe(true);
+        expect(after.scrollerId).toBe(before.scrollerId + 1);
+        expect(after.internalAdapterId).toBe(before.adapterId);
+        expect(after.adapterId).toBe(before.adapterId);
+        expect(after.elementCount).toBe(before.elementCount);
+      }
     });
 
-    test('should re-render the viewport', async ({ page }) => {
-      const fixture = await createFixture({ page, config: baseConfig });
+    makeTest({
+      config: baseConfig,
+      title: 'should scroll and take firstVisible',
+      it: misc => async () => {
+        await misc.relaxNext();
+        await misc.recreate();
+        expect(misc.adapter.firstVisible.$index).toBe(1);
 
-      // Helper to capture state
-      const getState = () =>
-        page.evaluate(() => ({
-          workflowInit: window.__vscroll__.workflow.isInitialized,
-          scrollerId:
-            window.__vscroll__.workflow.scroller.settings.instanceIndex,
-          internalAdapterId: window.__vscroll__.workflow.scroller.adapter.id,
-          adapterId: window.__vscroll__.datasource.adapter.id
-        }));
-
-      // Capture initial state
-      const before = await getState();
-      const beforeElements = await fixture.getElements();
-
-      // Dispose and recreate
-      await fixture.recreateScroller();
-      await fixture.adapter.relax();
-
-      // Capture state after recreation
-      const after = await getState();
-      const afterElements = await fixture.getElements();
-
-      // Verify expectations
-      expect(after.workflowInit).toBe(true);
-      expect(after.scrollerId).toBe(before.scrollerId + 1); // New scroller instance
-      expect(after.internalAdapterId).toBe(before.adapterId); // Scroller uses same adapter
-      expect(after.adapterId).toBe(before.adapterId); // Same external adapter
-      expect(afterElements.length).toBe(beforeElements.length); // Same number of elements
-
-      await fixture.dispose();
-    });
-
-    test('should scroll and take firstVisible', async ({ page }) => {
-      const fixture = await createFixture({ page, config: baseConfig });
-
-      await fixture.recreateScroller();
-      await page.waitForFunction(
-        () => window.__vscroll__.datasource.adapter.init
-      );
-      await fixture.adapter.relax();
-
-      const firstVisible = await fixture.adapter.firstVisible;
-      expect(firstVisible.$index).toBe(1);
-
-      await fixture.scrollTo(200);
-
-      const firstVisibleAfter = await fixture.adapter.firstVisible;
-      expect(firstVisibleAfter.$index).toBeGreaterThan(1);
-
-      await fixture.dispose();
+        await misc.scrollToRelax(200);
+        expect(misc.adapter.firstVisible.$index).toBeGreaterThan(1);
+      }
     });
   });
 });

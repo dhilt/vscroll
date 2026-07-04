@@ -30,7 +30,6 @@
     "test:unit": "cd tests && npm run test:unit",
     "test:e2e": "cd tests && npm run test:e2e",
     "test:e2e:ui": "cd tests && npm run test:e2e:ui",
-    "test:e2e:debug": "cd tests && npm run test:e2e:debug",
     "prepack": "npm run build",
     "checkGit": "sh ./uncommited.sh",
     "prepublishOnly": "npm run checkGit && npm run build && npm run test && npm run checkGit"

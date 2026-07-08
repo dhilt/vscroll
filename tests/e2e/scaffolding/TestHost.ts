@@ -92,6 +92,17 @@ export class TestHost<Data extends TestItem = TestItem> {
     return this.datasource as T;
   }
 
+  /**
+   * Read firstVisible/lastVisible once so the workflow starts tracking them.
+   * These are "wanted" properties: vscroll only computes and emits them after
+   * they have been accessed, so tests that assert on them must prime the
+   * tracking before the first cycle runs.
+   */
+  trackVisibleItems(): void {
+    void this.adapter.firstVisible;
+    void this.adapter.lastVisible;
+  }
+
   constructor(config: TestConfig<unknown, Data>) {
     this.windowViewport = !!config.datasourceSettings?.windowViewport;
     this.settings = {
@@ -344,6 +355,20 @@ export class TestHost<Data extends TestItem = TestItem> {
     return new Promise(resolve => this.workflow.cyclesDone$.once(resolve));
   }
 
+  waitForCycles(target: number): Promise<void> {
+    if (this.workflow.cyclesDone >= target) {
+      return Promise.resolve();
+    }
+    return new Promise(resolve => {
+      const off = this.workflow.cyclesDone$.on(cyclesDone => {
+        if (cyclesDone >= target) {
+          off();
+          resolve();
+        }
+      });
+    });
+  }
+
   waitForAdapterInit(): Promise<void> {
     return new Promise(resolve => {
       const off = this.adapter.init$.on(initialized => {
@@ -419,6 +444,16 @@ export class TestHost<Data extends TestItem = TestItem> {
 
   scrollMaxRelax(): Promise<void> {
     return this.scrollToRelax(Infinity);
+  }
+
+  async scrollMinMaxRelax(): Promise<void> {
+    if (this.getScrollPosition() === 0) {
+      await this.scrollMaxRelax();
+      await this.scrollMinRelax();
+    } else {
+      await this.scrollMinRelax();
+      await this.scrollMaxRelax();
+    }
   }
 
   /** Scroll toward an edge, settling each step, until its BOF/EOF flag is set. */

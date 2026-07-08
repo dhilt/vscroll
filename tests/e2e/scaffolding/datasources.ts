@@ -1,5 +1,9 @@
 import { makeDatasource } from './vscroll';
-import type { DatasourceGet, IDatasourceConstructed } from './vscroll';
+import type {
+  BufferUpdater,
+  DatasourceGet,
+  IDatasourceConstructed
+} from './vscroll';
 import { makeItem } from './data';
 import type { DatasourceProcessor, IndexedItem, TestItem } from '../types';
 
@@ -74,6 +78,61 @@ export class MutableDatasource extends Datasource<TestItem> {
     }
     this.state.min -= decrease ? items.length : 0;
     this.state.max += decrease ? 0 : items.length;
+  }
+
+  remove(indexes: number[], increase = false): void {
+    const indexSet = new Set(indexes);
+    const min = this.state.min;
+    let removed = 0;
+    this.state.data = this.state.data.filter((_item, offset) => {
+      const remove = indexSet.has(min + offset);
+      removed += Number(remove);
+      return !remove;
+    });
+    this.state.min += increase ? removed : 0;
+    this.state.max -= increase ? 0 : removed;
+  }
+
+  replace(indexes: number[], items: TestItem[], fixRight = false): void {
+    const sorted = [...indexes].sort((a, b) => a - b);
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    const removed = last - first + 1;
+    const delta = items.length - removed;
+
+    this.state.data.splice(first - this.state.min, removed, ...items);
+    this.state.min -= fixRight ? delta : 0;
+    this.state.max += fixRight ? 0 : delta;
+  }
+
+  update(predicate: BufferUpdater<TestItem>, fixRight = false): void {
+    const min = this.state.min;
+    const data = this.state.data.flatMap((item, offset) => {
+      const result = predicate({ uid: 0, $index: min + offset, data: item });
+      return result === true
+        ? [item]
+        : Array.isArray(result)
+          ? (result as TestItem[])
+          : [];
+    });
+    const delta = data.length - this.state.data.length;
+
+    this.state.data = data;
+    this.state.min -= fixRight ? delta : 0;
+    this.state.max += fixRight ? 0 : delta;
+  }
+
+  setSizes(getSize: (index: number) => number): void {
+    this.state.data.forEach(
+      (item, offset) => (item.size = getSize(this.state.min + offset))
+    );
+  }
+
+  setSize(index: number, size: number): void {
+    const item = this.state.data[index - this.state.min];
+    if (item) {
+      item.size = size;
+    }
   }
 
   clearRequests(): void {

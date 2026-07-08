@@ -1,14 +1,8 @@
-import {
-  expectBufferRange,
-  expectConsistent,
-  expectStartVisible
-} from '../helpers/expect';
-import { Misc } from '../miscellaneous/misc';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
+import { makeTest, Misc, TestConfig } from '../scaffolding';
 
-type InitialLoadConfig = TestBedConfig & {
-  datasourceSettings: NonNullable<TestBedConfig['datasourceSettings']>;
-  templateSettings: NonNullable<TestBedConfig['templateSettings']>;
+type InitialLoadConfig = TestConfig & {
+  datasourceSettings: NonNullable<TestConfig['datasourceSettings']>;
+  templateSettings: NonNullable<TestConfig['templateSettings']>;
 };
 
 type GoldenConfig = InitialLoadConfig & {
@@ -225,9 +219,9 @@ const testFixedItemSize: Scenario<GoldenConfig> =
     expect(misc.innerLoopCount).toEqual(3);
     expect(clip.callCount).toEqual(0);
 
-    expectConsistent(misc);
-    expectBufferRange(misc, config.golden);
-    expectStartVisible(misc, config.datasourceSettings.startIndex as number);
+    misc.expect.consistent();
+    misc.expect.bufferRange(config.golden);
+    misc.expect.startVisible(config.datasourceSettings.startIndex as number);
     expect(misc.padding.backward.getSize()).toEqual(0);
     expect(misc.padding.forward.getSize()).toEqual(0);
   };
@@ -255,9 +249,9 @@ const testMeasuredItemSize: Scenario<GoldenConfig> =
       expect(indexes).toEqual(contiguous);
     });
 
-    expectConsistent(misc);
-    expectBufferRange(misc, config.golden);
-    expectStartVisible(misc, config.datasourceSettings.startIndex as number);
+    misc.expect.consistent();
+    misc.expect.bufferRange(config.golden);
+    misc.expect.startVisible(config.datasourceSettings.startIndex as number);
     expect(misc.padding.backward.getSize()).toEqual(0);
     expect(misc.padding.forward.getSize()).toEqual(0);
   };
@@ -277,8 +271,8 @@ const testFirstFetchGap: Scenario = config => misc => async () => {
   await cycleDone;
   await misc.adapter.relax();
 
-  expectConsistent(misc);
-  expectStartVisible(misc, startIndex);
+  misc.expect.consistent();
+  misc.expect.startVisible(startIndex);
 };
 
 const registerCases = <Config extends InitialLoadConfig>(

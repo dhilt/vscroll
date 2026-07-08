@@ -1,10 +1,12 @@
-import { getDynamicSize } from '../helpers/dynamicSize';
-import { expectDomMatchesBuffer } from '../helpers/expect';
-import { SizeStrategy } from '../miscellaneous/vscroll';
-import { Misc } from '../miscellaneous/misc';
-import { getDatasource } from '../scaffolding/datasources';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
-import type { TestItem } from '../types';
+import {
+  getDatasource,
+  getDynamicSize,
+  makeTest,
+  Misc,
+  SizeStrategy,
+  TestConfig,
+  TestItem
+} from '../scaffolding';
 
 const takeLayoutSnapshot = (misc: Misc) => {
   const { buffer, viewport } = misc.scroller;
@@ -31,7 +33,7 @@ const createItems = (start: number, count: number): TestItem[] =>
   });
 
 const registerFetchCase = (strategy: SizeStrategy): void => {
-  const config: TestBedConfig = {
+  const config: TestConfig = {
     datasource: () => getDatasource({ min: 1, max: 20 }),
     datasourceSettings: {
       startIndex: 1,
@@ -59,7 +61,7 @@ const registerFetchCase = (strategy: SizeStrategy): void => {
       await misc.scrollToRelax(100);
 
       expect(takeLayoutSnapshot(misc)).toEqual(before);
-      expectDomMatchesBuffer(misc);
+      misc.expect.domMatchesBuffer();
     }
   });
 };
@@ -67,7 +69,7 @@ const registerFetchCase = (strategy: SizeStrategy): void => {
 const registerAppendCase = (strategy: SizeStrategy): void => {
   const maxIndex = 100;
   const appendCount = 50;
-  const config: TestBedConfig = {
+  const config: TestConfig = {
     datasource: () => getDatasource({ min: -99, max: maxIndex + appendCount }),
     datasourceSettings: {
       startIndex: 50,
@@ -100,7 +102,7 @@ const registerAppendCase = (strategy: SizeStrategy): void => {
       await misc.scrollMaxRelax();
 
       expect(misc.innerLoopCount).toBe(innerLoopCount + 1);
-      expectDomMatchesBuffer(misc);
+      misc.expect.domMatchesBuffer();
     }
   });
 };

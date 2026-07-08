@@ -1,15 +1,8 @@
-import {
-  expectBufferRange,
-  expectConsistent,
-  expectNoForwardGap,
-  expectStartVisible
-} from '../helpers/expect';
-import { Misc } from '../miscellaneous/misc';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
+import { makeTest, Misc, TestConfig } from '../scaffolding';
 
-type Config = TestBedConfig & {
-  datasourceSettings: NonNullable<TestBedConfig['datasourceSettings']>;
-  templateSettings: NonNullable<TestBedConfig['templateSettings']>;
+type Config = TestConfig & {
+  datasourceSettings: NonNullable<TestConfig['datasourceSettings']>;
+  templateSettings: NonNullable<TestConfig['templateSettings']>;
 };
 
 interface ExpectedRange {
@@ -178,10 +171,10 @@ const testCommonCase =
     const { minIndex, maxIndex, startIndex } = config.datasourceSettings;
     const size = getItemSize(misc, config);
 
-    expectConsistent(misc);
-    expectBufferRange(misc, expected.bufferRange);
+    misc.expect.consistent();
+    misc.expect.bufferRange(expected.bufferRange);
     expect(misc.innerLoopCount).toEqual(expected.loops);
-    expectStartVisible(misc, startIndex as number);
+    misc.expect.startVisible(startIndex as number);
 
     expect(misc.adapter.bufferInfo.absMinIndex).toEqual(minIndex ?? -Infinity);
     expect(misc.adapter.bufferInfo.absMaxIndex).toEqual(maxIndex ?? Infinity);
@@ -212,8 +205,8 @@ const testStartIndexEdge =
     const maxIndex = config.datasourceSettings.maxIndex as number;
     const size = getItemSize(misc, config);
 
-    expectConsistent(misc);
-    expectBufferRange(misc, expected.bufferRange);
+    misc.expect.consistent();
+    misc.expect.bufferRange(expected.bufferRange);
     expect(misc.getScrollableSize()).toEqual((maxIndex - minIndex + 1) * size);
     expect(misc.adapter.bufferInfo.absMinIndex).toEqual(minIndex);
     expect(misc.adapter.bufferInfo.absMaxIndex).toEqual(maxIndex);
@@ -221,8 +214,8 @@ const testStartIndexEdge =
 
 const testForwardGap = (misc: Misc) => async () => {
   await misc.relaxNext();
-  expectConsistent(misc);
-  expectNoForwardGap(misc);
+  misc.expect.consistent();
+  misc.expect.noForwardGap();
 };
 
 const registerGolden = <Expected extends ExpectedRange>(

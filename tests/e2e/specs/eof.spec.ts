@@ -1,13 +1,12 @@
-import { Direction } from '../miscellaneous/vscroll';
-
 import {
+  Direction,
+  getDatasource,
   makeTest,
+  Misc,
   MakeTestConfig,
-  TestBedConfig,
-  OperationConfig
-} from '../scaffolding/runner';
-import { getDatasource } from '../scaffolding/datasources';
-import { Misc } from '../miscellaneous/misc';
+  OperationConfig,
+  TestConfig
+} from '../scaffolding';
 
 enum Operation {
   eof = 'eof',
@@ -38,7 +37,7 @@ const config: OperationConfig<Operation> = {
   }
 };
 
-const emptyConfig: TestBedConfig = {
+const emptyConfig: TestConfig = {
   ...config[Operation.bof],
   datasource: () => getDatasource({ min: 1, max: 0 }),
   datasourceSettings: {
@@ -46,7 +45,7 @@ const emptyConfig: TestBedConfig = {
   }
 };
 
-const observableCountConfig: TestBedConfig = {
+const observableCountConfig: TestConfig = {
   ...config[Operation.bof],
   datasourceSettings: {
     ...config[Operation.bof].datasourceSettings,
@@ -103,10 +102,8 @@ const disposeBofEofContainer = (misc: Misc) => {
 
 const expectLimit = (misc: Misc, direction: Direction, noscroll = false) => {
   const _forward = direction === Direction.forward;
+  misc.expect.viewportFilled();
   const elements = misc.getElements();
-  const length = config[_forward ? Operation.eof : Operation.bof]
-    .datasourceSettings?.bufferSize as number;
-  expect(elements.length).toBeGreaterThan(length);
   expect(
     misc.padding[_forward ? Direction.forward : Direction.backward].getSize()
   ).toEqual(0);

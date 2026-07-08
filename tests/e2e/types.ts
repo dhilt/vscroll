@@ -2,7 +2,7 @@ import type {
   DevSettings,
   IDatasource,
   Settings
-} from '../../src/interfaces/index';
+} from './scaffolding/vscroll';
 
 export interface TestItem {
   id: number;
@@ -30,6 +30,7 @@ export interface TestConfig<Custom = void, Data = TestItem> {
   noAdapter?: boolean;
   custom?: Custom;
   timeout?: number;
+  skipInvariantAutoCheck?: boolean;
 }
 
 export interface IndexedItem<Data = TestItem> {

@@ -1,8 +1,11 @@
-import { Misc } from '../miscellaneous/misc';
-import { getDatasource } from '../scaffolding/datasources';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
+import {
+  getDatasource,
+  makeTest,
+  Misc,
+  TestConfig
+} from '../scaffolding';
 
-const baseConfig: TestBedConfig = {
+const baseConfig: TestConfig = {
   datasource: () => getDatasource({ delay: 150 }),
   datasourceSettings: {
     startIndex: 1,

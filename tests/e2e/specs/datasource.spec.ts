@@ -1,10 +1,13 @@
-import { expectDomMatchesBuffer } from '../helpers/expect';
-import { makeDatasource } from '../miscellaneous/vscroll';
-import type { IDatasource, Settings } from '../miscellaneous/vscroll';
-import { Misc } from '../miscellaneous/misc';
-import { getDatasource } from '../scaffolding/datasources';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
-import type { TestItem } from '../types';
+import {
+  getDatasource,
+  IDatasource,
+  makeDatasource,
+  makeTest,
+  Misc,
+  Settings,
+  TestConfig,
+  TestItem
+} from '../scaffolding';
 
 const createItems = (index: number, count: number): TestItem[] =>
   Array.from({ length: count }, (_, offset) => {
@@ -26,7 +29,7 @@ const expectFetched = (misc: Misc) => async () => {
   await misc.relaxNext();
   expect(misc.scroller.state.fetch.callCount).toBeGreaterThan(0);
   expect(misc.scroller.buffer.size).toBeGreaterThan(0);
-  expectDomMatchesBuffer(misc);
+  misc.expect.domMatchesBuffer();
 };
 
 const expectEmpty = (misc: Misc) => async () => {
@@ -78,7 +81,7 @@ describe('Datasource Get', () => {
     describe(timing.suite, () => {
       scopes.forEach(scope =>
         modes.forEach(mode => {
-          const config: TestBedConfig = {
+          const config: TestConfig = {
             datasource: () =>
               getDatasource({
                 ...(scope === 'limited' ? { min: 1, max: 100 } : {}),

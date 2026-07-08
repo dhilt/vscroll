@@ -2,23 +2,15 @@ import { describe, test } from 'vitest';
 import { TestHost } from './TestHost';
 import type { TestConfig, TestItem } from '../types';
 
-export type TestBedConfig<Custom = void, Data = TestItem> = TestConfig<
-  Custom,
-  Data
->;
-
 export type OperationConfig<
   Operation extends PropertyKey,
   Custom = void,
   Data = TestItem
 > = {
-  [key in Operation]: TestBedConfig<Custom, Data>;
+  [key in Operation]: TestConfig<Custom, Data>;
 };
 
-type Done = () => void;
-type LegacyBody = (done: Done) => unknown;
-type AsyncBody = () => void | Promise<void>;
-type TestBody = void | Promise<void> | LegacyBody | AsyncBody;
+type TestBody = void | Promise<void> | (() => void | Promise<void>);
 
 export type ItFunc<Data extends TestItem = TestItem> = (
   misc: TestHost<Data>
@@ -27,7 +19,7 @@ export type ItFunc<Data extends TestItem = TestItem> = (
 export type ItFuncConfig<
   Custom = void,
   Data extends TestItem = TestItem
-> = (config: TestBedConfig<Custom, Data>) => ItFunc<Data>;
+> = (config: TestConfig<Custom, Data>) => ItFunc<Data>;
 
 export interface MakeTestConfig<
   Custom = void,
@@ -35,7 +27,7 @@ export interface MakeTestConfig<
 > {
   title: string;
   meta?: string;
-  config: TestBedConfig<Custom, Data>;
+  config: TestConfig<Custom, Data>;
   it: ItFunc<Data>;
   before?: (misc: TestHost<Data>) => void | Promise<void>;
   after?: (misc: TestHost<Data>) => void | Promise<void>;
@@ -80,23 +72,7 @@ const metaTitle = <Custom, Data extends TestItem>(
 };
 
 const runBody = async (body: TestBody): Promise<void> => {
-  if (typeof body !== 'function') {
-    await body;
-    return;
-  }
-
-  if (body.length === 0) {
-    await (body as AsyncBody)();
-    return;
-  }
-
-  await new Promise<void>((resolve, reject) => {
-    try {
-      Promise.resolve(body(resolve)).catch(reject);
-    } catch (error) {
-      reject(error);
-    }
-  });
+  await (typeof body === 'function' ? body() : body);
 };
 
 export const makeTest = <Custom = void, Data extends TestItem = TestItem>(
@@ -113,6 +89,15 @@ export const makeTest = <Custom = void, Data extends TestItem = TestItem>(
           await data.before?.(misc);
           await runBody(data.it(misc));
           await data.after?.(misc);
+          // Enforce the core invariant on every test: once the body settles, the
+          // rendered DOM must mirror the buffer (same contiguous indexes, paddings
+          // reflecting the model). This is a general property of a healthy
+          // scroller, not a per-test assertion, so it runs here for all tests.
+          // Opt out via `skipInvariantAutoCheck` when a test intentionally ends
+          // in a non-settled state (disposed, paused, halted, mid-burst, error).
+          if (!data.config.skipInvariantAutoCheck) {
+            misc.expect.domIndexesMatchBuffer();
+          }
         } finally {
           misc.dispose();
         }

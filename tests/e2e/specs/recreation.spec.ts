@@ -1,8 +1,11 @@
-import type { Workflow } from '../../../src/index';
-import { Misc } from '../miscellaneous/misc';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
+import {
+  makeTest,
+  Misc,
+  TestConfig,
+  Workflow
+} from '../scaffolding';
 
-const baseConfig: TestBedConfig = {
+const baseConfig: TestConfig = {
   datasourceSettings: { startIndex: 1, bufferSize: 5, padding: 0.5 },
   templateSettings: { viewportHeight: 200, itemHeight: 20 }
 };
@@ -24,7 +27,7 @@ const getInstanceState = (misc: Misc) => ({
 describe('Recreation Spec', () => {
   describe('Destroying (plain DS)', () => {
     makeTest({
-      config: { ...baseConfig, noAdapter: true },
+      config: { ...baseConfig, noAdapter: true, skipInvariantAutoCheck: true },
       title: 'should not reset Datasource on destroy',
       it: misc => async () => {
         await misc.relaxNext();

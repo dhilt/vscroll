@@ -1,12 +1,14 @@
-import { Settings as ParsedSettings } from '../../../src/classes/settings';
-import type { Settings } from '../../../src/interfaces';
-import { expectDomMatchesBuffer } from '../helpers/expect';
-import { getDatasource } from '../scaffolding/datasources';
-import { TestHost } from '../scaffolding/TestHost';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
+import {
+  getDatasource,
+  makeTest,
+  ParsedSettings,
+  TestHost,
+  Settings,
+  TestConfig
+} from '../scaffolding';
 
 const initDelay = 50;
-const baseConfig: TestBedConfig = {
+const baseConfig: TestConfig = {
   datasource: () => getDatasource({ min: 1, max: 100 }),
   datasourceSettings: {
     startIndex: 1,
@@ -18,9 +20,6 @@ const baseConfig: TestBedConfig = {
   },
   templateSettings: { viewportHeight: 200, itemHeight: 20 }
 };
-
-const delay = (milliseconds: number): Promise<void> =>
-  new Promise(resolve => setTimeout(resolve, milliseconds));
 
 const parseSettings = (settings?: unknown): ParsedSettings =>
   new ParsedSettings(settings as Settings | undefined, undefined, 1);
@@ -111,7 +110,8 @@ describe('Common Spec', () => {
       config: {
         ...baseConfig,
         datasourceDevSettings: { initDelay },
-        timeout: 1000
+        timeout: 1000,
+        skipInvariantAutoCheck: true // test disposes the host in-body
       },
       title: 'should initialize after the configured delay',
       it: misc => async () => {
@@ -123,7 +123,7 @@ describe('Common Spec', () => {
 
         expect(misc.workflow.isInitialized).toBe(true);
         expect(misc.adapter.init).toBe(true);
-        expectDomMatchesBuffer(misc);
+        misc.expect.domMatchesBuffer();
 
         const workflow = misc.workflow;
         const adapter = misc.adapter;
@@ -139,7 +139,8 @@ describe('Common Spec', () => {
       config: {
         ...baseConfig,
         datasourceDevSettings: { initDelay },
-        timeout: 1000
+        timeout: 1000,
+        skipInvariantAutoCheck: true // test disposes the host in-body
       },
       title: 'should remain disposed when destroyed before initialization',
       it: misc => async () => {
@@ -150,7 +151,7 @@ describe('Common Spec', () => {
         expect(adapter.init).toBe(false);
 
         misc.dispose();
-        await delay(initDelay * 2);
+        await misc.delay(initDelay * 2);
 
         expect(workflow.isInitialized).toBe(false);
         expect(workflow.disposed).toBe(true);
@@ -167,8 +168,8 @@ describe('Common Spec', () => {
 
       try {
         await Promise.all([first.relaxNext(), second.relaxNext()]);
-        expectDomMatchesBuffer(first);
-        expectDomMatchesBuffer(second);
+        first.expect.domMatchesBuffer();
+        second.expect.domMatchesBuffer();
         expect(first.adapter.id).not.toBe(second.adapter.id);
         expect(first.adapter.version).toBe(second.adapter.version);
 

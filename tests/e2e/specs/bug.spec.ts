@@ -1,24 +1,19 @@
-import { makeDatasource } from '../miscellaneous/vscroll';
-import type { ItemAdapter } from '../../../src/interfaces';
 import {
-  expectConsistent,
-  expectDomIndexesMatchBuffer,
-  expectDomMatchesBuffer
-} from '../helpers/expect';
-import { Misc } from '../miscellaneous/misc';
-import { getDatasource } from '../scaffolding/datasources';
-import { TestHost } from '../scaffolding/TestHost';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
-import type { DatasourceProcessor, TestItem } from '../types';
+  getDatasource,
+  makeDatasource,
+  makeTest,
+  TestHost,
+  DatasourceProcessor,
+  ItemAdapter,
+  TestConfig,
+  TestItem
+} from '../scaffolding';
 
 const Datasource = makeDatasource();
 const removedIndexes = [1, 2, 3, 4, 5];
 const replacementMin = 2;
 const replacementMax = 5;
 const clippedIndexes: number[] = [];
-
-const delay = (milliseconds: number): Promise<void> =>
-  new Promise(resolve => setTimeout(resolve, milliseconds));
 
 const shiftDatasourceAfterReplacement: DatasourceProcessor = items =>
   items.forEach(({ data }) => {
@@ -37,30 +32,24 @@ const removeDatasourceBeginning: DatasourceProcessor = items => {
   }
 };
 
-const expectVisibleRange = (misc: Misc): void => {
-  const { firstIndex, lastIndex } = misc.adapter.bufferInfo;
-  expect(misc.adapter.firstVisible.$index).toBeGreaterThanOrEqual(firstIndex);
-  expect(misc.adapter.lastVisible.$index).toBeLessThanOrEqual(lastIndex);
-};
-
-const emptyScrollableConfig: TestBedConfig = {
+const emptyScrollableConfig: TestConfig = {
   datasource: () => getDatasource({ min: 1, max: 0 }),
   templateSettings: { viewportPadding: 200 }
 };
 
-const bothEdgesConfig: TestBedConfig = {
+const bothEdgesConfig: TestConfig = {
   datasource: () => getDatasource({ min: 1, max: 100 }),
   datasourceSettings: { padding: 5 },
   templateSettings: { viewportHeight: 300, itemHeight: 15 }
 };
 
-const reloadConfig: TestBedConfig = {
+const reloadConfig: TestConfig = {
   datasource: () => getDatasource({ delay: 150 }),
   datasourceSettings: { bufferSize: 15 },
   timeout: 4000
 };
 
-const inverseConfig: TestBedConfig = {
+const inverseConfig: TestConfig = {
   datasource: () => getDatasource({ min: 1, max: 10 }),
   datasourceSettings: {
     startIndex: -1,
@@ -71,17 +60,17 @@ const inverseConfig: TestBedConfig = {
   templateSettings: { viewportHeight: 300, dynamicSize: 'size' }
 };
 
-const replacementConfig: TestBedConfig = {
+const replacementConfig: TestConfig = {
   datasource: () => getDatasource({ min: -99, max: 100 }),
   datasourceSettings: { startIndex: replacementMin - 1 }
 };
 
-const clipConfig: TestBedConfig = {
+const clipConfig: TestConfig = {
   datasource: () => getDatasource(),
   datasourceSettings: { bufferSize: 50 }
 };
 
-const beforeClipConfig: TestBedConfig = {
+const beforeClipConfig: TestConfig = {
   datasource: () => getDatasource(),
   datasourceSettings: {
     onBeforeClip: items =>
@@ -89,13 +78,13 @@ const beforeClipConfig: TestBedConfig = {
   }
 };
 
-const infiniteConfig: TestBedConfig = {
+const infiniteConfig: TestConfig = {
   datasource: () => getDatasource({ delay: 25 }),
   datasourceSettings: { bufferSize: 50, infinite: true },
   timeout: 4000
 };
 
-const removeConfig: TestBedConfig = {
+const removeConfig: TestConfig = {
   datasource: () => getDatasource({ min: 1, max: 100 }),
   datasourceSettings: {
     startIndex: 1,
@@ -105,7 +94,7 @@ const removeConfig: TestBedConfig = {
   }
 };
 
-const largePaddingConfig: TestBedConfig = {
+const largePaddingConfig: TestConfig = {
   datasource: () => getDatasource(),
   datasourceSettings: {
     startIndex: 1,
@@ -115,7 +104,7 @@ const largePaddingConfig: TestBedConfig = {
   }
 };
 
-const negativeCutConfig: TestBedConfig = {
+const negativeCutConfig: TestConfig = {
   datasource: () => getDatasource({ min: -10, max: 100 }),
   datasourceSettings: { startIndex: 1, bufferSize: 5 },
   templateSettings: { viewportHeight: 250, itemHeight: 22 }
@@ -154,7 +143,7 @@ describe('Bug Spec', () => {
         expect(lastUpdates).toBeGreaterThan(checkedLast);
         checkedFirst = firstUpdates;
         checkedLast = lastUpdates;
-        expectVisibleRange(misc);
+        misc.expect.visibleWithinBuffer();
       };
 
       try {
@@ -185,9 +174,9 @@ describe('Bug Spec', () => {
       };
 
       reloadTwice();
-      await delay(25);
+      await misc.delay(25);
       reloadTwice();
-      await delay(25);
+      await misc.delay(25);
       reloadTwice();
 
       const results = await Promise.all(reloads);
@@ -196,7 +185,7 @@ describe('Bug Spec', () => {
       expect(results).toHaveLength(6);
       expect(results.every(result => result.success)).toBe(true);
       expect(misc.workflow.isInitialized).toBe(true);
-      expectDomMatchesBuffer(misc);
+      misc.expect.domMatchesBuffer();
 
       const cyclesDone = misc.workflow.cyclesDone;
       await misc.adapter.reload();
@@ -216,7 +205,7 @@ describe('Bug Spec', () => {
 
       expect(misc.padding.backward.getSize()).toBe(0);
       expect(misc.padding.forward.getSize()).toBe(0);
-      expectDomIndexesMatchBuffer(misc);
+      misc.expect.domIndexesMatchBuffer();
     }
   });
 
@@ -271,7 +260,7 @@ describe('Bug Spec', () => {
               );
         expect(item.data.text).toBe(`item #${expected}`);
       });
-      expectDomIndexesMatchBuffer(misc);
+      misc.expect.domIndexesMatchBuffer();
     }
   });
 
@@ -324,7 +313,7 @@ describe('Bug Spec', () => {
 
       expect(misc.workflow.cyclesDone).toBe(cyclesDone + 1);
       expect(misc.scroller.state.cycle.busy.get()).toBe(false);
-      expectDomMatchesBuffer(misc);
+      misc.expect.domMatchesBuffer();
     }
   });
 
@@ -347,7 +336,7 @@ describe('Bug Spec', () => {
       await misc.scrollMaxRelax();
       await misc.scrollMinRelax();
 
-      expectDomMatchesBuffer(misc);
+      misc.expect.domMatchesBuffer();
       expect(buffer.size).toBeLessThanOrEqual(stableBufferSize);
     }
   });
@@ -363,7 +352,7 @@ describe('Bug Spec', () => {
       expect(misc.getScrollPosition()).toBe(
         misc.getScrollableSize() - misc.getViewportSize()
       );
-      expectConsistent(misc);
+      misc.expect.consistent();
     }
   });
 
@@ -381,7 +370,7 @@ describe('Bug Spec', () => {
       expect(misc.adapter.bufferInfo.absMinIndex).toBe(-10);
       expect(misc.adapter.firstVisible.$index).toBe(-5);
       expect(misc.checkElementContentByIndex(-5)).toBe(true);
-      expectDomMatchesBuffer(misc);
+      misc.expect.domMatchesBuffer();
     }
   });
 });

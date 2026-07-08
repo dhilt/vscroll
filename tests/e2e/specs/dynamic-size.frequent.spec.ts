@@ -1,8 +1,10 @@
-import { expectDomMatchesBuffer } from '../helpers/expect';
-import { SizeStrategy } from '../miscellaneous/vscroll';
-import { Misc } from '../miscellaneous/misc';
-import { getDatasource } from '../scaffolding/datasources';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
+import {
+  getDatasource,
+  makeTest,
+  Misc,
+  SizeStrategy,
+  TestConfig
+} from '../scaffolding';
 
 type Action =
   | { type: 'scroll'; positions: Array<'min' | 'max' | number> }
@@ -113,17 +115,13 @@ const runAction = async (misc: Misc, action: Action): Promise<void> => {
 };
 
 const expectHealthyState = (misc: Misc): void => {
-  expectDomMatchesBuffer(misc);
+  misc.expect.domMatchesBuffer();
   expect(misc.padding.backward.getSize()).toBeGreaterThanOrEqual(0);
   expect(misc.padding.forward.getSize()).toBeGreaterThanOrEqual(0);
   expect(misc.getScrollableSize()).toBeGreaterThanOrEqual(
     misc.getViewportSize()
   );
-
-  // the visible window stays within the buffered range
-  const { firstIndex, lastIndex } = misc.adapter.bufferInfo;
-  expect(misc.adapter.firstVisible.$index).toBeGreaterThanOrEqual(firstIndex);
-  expect(misc.adapter.lastVisible.$index).toBeLessThanOrEqual(lastIndex);
+  misc.expect.visibleWithinBuffer();
 };
 
 const registerScenario = (
@@ -131,7 +129,7 @@ const registerScenario = (
   scenario: Scenario,
   configuredSize?: number
 ): void => {
-  const config: TestBedConfig = {
+  const config: TestConfig = {
     datasource: () => getDatasource({ min: -99, max: 100 }),
     datasourceSettings: {
       ...settings,

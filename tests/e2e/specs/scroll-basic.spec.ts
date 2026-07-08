@@ -1,8 +1,10 @@
-import { expectBufferRange, expectViewportFilled } from '../helpers/expect';
-import { Direction } from '../miscellaneous/vscroll';
-import { Misc } from '../miscellaneous/misc';
-import { getDatasource } from '../scaffolding/datasources';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
+import {
+  Direction,
+  getDatasource,
+  makeTest,
+  Misc,
+  TestConfig
+} from '../scaffolding';
 
 interface ScrollPlan {
   direction: Direction;
@@ -11,19 +13,33 @@ interface ScrollPlan {
   mass?: boolean;
 }
 
-type Config = TestBedConfig<ScrollPlan> & {
+type Config = TestConfig<ScrollPlan> & {
   custom: ScrollPlan;
-  datasourceSettings: NonNullable<TestBedConfig['datasourceSettings']> & {
+  datasourceSettings: NonNullable<TestConfig['datasourceSettings']> & {
     startIndex: number;
     bufferSize: number;
     padding: number;
     itemSize: number;
   };
-  templateSettings: NonNullable<TestBedConfig['templateSettings']>;
+  templateSettings: NonNullable<TestConfig['templateSettings']>;
 };
 
 type BaseConfig = Omit<Config, 'custom'>;
 
+/**
+ * Settled state captured EMPIRICALLY for one (scenario, baseConfig) pair once
+ * the scroll sequence completes. These values encode vscroll's own fetch/clip/
+ * padding decisions, so they are hardcoded rather than recomputed here —
+ * recomputing would duplicate the scroller logic under test (the "oracle" we
+ * deliberately avoid).
+ *
+ * - `range`: buffer edge indexes [firstIndex, lastIndex] left in the buffer.
+ * - `oppositePadding`: px size of the padding opposite the final scroll
+ *   direction (the scrolled-to side is always 0, asserted separately).
+ *
+ * To regenerate after an intentional algorithm change, log
+ * `misc.adapter.bufferInfo` / `misc.padding[dir].getSize()` inside `testScroll`.
+ */
 interface Golden {
   range: [number, number];
   oppositePadding: number;
@@ -124,12 +140,12 @@ const testScroll =
       await scrollToEdge(misc, direction);
     }
 
-    expectBufferRange(misc, golden.range);
+    misc.expect.bufferRange(golden.range);
     expect(misc.padding[direction].getSize()).toBe(0);
     expect(misc.padding[invert(direction)].getSize()).toBe(
       golden.oppositePadding
     );
-    expectViewportFilled(misc);
+    misc.expect.viewportFilled();
   };
 
 const repeatedPlan =

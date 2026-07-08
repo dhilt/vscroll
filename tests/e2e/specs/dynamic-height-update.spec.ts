@@ -1,8 +1,10 @@
-import { expectDomIndexesMatchBuffer } from '../helpers/expect';
-import { SizeStrategy } from '../miscellaneous/vscroll';
-import { Misc } from '../miscellaneous/misc';
-import { getDatasource } from '../scaffolding/datasources';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
+import {
+  getDatasource,
+  makeTest,
+  Misc,
+  SizeStrategy,
+  TestConfig
+} from '../scaffolding';
 
 interface Scenario {
   title: string;
@@ -80,7 +82,7 @@ const scenarios: Scenario[] = [
   }
 ];
 
-const baseSettings: NonNullable<TestBedConfig['datasourceSettings']> = {
+const baseSettings: NonNullable<TestConfig['datasourceSettings']> = {
   startIndex: 1,
   padding: 0.5,
   bufferSize: 5,
@@ -113,7 +115,7 @@ describe('Dynamic Size Update Spec', () => {
         expect(misc.scroller.buffer.defaultSize).toBe(
           scenario.defaultSize.final
         );
-        expectDomIndexesMatchBuffer(misc);
+        misc.expect.domIndexesMatchBuffer();
       }
     })
   );

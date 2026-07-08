@@ -1,15 +1,17 @@
-import { getDynamicSize } from '../helpers/dynamicSize';
-import { expectDomMatchesBuffer } from '../helpers/expect';
-import { SizeStrategy } from '../miscellaneous/vscroll';
-import { getDatasource } from '../scaffolding/datasources';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
+import {
+  getDatasource,
+  getDynamicSize,
+  makeTest,
+  SizeStrategy,
+  TestConfig
+} from '../scaffolding';
 
 const reloadIndexes = [
   -99, -98, -90, -75, -35, -20, -10, -5, -2, -1, 0, 1, 2, 5, 10, 20, 35, 50, 75,
   90
 ];
 
-const baseConfig: TestBedConfig = {
+const baseConfig: TestConfig = {
   datasource: () => getDatasource({ min: -99, max: 100 }),
   datasourceSettings: {
     startIndex: 1,
@@ -39,7 +41,7 @@ describe('Dynamic Size Reload Spec', () => {
         await misc.adapter.reload(reloadIndex);
         await misc.adapter.relax();
 
-        expectDomMatchesBuffer(misc);
+        misc.expect.domMatchesBuffer();
         expect(misc.adapter.firstVisible.$index).toBe(reloadIndex);
       }
     })

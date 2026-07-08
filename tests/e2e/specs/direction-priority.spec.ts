@@ -1,8 +1,10 @@
-import { expectDomMatchesBuffer } from '../helpers/expect';
-import { Direction } from '../miscellaneous/vscroll';
-import { Misc } from '../miscellaneous/misc';
-import { getDatasource } from '../scaffolding/datasources';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
+import {
+  Direction,
+  getDatasource,
+  makeTest,
+  Misc,
+  TestConfig
+} from '../scaffolding';
 
 interface Scenario {
   title: string;
@@ -18,7 +20,7 @@ interface Scenario {
 
 interface TestCase {
   scenario: Scenario;
-  config: TestBedConfig;
+  config: TestConfig;
 }
 
 const minIndex = 0;
@@ -117,7 +119,7 @@ describe('Direction Priority Spec', () =>
         if (scenario.scrollPosition !== undefined) {
           await misc.scrollToRelax(scenario.scrollPosition);
         }
-        expectDomMatchesBuffer(misc);
+        misc.expect.domMatchesBuffer();
         expectResult(misc, scenario);
       }
     })

@@ -1,15 +1,18 @@
-import { Misc } from '../miscellaneous/misc';
-import { getDatasource } from '../scaffolding/datasources';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
+import {
+  getDatasource,
+  makeTest,
+  Misc,
+  TestConfig
+} from '../scaffolding';
 
 interface CustomConfig {
   scrollTo?: number;
 }
 
-type ViewportConfig = TestBedConfig<CustomConfig> & {
+type ViewportConfig = TestConfig<CustomConfig> & {
   custom: CustomConfig;
-  datasourceSettings: NonNullable<TestBedConfig['datasourceSettings']>;
-  templateSettings: NonNullable<TestBedConfig['templateSettings']>;
+  datasourceSettings: NonNullable<TestConfig['datasourceSettings']>;
+  templateSettings: NonNullable<TestConfig['templateSettings']>;
 };
 
 const baseConfig: ViewportConfig = {

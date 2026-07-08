@@ -1,6 +1,4 @@
-import { makeTest } from '../scaffolding/runner';
-import { getDatasource } from '../scaffolding/datasources';
-import { SizeStrategy } from '../miscellaneous/vscroll';
+import { getDatasource, makeTest, SizeStrategy } from '../scaffolding';
 
 const baseConfig = {
   datasourceSettings: {
@@ -19,10 +17,9 @@ describe('Dynamic Zero Size Spec', () => {
         datasource: () => getDatasource({ min: 1, max: 100, size: 0 })
       },
       title: 'should stop the Workflow after the first loop',
-      it: misc => async done => {
+      it: misc => async () => {
         await misc.relaxNext();
         expect(misc.innerLoopCount).toEqual(1);
-        done();
       }
     }));
 
@@ -33,13 +30,12 @@ describe('Dynamic Zero Size Spec', () => {
         datasource: () => getDatasource({ min: 1, max: 100 })
       },
       title: 'should stop the Workflow after the second loop',
-      it: misc => async done => {
+      it: misc => async () => {
         misc.setItemProcessor(
           ({ $index, data }) => (data.size = $index >= 6 ? 0 : 20)
         );
         await misc.relaxNext();
         expect(misc.innerLoopCount).toEqual(2);
-        done();
       }
     }));
 
@@ -50,7 +46,7 @@ describe('Dynamic Zero Size Spec', () => {
         datasource: () => getDatasource({ min: 1, max: 100, size: 0 })
       },
       title: 'should continue the Workflow after re-size and check',
-      it: misc => async done => {
+      it: misc => async () => {
         const {
           scroller: { viewport },
           adapter
@@ -72,7 +68,6 @@ describe('Dynamic Zero Size Spec', () => {
 
         expect(viewport.getScrollableSize()).toBeGreaterThan(0);
         expect(viewport.paddings.forward.size).toEqual(0);
-        done();
       }
     }));
 });

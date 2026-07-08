@@ -1,8 +1,10 @@
-import { expectConsistent } from '../helpers/expect';
-import { Direction } from '../miscellaneous/vscroll';
-import { Misc } from '../miscellaneous/misc';
-import { getDatasource } from '../scaffolding/datasources';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
+import {
+  Direction,
+  getDatasource,
+  makeTest,
+  Misc,
+  TestConfig
+} from '../scaffolding';
 
 interface FastScrollConfig {
   items: number;
@@ -10,10 +12,10 @@ interface FastScrollConfig {
   finalEdge: Direction;
 }
 
-type Config = TestBedConfig<FastScrollConfig> & {
+type Config = TestConfig<FastScrollConfig> & {
   custom: FastScrollConfig;
-  datasourceSettings: NonNullable<TestBedConfig['datasourceSettings']>;
-  templateSettings: NonNullable<TestBedConfig['templateSettings']>;
+  datasourceSettings: NonNullable<TestConfig['datasourceSettings']>;
+  templateSettings: NonNullable<TestConfig['templateSettings']>;
 };
 
 const baseConfigs: Config[] = [
@@ -77,14 +79,11 @@ const eofConfigs = baseConfigs.map<Config>(config => ({
   custom: { ...config.custom, finalEdge: Direction.forward }
 }));
 
-const delay = (duration: number) =>
-  new Promise<void>(resolve => setTimeout(resolve, duration));
-
 const runFastScroll = async (misc: Misc, config: FastScrollConfig) => {
   for (let iteration = 0; iteration <= config.scrollCount; iteration++) {
-    await delay(25);
+    await misc.delay(25);
     misc.scrollMax();
-    await delay(25);
+    await misc.delay(25);
     if (
       iteration < config.scrollCount ||
       config.finalEdge === Direction.backward
@@ -94,30 +93,8 @@ const runFastScroll = async (misc: Misc, config: FastScrollConfig) => {
   }
 };
 
-const reachExpectedEdge = async (misc: Misc, config: Config) => {
-  const startIndex = config.datasourceSettings.startIndex as number;
-
-  for (let attempt = 0; attempt < 50; attempt++) {
-    await misc.adapter.relax();
-    const atBof = misc.getScrollPosition() === 0;
-    const { items } = misc.scroller.buffer;
-    const edgeItem = items[atBof ? 0 : items.length - 1];
-    const expectedIndex = startIndex + (atBof ? 0 : config.custom.items - 1);
-    if (edgeItem?.$index === expectedIndex) {
-      return;
-    }
-    if (atBof) {
-      await misc.scrollMaxRelax();
-    } else {
-      await misc.scrollMinRelax();
-    }
-  }
-
-  throw new Error('Unable to reach a complete dataset edge');
-};
-
 const expectCompleteDataset = (misc: Misc, config: Config) => {
-  expectConsistent(misc);
+  misc.expect.consistent();
   const { buffer, viewport } = misc.scroller;
   const itemSize = config.templateSettings.itemHeight || 20;
   const totalSize =
@@ -138,7 +115,7 @@ const expectCompleteDataset = (misc: Misc, config: Config) => {
 const testFastScroll = (config: Config) => (misc: Misc) => async () => {
   await misc.relaxNext();
   await runFastScroll(misc, config.custom);
-  await reachExpectedEdge(misc, config);
+  await misc.reachEdge(config.custom.finalEdge);
   expectCompleteDataset(misc, config);
 };
 

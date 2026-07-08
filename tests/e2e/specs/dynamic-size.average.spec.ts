@@ -1,10 +1,18 @@
-import { getDynamicSize } from '../helpers/dynamicSize';
-import { expectDomMatchesBuffer, expectStartVisible } from '../helpers/expect';
-import { SizeStrategy } from '../miscellaneous/vscroll';
-import { Misc } from '../miscellaneous/misc';
-import { getDatasource } from '../scaffolding/datasources';
-import { makeTest, TestBedConfig } from '../scaffolding/runner';
+import {
+  Direction,
+  getDatasource,
+  getDynamicSize,
+  makeTest,
+  Misc,
+  SizeStrategy,
+  TestConfig
+} from '../scaffolding';
 
+/**
+ * Settled layout captured EMPIRICALLY for a load scenario. `defaultSize` and the
+ * paddings come from the Average size strategy's own measurements, so they are
+ * harvested rather than recomputed (recomputing would re-implement the strategy).
+ */
 interface LayoutSnapshot {
   range: [number, number];
   defaultSize: number;
@@ -14,10 +22,10 @@ interface LayoutSnapshot {
 }
 
 interface LoadScenario {
-  settings: NonNullable<TestBedConfig['datasourceSettings']> & {
+  settings: NonNullable<TestConfig['datasourceSettings']> & {
     startIndex: number;
   };
-  template?: TestBedConfig['templateSettings'];
+  template?: TestConfig['templateSettings'];
   expected: LayoutSnapshot;
   firstForwardPadding?: number;
 }
@@ -176,7 +184,7 @@ const scrollScenarios = initialScenarios.filter(
   (_scenario, index) => index !== 2 && index !== 3
 );
 
-const createConfig = (scenario: LoadScenario): TestBedConfig => ({
+const createConfig = (scenario: LoadScenario): TestConfig => ({
   datasource: () => getDatasource(sourceLimits),
   datasourceSettings: {
     sizeStrategy: SizeStrategy.Average,
@@ -201,27 +209,6 @@ const setDynamicSizes = (misc: Misc): void =>
   misc.setItemProcessor(({ $index, data }) => {
     data.size = getDynamicSize($index);
   });
-
-const reachEdge = async (
-  misc: Misc,
-  edge: 'bof' | 'eof',
-  maxAttempts = 50
-): Promise<void> => {
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    if (misc.scroller.buffer[edge].get()) {
-      return;
-    }
-
-    const position = misc.getScrollPosition();
-    edge === 'eof' ? misc.scrollMax() : misc.scrollMin();
-    if (position === misc.getScrollPosition()) {
-      break;
-    }
-    await misc.relaxNext();
-  }
-
-  throw new Error(`Unable to reach ${edge.toUpperCase()}`);
-};
 
 const registerLoadScenario = (scenario: LoadScenario, index: number): void =>
   makeTest({
@@ -256,8 +243,8 @@ const registerLoadScenario = (scenario: LoadScenario, index: number): void =>
         )
       );
 
-      expectDomMatchesBuffer(misc);
-      expectStartVisible(misc, scenario.settings.startIndex);
+      misc.expect.domMatchesBuffer();
+      misc.expect.startVisible(scenario.settings.startIndex);
 
       expect(takeLayoutSnapshot(misc)).toEqual(scenario.expected);
       if (scenario.firstForwardPadding !== undefined) {
@@ -285,13 +272,13 @@ describe('Dynamic Size Spec for Average strategy', () => {
         before: setDynamicSizes,
         it: misc => async () => {
           await misc.relaxNext();
-          await reachEdge(misc, 'eof');
+          await misc.reachEdge(Direction.forward);
           expect(misc.scroller.buffer.eof.get()).toBe(true);
 
-          await reachEdge(misc, 'bof');
+          await misc.reachEdge(Direction.backward);
 
           expect(misc.scroller.buffer.bof.get()).toBe(true);
-          expectDomMatchesBuffer(misc);
+          misc.expect.domMatchesBuffer();
         }
       })
     ));

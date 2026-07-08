@@ -1,10 +1,11 @@
-import { Direction, Workflow, makeDatasource } from '../../../src/index';
+import { Direction, Workflow, makeDatasource } from './vscroll';
 import type {
   IDatasource,
   IDatasourceConstructed,
   Item
-} from '../../../src/interfaces/index';
+} from './vscroll';
 import { getDatasource, TestDatasource } from './datasources';
+import { Expectations } from './expectations';
 import type {
   DatasourceProcessor,
   TemplateSettings,
@@ -13,6 +14,30 @@ import type {
 } from '../types';
 
 const Datasource = makeDatasource();
+
+// Static, per-item styles are injected once instead of being re-applied to every
+// element on every render. Only the varying bits (size, content, visibility)
+// stay in render().
+let stylesInjected = false;
+const ensureStyles = (): void => {
+  if (stylesInjected) {
+    return;
+  }
+  stylesInjected = true;
+  const style = document.createElement('style');
+  style.textContent = `
+    [data-vscroll-test-root] [data-sid],
+    [data-vscroll-test-root] [data-sid] > .item {
+      box-sizing: border-box; margin: 0; padding: 0;
+    }
+    [data-vscroll-test-root] [data-sid] > .item { overflow: hidden; }
+    [data-vscroll-test-root][data-horizontal] [data-sid],
+    [data-vscroll-test-root][data-horizontal] [data-sid] > .item {
+      display: inline-block;
+    }
+  `;
+  document.head.appendChild(style);
+};
 
 const defaultTemplateSettings: Required<
   Omit<TemplateSettings, 'dynamicSize'>
@@ -36,6 +61,7 @@ export class TestHost<Data extends TestItem = TestItem> {
   workflow: Workflow<Data>;
   readonly shared: Record<string, unknown> = {};
   readonly padding: Record<Direction, { getSize: () => number }>;
+  readonly expect: Expectations<Data> = new Expectations<Data>(this);
 
   private readonly settings: TemplateSettings;
   private readonly windowViewport: boolean;
@@ -59,6 +85,11 @@ export class TestHost<Data extends TestItem = TestItem> {
 
   get horizontal(): boolean {
     return this.scroller.settings.horizontal;
+  }
+
+  /** The active datasource, narrowed to a concrete test datasource type. */
+  source<T extends IDatasource<Data> = IDatasource<Data>>(): T {
+    return this.datasource as T;
   }
 
   constructor(config: TestConfig<unknown, Data>) {
@@ -146,9 +177,13 @@ export class TestHost<Data extends TestItem = TestItem> {
     viewport: HTMLElement;
     content: HTMLElement;
   } {
+    ensureStyles();
     const settings = this.settings;
     const root = document.createElement('section');
     root.dataset.vscrollTestRoot = '';
+    if (settings.horizontal) {
+      root.dataset.horizontal = '';
+    }
     root.style.cssText =
       'display:block;font:16px/20px sans-serif;margin:0;padding:0;';
 
@@ -220,17 +255,15 @@ export class TestHost<Data extends TestItem = TestItem> {
       throw new Error('Forward padding element is missing');
     }
 
-    for (const item of items) {
-      let element = item.element;
-      if (!element) {
-        element = document.createElement('div');
-        item.element = element;
-      }
+    const dynamicSize = this.settings.dynamicSize as keyof Data | null;
+    const horizontal = !!this.settings.horizontal;
+    const configuredSize = horizontal
+      ? this.settings.itemWidth
+      : this.settings.itemHeight;
 
+    for (const item of items) {
+      const element = (item.element ??= document.createElement('div'));
       element.dataset.sid = String(item.$index);
-      element.style.boxSizing = 'border-box';
-      element.style.margin = '0';
-      element.style.padding = '0';
       element.style.position = item.invisible ? 'fixed' : '';
       element.style.left = item.invisible ? '-99999px' : '';
 
@@ -240,27 +273,12 @@ export class TestHost<Data extends TestItem = TestItem> {
         templateElement.className = 'item';
         element.appendChild(templateElement);
       }
-      templateElement.style.boxSizing = 'border-box';
-      templateElement.style.margin = '0';
-      templateElement.style.padding = '0';
 
-      const dynamicSize = this.settings.dynamicSize as keyof Data | null;
-      const horizontal = !!this.settings.horizontal;
-      const configuredSize = horizontal
-        ? this.settings.itemWidth
-        : this.settings.itemHeight;
       const itemSize = dynamicSize
         ? Number(item.data[dynamicSize])
         : Number(configuredSize);
       if (Number.isFinite(itemSize)) {
-        templateElement.style[horizontal ? 'width' : 'height'] =
-          `${itemSize}px`;
-        templateElement.style[horizontal ? 'overflowX' : 'overflowY'] =
-          'hidden';
-      }
-      if (horizontal) {
-        element.style.display = 'inline-block';
-        templateElement.style.display = 'inline-block';
+        templateElement.style[horizontal ? 'width' : 'height'] = `${itemSize}px`;
       }
 
       templateElement.innerHTML = `<span>${item.$index}</span>: <b>${item.data.text}</b>`;
@@ -287,7 +305,11 @@ export class TestHost<Data extends TestItem = TestItem> {
   }
 
   checkElementContentByIndex(index: number): boolean {
-    return this.getElementText(index) === `${index}: item #${index}`;
+    return this.checkElementContent(index, index);
+  }
+
+  checkElementContent(index: number, id: number): boolean {
+    return this.getElementText(index) === `${index}: item #${id}`;
   }
 
   checkElementId(element: HTMLElement, index: number): boolean {
@@ -399,6 +421,23 @@ export class TestHost<Data extends TestItem = TestItem> {
     return this.scrollToRelax(Infinity);
   }
 
+  /** Scroll toward an edge, settling each step, until its BOF/EOF flag is set. */
+  async reachEdge(direction: Direction, maxAttempts = 50): Promise<void> {
+    const forward = direction === Direction.forward;
+    const reached = (): boolean =>
+      forward ? this.scroller.buffer.eof.get() : this.scroller.buffer.bof.get();
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      await this.adapter.relax();
+      if (reached()) {
+        return;
+      }
+      await (forward ? this.scrollMaxRelax() : this.scrollMinRelax());
+    }
+
+    throw new Error(`Unable to reach ${forward ? 'EOF' : 'BOF'}`);
+  }
+
   async scrollToIndexRelax(index: number, maxAttempts = 20): Promise<void> {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const { firstIndex, lastIndex } = this.adapter.bufferInfo;
@@ -432,6 +471,14 @@ export class TestHost<Data extends TestItem = TestItem> {
     itemUpdater: (item: { $index: number; data: Data }) => unknown
   ): void {
     this.setDatasourceProcessor(items => items.forEach(itemUpdater));
+  }
+
+  delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  waitForPaint(): Promise<void> {
+    return new Promise(resolve => requestAnimationFrame(() => resolve()));
   }
 
   dispose(): void {

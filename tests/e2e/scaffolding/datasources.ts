@@ -1,4 +1,6 @@
-import type { DatasourceGet } from '../../../src/interfaces/index';
+import { makeDatasource } from './vscroll';
+import type { DatasourceGet, IDatasourceConstructed } from './vscroll';
+import { makeItem } from './data';
 import type { DatasourceProcessor, IndexedItem, TestItem } from '../types';
 
 // A datasource that also lets a test inject a per-fetch processor, used to
@@ -16,6 +18,73 @@ export interface DatasourceOptions {
   mode?: 'callback' | 'promise' | 'observable'; // transport, default callback
 }
 
+interface MutableState {
+  min: number;
+  max: number;
+  data: TestItem[];
+  requests: Array<{ index: number; count: number }>;
+  processor?: DatasourceProcessor;
+}
+
+const Datasource = makeDatasource();
+
+export class MutableDatasource extends Datasource<TestItem> {
+  private readonly state: MutableState;
+
+  constructor(min: number, max: number, firstId = min) {
+    const state = { min, max, data: [], requests: [] } as MutableState;
+    const read = (index: number, count: number): TestItem[] => {
+      state.requests.push({ index, count });
+      const items: IndexedItem[] = [];
+      for (let current = index; current < index + count; current++) {
+        const data = state.data[current - state.min];
+        if (data) {
+          items.push({ $index: current, data });
+        }
+      }
+      state.processor?.(items, index, count, state.min, state.max);
+      return items.map(({ data }) => data);
+    };
+    super({ get: (index, count, success) => success(read(index, count)) });
+    this.state = state;
+    this.reset(min, max, firstId);
+  }
+
+  reset(min: number, max: number, firstId = min): void {
+    this.state.min = min;
+    this.state.max = max;
+    this.state.data = Array.from({ length: max - min + 1 }, (_, offset) =>
+      makeItem(firstId + offset)
+    );
+  }
+
+  setProcessor(processor: DatasourceProcessor): void {
+    this.state.processor = processor;
+  }
+
+  insert(
+    items: TestItem[],
+    index: number,
+    before: boolean,
+    decrease = false
+  ): void {
+    const offset = index - this.state.min;
+    if (offset >= 0 && offset < this.state.data.length) {
+      this.state.data.splice(offset + (before ? 0 : 1), 0, ...items);
+    }
+    this.state.min -= decrease ? items.length : 0;
+    this.state.max += decrease ? 0 : items.length;
+  }
+
+  clearRequests(): void {
+    this.state.requests.length = 0;
+  }
+
+  get requests(): ReadonlyArray<{ index: number; count: number }> {
+    return this.state.requests;
+  }
+}
+
 export const getDatasource = (
   options: DatasourceOptions = {}
 ): TestDatasource => {
@@ -28,11 +97,7 @@ export const getDatasource = (
       if ((min === undefined || i >= min) && (max === undefined || i <= max)) {
         items.push({
           $index: i,
-          data: {
-            id: i,
-            text: `item #${i}`,
-            ...(size === undefined ? {} : { size })
-          }
+          data: { ...makeItem(i), ...(size === undefined ? {} : { size }) }
         });
       }
     }
@@ -95,4 +160,20 @@ export const getDatasource = (
       processor = processorFn;
     }
   };
+};
+
+/**
+ * Run a callback against a freshly built, NOT-yet-initialized adapter, then
+ * dispose. Used to assert that adapter methods resolve immediately before init.
+ */
+export const withUninitializedAdapter = async (
+  run: (adapter: IDatasourceConstructed<TestItem>['adapter']) => Promise<void>
+): Promise<void> => {
+  const source = getDatasource();
+  const datasource = new Datasource<TestItem>({ get: source.get.bind(source) });
+  try {
+    await run(datasource.adapter);
+  } finally {
+    datasource.dispose();
+  }
 };

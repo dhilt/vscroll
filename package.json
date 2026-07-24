@@ -28,8 +28,11 @@
     "build": "node build",
     "test": "npm run lint && cd tests && npm test",
     "test:unit": "cd tests && npm run test:unit",
+    "test:unit:coverage": "cd tests && npm run test:unit:coverage",
     "test:e2e": "cd tests && npm run test:e2e",
+    "test:e2e:coverage": "cd tests && npm run test:e2e:coverage",
     "test:e2e:ui": "cd tests && npm run test:e2e:ui",
+    "test:coverage": "cd tests && npm run test:coverage",
     "prepack": "npm run build",
     "checkGit": "sh ./uncommited.sh",
     "prepublishOnly": "npm run checkGit && npm run build && npm run test && npm run checkGit"

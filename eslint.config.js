@@ -6,7 +6,13 @@ import globals from 'globals';
 export default [
   // Global ignores (replaces .eslintignore)
   {
-    ignores: ['node_modules/**', 'dist/**', 'build/**', 'demo/**']
+    ignores: [
+      'node_modules/**',
+      'dist/**',
+      'build/**',
+      'demo/**',
+      'coverage/**'
+    ]
   },
 
   // Base configuration for TypeScript files

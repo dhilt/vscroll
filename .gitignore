@@ -5,3 +5,5 @@ node_modules
 .DS_Store
 tests/.vitest-attachments
 tests/e2e/specs/__screenshots__
+/coverage/
+/temp/

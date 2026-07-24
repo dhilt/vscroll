@@ -19,7 +19,7 @@ export default defineConfig({
   },
   test: {
     include: ['e2e/specs/**/*.spec.ts'],
-    fileParallelism: false,
+    fileParallelism: process.env.CI === 'true',
     attachmentsDir: '.vitest-attachments',
     globals: true,
     testTimeout: 5000,

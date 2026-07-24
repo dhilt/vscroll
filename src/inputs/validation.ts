@@ -53,15 +53,15 @@ const onInteger = (value: unknown): ValidatedValue => {
 };
 
 const onIntegerUnlimited = (value: unknown): ValidatedValue => {
-  let parsedValue = value;
+  let parsedValue: number;
   const errors = [];
-  value = getNumber(value);
-  if (!Number.isFinite(value)) {
-    parsedValue = value;
+  const numericValue = getNumber(value);
+  if (!Number.isFinite(numericValue)) {
+    parsedValue = numericValue;
   } else {
-    parsedValue = parseInt(String(value), 10);
+    parsedValue = parseInt(String(numericValue), 10);
   }
-  if (value !== parsedValue) {
+  if (numericValue !== parsedValue) {
     errors.push(ValidatorType.integerUnlimited);
   }
   return { value: parsedValue, isSet: true, isValid: !errors.length, errors };

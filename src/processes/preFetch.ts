@@ -131,7 +131,6 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
     } else {
       let index = first.indexBuffer;
       let position = first.position;
-      lastIndex = index;
       while (true) {
         lastIndex = index;
         const size = buffer.getSizeByIndex(index);

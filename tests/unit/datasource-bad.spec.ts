@@ -1,14 +1,10 @@
 import { INVALID_DATASOURCE_PREFIX, Scroller } from '../../src/scroller';
 
 describe('Wrong Datasource on Scroller instantiation', () => {
-  const checkScrollerError = (datasource, error) => {
-    try {
-      new Scroller({ datasource });
-    } catch (e) {
-      expect(e.message).toContain(INVALID_DATASOURCE_PREFIX);
-      expect(e.message).toContain(error);
-    }
-  };
+  const checkScrollerError = (datasource, error) =>
+    expect(() => new Scroller({ datasource })).toThrow(
+      `${INVALID_DATASOURCE_PREFIX} ${error}`
+    );
 
   it('should throw "get" must be set', () =>
     [void 0, null, 'wrong', {}, { get: void 0 }].forEach(ds =>

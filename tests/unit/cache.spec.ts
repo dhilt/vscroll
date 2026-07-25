@@ -660,6 +660,17 @@ describe('Cache Spec', () => {
           Array.from({ length: 10 }).map((j, i) => ({ [100 + i]: 20 }))
         ));
 
+      it('should keep frequent size on a tie regardless of insertion order', () =>
+        checkDefaultSize({
+          sizeStrategy: SizeStrategy.Frequent,
+          cacheSize: 3,
+          itemSize: 12,
+          setItemSize: item => (item.size = item.$index === 1 ? 20 : 12),
+          updateCache: cache =>
+            cache.add({ $index: 4, size: 20, data: {} } as Item),
+          before: 12
+        }));
+
       it('should change frequent size on add (new, more)', () =>
         checkFrequentOnAdd(
           Array.from({ length: 11 }).map((j, i) => ({ [100 + i]: 20 })),

@@ -4,7 +4,6 @@ import {
   makeItem,
   makeTest,
   Misc,
-  withUninitializedAdapter,
   AdapterMethodResult,
   TestConfig
 } from '../scaffolding';
@@ -292,14 +291,4 @@ describe('Adapter Promises Spec', () => {
 
   describe('Concurrent sequences', () =>
     concurrentScenarios.forEach(registerConcurrentScenario));
-
-  describe('Calls before initialization', () =>
-    (['relax', 'reload', 'reset', 'check'] as const).forEach(method =>
-      test(`should resolve ${method} immediately`, async () =>
-        withUninitializedAdapter(async adapter => {
-          const result = await adapter[method]();
-          expect(result.immediate).toBe(true);
-          expect(result.success).toBe(true);
-        }))
-    ));
 });

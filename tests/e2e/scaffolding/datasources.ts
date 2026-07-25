@@ -1,9 +1,5 @@
 import { makeDatasource } from './vscroll';
-import type {
-  BufferUpdater,
-  DatasourceGet,
-  IDatasourceConstructed
-} from './vscroll';
+import type { BufferUpdater, DatasourceGet } from './vscroll';
 import { makeItem } from './data';
 import type { DatasourceProcessor, IndexedItem, TestItem } from '../types';
 
@@ -219,20 +215,4 @@ export const getDatasource = (
       processor = processorFn;
     }
   };
-};
-
-/**
- * Run a callback against a freshly built, NOT-yet-initialized adapter, then
- * dispose. Used to assert that adapter methods resolve immediately before init.
- */
-export const withUninitializedAdapter = async (
-  run: (adapter: IDatasourceConstructed<TestItem>['adapter']) => Promise<void>
-): Promise<void> => {
-  const source = getDatasource();
-  const datasource = new Datasource<TestItem>({ get: source.get.bind(source) });
-  try {
-    await run(datasource.adapter);
-  } finally {
-    datasource.dispose();
-  }
 };

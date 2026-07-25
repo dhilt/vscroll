@@ -2,7 +2,6 @@ import {
   getDatasource,
   makeTest,
   Misc,
-  withUninitializedAdapter,
   AdapterClipOptions,
   TestConfig
 } from '../scaffolding';
@@ -227,14 +226,4 @@ describe('Adapter Clip Spec', () => {
   clipScenarios.forEach(registerClipScenario);
   registerInfiniteScenario(baseScenarios[0]);
   registerInfiniteScenario(baseScenarios[3]);
-
-  test('should resolve immediately before initialization', async () =>
-    withUninitializedAdapter(async adapter => {
-      const result = await adapter.clip();
-      expect(result).toEqual({
-        immediate: true,
-        success: true,
-        details: 'Adapter is not initialized'
-      });
-    }));
 });

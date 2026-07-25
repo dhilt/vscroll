@@ -1,7 +1,9 @@
 import { Scroller } from '../../src/scroller';
 import { AdapterPropName } from '../../src/classes/adapter/props';
 import { Datasource } from '../../src/classes/datasource';
+import { Reactive } from '../../src/classes/reactive';
 import { wantedUtils } from '../../src/classes/adapter/wanted';
+import type { AdapterMethodResult, ProcessSubject } from '../../src/interfaces';
 import version from '../../src/version';
 
 const MOCK = {
@@ -19,6 +21,60 @@ const MOCK = {
   }
 };
 
+const createDatasource = () =>
+  new Datasource({
+    get: (_index: number, _count: number) => Promise.resolve([])
+  });
+
+const disposedResult: AdapterMethodResult = {
+  immediate: false,
+  success: false,
+  details: 'Adapter was disposed'
+};
+
+const createHost = () => {
+  const adapterRun$ = new Reactive<ProcessSubject>();
+  const datasource = createDatasource();
+  const scroller = new Scroller({
+    datasource,
+    element: MOCK.element,
+    workflow: {
+      onDataChanged: () => null,
+      call: process => adapterRun$.set(process)
+    }
+  });
+  scroller.viewport.reset = () => null;
+  scroller.init(adapterRun$);
+  scroller.state.cycle.busy.set(true);
+
+  let disposed = false;
+  return {
+    adapter: datasource.adapter,
+    dispose: () => {
+      if (disposed) {
+        return;
+      }
+      disposed = true;
+      adapterRun$.dispose();
+      scroller.dispose(true);
+      datasource.dispose();
+    }
+  };
+};
+
+const expectSettled = (
+  promise: Promise<AdapterMethodResult>
+): Promise<AdapterMethodResult> =>
+  Promise.race([
+    promise,
+    new Promise<never>((_resolve, reject) =>
+      setTimeout(
+        () => reject(new Error('Adapter promise did not settle on dispose')),
+        0
+      )
+    )
+  ]);
+
 describe('Adapter Init Spec', () => {
   const ds = new Datasource(MOCK.datasource);
 
@@ -30,6 +86,54 @@ describe('Adapter Init Spec', () => {
 
   it('version should match', () => {
     expect(ds.adapter.version).toBe(version.version);
+  });
+});
+
+describe('Adapter Lifecycle Spec', () => {
+  describe('before initialization', () => {
+    test.each(['relax', 'reload', 'reset', 'check', 'clip'] as const)(
+      '%s resolves immediately',
+      async method => {
+        const datasource = createDatasource();
+        try {
+          await expect(datasource.adapter[method]()).resolves.toEqual({
+            immediate: true,
+            success: true,
+            details: 'Adapter is not initialized'
+          });
+        } finally {
+          datasource.dispose();
+        }
+      }
+    );
+  });
+
+  describe('on dispose', () => {
+    it('settles a pending relax without running its callback', async () => {
+      const host = createHost();
+      const callback = jest.fn();
+      try {
+        const result = host.adapter.relax(callback);
+        host.dispose();
+
+        await expect(expectSettled(result)).resolves.toEqual(disposedResult);
+        expect(callback).not.toHaveBeenCalled();
+      } finally {
+        host.dispose();
+      }
+    });
+
+    it('settles a pending workflow method', async () => {
+      const host = createHost();
+      try {
+        const result = host.adapter.check();
+        host.dispose();
+
+        await expect(expectSettled(result)).resolves.toEqual(disposedResult);
+      } finally {
+        host.dispose();
+      }
+    });
   });
 });
 

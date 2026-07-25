@@ -85,7 +85,6 @@ export class DefaultSize {
 
   private recalculateFrequentSize(): void {
     const { oldItems, newItems, removed } = this.recalculation;
-    const oldFrequentSizeCount = this.sizeMap.get(this.frequentSize);
     if (newItems.length) {
       newItems.forEach(({ size }) => this.sizeMap.set(size, (this.sizeMap.get(size) || 0) + 1));
     }
@@ -105,7 +104,7 @@ export class DefaultSize {
     const sorted = [...this.sizeMap.entries()].sort((a, b) => b[1] - a[1]);
     const mostFrequentCount = sorted[0][1];
     const listEqual = sorted.filter(i => i[1] === mostFrequentCount);
-    if (listEqual.length > 1 && listEqual.find(i => i[0] === oldFrequentSizeCount)) {
+    if (listEqual.length > 1 && listEqual.some(([size]) => size === this.frequentSize)) {
       // if there are more than 1 most frequent sizes, but the old one is present
       return;
     }

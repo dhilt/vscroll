@@ -74,18 +74,22 @@ export default class Fetch extends BaseProcessFactory(CommonProcess.fetch) {
     const { index, count } = scroller.state.fetch;
 
     let immediateData, immediateError;
+    let immediateDataReceived = false;
+    let immediateErrorReceived = false;
     let resolve: (value: unknown) => void, reject: (value: unknown) => void;
 
     const done = (data: unknown[]) => {
       if (!resolve) {
         immediateData = data || null;
+        immediateDataReceived = true;
         return;
       }
       resolve(data);
     };
     const fail = (error: unknown) => {
       if (!reject) {
-        immediateError = error || null;
+        immediateError = error;
+        immediateErrorReceived = true;
         return;
       }
       reject(error);
@@ -106,12 +110,12 @@ export default class Fetch extends BaseProcessFactory(CommonProcess.fetch) {
       }
     }
 
-    if (immediateData || immediateError) {
+    if (immediateDataReceived || immediateErrorReceived) {
       // callback case or immediate observable
       return {
-        data: immediateError ? null : immediateData || [],
+        data: immediateErrorReceived ? null : immediateData || [],
         error: immediateError,
-        isError: !!immediateError
+        isError: immediateErrorReceived
       };
     }
 

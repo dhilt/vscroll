@@ -62,10 +62,19 @@ export class Reactive<T> {
   }
 
   once(func: On<T>): Off {
-    const off = this.on(v => {
+    let emitted = false;
+    let off: Off = () => null;
+    off = this.on(v => {
+      if (emitted) {
+        return;
+      }
+      emitted = true;
       off();
       func(v);
     });
+    if (emitted) {
+      off();
+    }
     return off;
   }
 

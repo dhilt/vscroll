@@ -64,6 +64,20 @@ describe('Reactive', () => {
       expect($.get()).toEqual(VALUES[VALUES.length - 1]);
       expect(call).toEqual(1);
     });
+
+    it('should emit once when subscription emits immediately', () => {
+      const values: string[] = [];
+      const $ = new Reactive(VALUES[0], { emitOnSubscribe: true });
+
+      $.once(value => {
+        values.push(value);
+        $.set(VALUES[1]);
+      });
+      $.set(VALUES[2]);
+
+      expect(values).toEqual([VALUES[0]]);
+      expect($.get()).toBe(VALUES[2]);
+    });
   });
 
   describe('emitOnSubscribe', () => {

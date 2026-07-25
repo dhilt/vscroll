@@ -52,6 +52,12 @@ const ALLOWED_METHODS_WHEN_PAUSED = ADAPTER_PROPS_STUB.filter(v => !!v.allowedWh
   v => v.name
 );
 
+const getDisposedResult = (immediate: boolean): AdapterMethodResult => ({
+  immediate,
+  success: false,
+  details: 'Adapter was disposed'
+});
+
 const _has = (obj: unknown, prop: string): boolean =>
   !!obj && typeof obj === 'object' && Object.prototype.hasOwnProperty.call(obj, prop);
 
@@ -398,16 +404,20 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   }
 
   dispose(): void {
+    this.disposed = true;
     if (this.relax$) {
+      this.relax$.set(getDisposedResult(false));
       this.relax$.dispose();
     }
+    this.source?.[AdapterPropName.isLoading$]?.set(false);
     if (this.externalContext) {
       this.resetContext();
     }
-    Object.getOwnPropertyNames(this).forEach(prop => {
-      delete (this as Record<string, unknown>)[prop];
-    });
-    this.disposed = true;
+    Object.getOwnPropertyNames(this)
+      .filter(prop => prop !== 'disposed')
+      .forEach(prop => {
+        delete (this as Record<string, unknown>)[prop];
+      });
   }
 
   resetContext(): void {
@@ -569,7 +579,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
     reloadId: string
   ): Promise<AdapterMethodResult> {
     const runCallback = () =>
-      typeof callback === 'function' && reloadId === this.reloadId && callback();
+      !this.disposed && typeof callback === 'function' && reloadId === this.reloadId && callback();
     if (!this.isLoading) {
       runCallback();
     }
@@ -584,11 +594,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
       });
     }).then(immediate => {
       if (this.disposed) {
-        return {
-          immediate,
-          success: false,
-          details: 'Adapter was disposed'
-        };
+        return getDisposedResult(immediate);
       }
       const success = reloadId === this.reloadId;
       this.logger?.log?.(() =>

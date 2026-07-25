@@ -1,6 +1,6 @@
 import { Scroller } from '../../src/scroller';
 import { AdapterPropName } from '../../src/classes/adapter/props';
-import { Datasource } from '../../src/classes/datasource';
+import { Datasource, makeDatasource } from '../../src/classes/datasource';
 import { Reactive } from '../../src/classes/reactive';
 import { wantedUtils } from '../../src/classes/adapter/wanted';
 import type { AdapterMethodResult, ProcessSubject } from '../../src/interfaces';
@@ -86,6 +86,52 @@ describe('Adapter Init Spec', () => {
 
   it('version should match', () => {
     expect(ds.adapter.version).toBe(version.version);
+  });
+});
+
+describe('Adapter Custom Reactive Source Spec', () => {
+  it('should preserve the source and forward values across recreation', () => {
+    const source = {};
+    const values: unknown[] = [];
+    const CustomDatasource = makeDatasource(() => ({
+      mock: false,
+      reactive: {
+        [AdapterPropName.isLoading$]: {
+          source,
+          emit: (target, value) => {
+            expect(target).toBe(source);
+            values.push(value);
+          }
+        }
+      }
+    }));
+    const datasource = new CustomDatasource(MOCK.datasource);
+    const createScroller = () => {
+      const scroller = new Scroller({
+        datasource,
+        element: MOCK.element,
+        workflow: MOCK.workflow
+      });
+      scroller.viewport.reset = () => null;
+      scroller.init();
+      return scroller;
+    };
+    let scroller = createScroller();
+
+    try {
+      expect(datasource.adapter.isLoading$).toBe(source);
+      scroller.state.cycle.busy.set(true);
+      scroller.dispose(true);
+
+      scroller = createScroller();
+      expect(datasource.adapter.isLoading$).toBe(source);
+      scroller.state.cycle.busy.set(true);
+
+      expect(values).toEqual([true, false, true]);
+    } finally {
+      scroller.dispose(true);
+      datasource.dispose();
+    }
   });
 });
 

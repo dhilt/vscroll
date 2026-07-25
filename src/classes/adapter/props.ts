@@ -274,17 +274,17 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
   {
     type: Type.Reactive,
     name: Name.init$,
-    value: new Reactive<boolean>()
+    value: new Reactive<boolean>(false)
   },
   {
     type: Type.Reactive,
     name: Name.isLoading$,
-    value: new Reactive<boolean>()
+    value: new Reactive<boolean>(false)
   },
   {
     type: Type.Reactive,
     name: Name.loopPending$,
-    value: new Reactive<boolean>()
+    value: new Reactive<boolean>(false)
   },
   {
     type: Type.Reactive,
@@ -301,17 +301,17 @@ export const getDefaultAdapterProps = (): IAdapterProp[] => [
   {
     type: Type.Reactive,
     name: Name.bof$,
-    value: new Reactive<boolean>()
+    value: new Reactive<boolean>(false)
   },
   {
     type: Type.Reactive,
     name: Name.eof$,
-    value: new Reactive<boolean>()
+    value: new Reactive<boolean>(false)
   },
   {
     type: Type.Reactive,
     name: Name.paused$,
-    value: new Reactive<boolean>()
+    value: new Reactive<boolean>(false)
   }
 ];
 

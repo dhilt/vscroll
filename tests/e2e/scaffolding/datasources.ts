@@ -28,6 +28,133 @@ interface MutableState {
 
 const Datasource = makeDatasource();
 
+export interface ControlledRequest<Data = TestItem> {
+  readonly index: number;
+  readonly count: number;
+  resolve(items: Data[]): void;
+  reject(error: unknown): void;
+}
+
+interface ControlledState<Data> {
+  queued: ControlledRequest<Data>[];
+  waiters: Array<(request: ControlledRequest<Data>) => void>;
+  pending: Set<ControlledRequest<Data>>;
+  responder?: (request: ControlledRequest<Data>) => void;
+}
+
+/**
+ * Captures `get` requests so tests can resolve or reject them deterministically,
+ * reproducing async failures and interruption races without timers.
+ */
+export class ControlledDatasource<Data = TestItem> extends Datasource<Data> {
+  private readonly state: ControlledState<Data>;
+
+  constructor() {
+    const state: ControlledState<Data> = {
+      queued: [],
+      waiters: [],
+      pending: new Set()
+    };
+
+    super({
+      get: (index: number, count: number) =>
+        new Promise<Data[]>((resolve, reject) => {
+          const settle = (complete: () => void): void => {
+            if (!state.pending.delete(request)) {
+              throw new Error(
+                `Controlled request get(${index}, ${count}) is already settled`
+              );
+            }
+            complete();
+          };
+          const request: ControlledRequest<Data> = {
+            index,
+            count,
+            resolve: items => settle(() => resolve(items)),
+            reject: error => settle(() => reject(error))
+          };
+
+          state.pending.add(request);
+          if (state.responder) {
+            state.responder(request);
+            return;
+          }
+          const waiter = state.waiters.shift();
+          if (waiter) {
+            waiter(request);
+          } else {
+            state.queued.push(request);
+          }
+        })
+    });
+
+    this.state = state;
+  }
+
+  /** Capture the current request before triggering an operation that may cancel it. */
+  nextRequest(): Promise<ControlledRequest<Data>> {
+    if (this.state.responder) {
+      throw new Error(
+        'Cannot await a controlled request while a responder is active'
+      );
+    }
+    const request = this.state.queued.shift();
+    return request
+      ? Promise.resolve(request)
+      : new Promise(resolve => this.state.waiters.push(resolve));
+  }
+
+  respondToFutureRequests(
+    responder: (request: ControlledRequest<Data>) => void
+  ): () => void {
+    if (this.state.responder) {
+      throw new Error('ControlledDatasource already has an active responder');
+    }
+    if (this.state.queued.length || this.state.waiters.length) {
+      throw new Error(
+        'Cannot start a responder while controlled requests are unclaimed'
+      );
+    }
+
+    this.state.responder = responder;
+    let active = true;
+    return () => {
+      if (!active) {
+        return;
+      }
+      active = false;
+      if (this.state.responder === responder) {
+        this.state.responder = undefined;
+      }
+    };
+  }
+
+  assertNoPendingRequests(): void {
+    const problems: string[] = [];
+    if (this.state.pending.size) {
+      const requests = [...this.state.pending]
+        .map(({ index, count }) => `get(${index}, ${count})`)
+        .join(', ');
+      problems.push(`unsettled requests: ${requests}`);
+    }
+    if (this.state.waiters.length) {
+      problems.push(
+        `unfulfilled nextRequest calls: ${this.state.waiters.length}`
+      );
+    }
+    if (this.state.responder) {
+      problems.push('active future-request responder');
+    }
+    if (problems.length) {
+      throw new Error(`ControlledDatasource is not idle: ${problems.join('; ')}`);
+    }
+  }
+}
+
+/**
+ * An in-memory datasource that tests can modify at runtime to exercise adapter
+ * operations against changing items, indexes, ranges, and sizes.
+ */
 export class MutableDatasource extends Datasource<TestItem> {
   private readonly state: MutableState;
 

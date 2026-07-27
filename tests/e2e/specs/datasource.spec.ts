@@ -1,7 +1,9 @@
 import {
+  ControlledDatasource,
   getDatasource,
   IDatasource,
   makeDatasource,
+  makeItems,
   makeTest,
   Misc,
   Settings,
@@ -9,17 +11,11 @@ import {
   TestItem
 } from '../scaffolding';
 
-const createItems = (index: number, count: number): TestItem[] =>
-  Array.from({ length: count }, (_, offset) => {
-    const current = index + offset;
-    return { id: current, text: `item #${current}` };
-  });
-
 class ClassDatasource implements IDatasource<TestItem> {
   settings: Settings<TestItem> = {};
 
   get(index: number, count: number, success: (data: TestItem[]) => void): void {
-    success(createItems(index, count));
+    success(makeItems(index, count));
   }
 
   reset(): void { }
@@ -57,7 +53,7 @@ describe('Datasource Class', () => {
     config: {
       datasource: () =>
         new Datasource<TestItem>({
-          get: (index, count, success) => success(createItems(index, count)),
+          get: (index, count, success) => success(makeItems(index, count)),
           settings: { startIndex: 1 },
           devSettings: { throttle: 1 }
         }),
@@ -108,6 +104,67 @@ describe('Datasource Get', () => {
         title: `should stop without fetching (${mode})`,
         it: expectEmpty
       });
+    }
+  });
+
+  // Exercise the full failure path over an already rendered state:
+  // rejected fetch -> Workflow error/finalization -> preserved DOM/Buffer ->
+  // successful reload. An initial-request failure could only prove an empty state.
+  makeTest({
+    config: {
+      datasource: () => new ControlledDatasource(),
+      datasourceSettings: {
+        startIndex: 1,
+        minIndex: 1,
+        bufferSize: 10,
+        padding: 0,
+        itemSize: 20
+      },
+      templateSettings: { viewportHeight: 100, itemHeight: 20 }
+    },
+    title: 'should recover after a pending request fails',
+    it: misc => async () => {
+      const datasource = misc.source<ControlledDatasource>();
+      const initial = await datasource.nextRequest();
+      initial.resolve(makeItems(initial.index, initial.count));
+      await misc.relaxNext();
+      misc.expect.viewportFilled();
+
+      const initialIndexes = misc.scroller.buffer.items.map(
+        item => item.$index
+      );
+      expect(misc.workflow.errors).toHaveLength(0);
+      const failedCycle = misc.waitNextCycle();
+
+      expect(misc.getScrollableSize()).toBeGreaterThan(misc.getViewportSize());
+      misc.scrollMax();
+      const failed = await datasource.nextRequest();
+      expect(misc.adapter.isLoading).toBe(true);
+      const relaxed = misc.adapter.relax();
+      const failure = new Error('controlled datasource failure');
+      failed.reject(failure);
+
+      await failedCycle;
+      expect(await relaxed).toMatchObject({ success: true });
+      expect(misc.adapter.isLoading).toBe(false);
+      expect(misc.workflow.errors).toHaveLength(1);
+      expect(misc.workflow.errors[0]).toMatchObject({
+        process: 'fetch',
+        message: String(failure)
+      });
+      expect(
+        misc.scroller.buffer.items.map(item => item.$index)
+      ).toEqual(initialIndexes);
+      misc.expect.domMatchesBuffer();
+
+      const reload = misc.adapter.reload();
+      const recovery = await datasource.nextRequest();
+      recovery.resolve(makeItems(recovery.index, recovery.count));
+
+      expect(await reload).toMatchObject({ success: true });
+      expect(misc.adapter.isLoading).toBe(false);
+      expect(misc.workflow.errors).toHaveLength(1);
+      misc.expect.viewportFilled();
     }
   });
 });

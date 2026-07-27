@@ -75,6 +75,15 @@ const runBody = async (body: TestBody): Promise<void> => {
   await (typeof body === 'function' ? body() : body);
 };
 
+const assertNoPendingRequests = <Data extends TestItem>(
+  misc: TestHost<Data>
+): void => {
+  const datasource = misc.datasource as typeof misc.datasource & {
+    assertNoPendingRequests?(): void;
+  };
+  datasource.assertNoPendingRequests?.();
+};
+
 export const makeTest = <Custom = void, Data extends TestItem = TestItem>(
   data: MakeTestConfig<Custom, Data>
 ): void => {
@@ -98,6 +107,7 @@ export const makeTest = <Custom = void, Data extends TestItem = TestItem>(
           if (!data.config.skipInvariantAutoCheck) {
             misc.expect.domIndexesMatchBuffer();
           }
+          assertNoPendingRequests(misc);
         } finally {
           misc.dispose();
         }

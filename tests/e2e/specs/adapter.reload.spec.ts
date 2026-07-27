@@ -1,7 +1,15 @@
-import { getDatasource, makeTest, Misc, TestConfig } from '../scaffolding';
+import {
+  ControlledDatasource,
+  ControlledRequest,
+  getDatasource,
+  makeItems,
+  makeTest,
+  Misc,
+  TestConfig
+} from '../scaffolding';
 
 interface ReloadExpectation {
-  index: number | null;
+  index?: number;
   interruptions: number;
   reloads: number;
 }
@@ -36,13 +44,13 @@ const baseConfigs: TestConfig[] = [
 const indexedReloads = [-10, 1255, 2];
 const scrolledReloads = [
   { index: -20, scrolls: 3 },
-  { index: null, scrolls: 5 },
+  { index: undefined, scrolls: 5 },
   { index: 4, scrolls: 2 }
 ];
-const beforeLoadReloads = [-30, null, 12];
-const asyncFetchReloads = [null, 1025, -40];
+const beforeLoadReloads = [-30, undefined, 12];
+const asyncFetchReloads = [undefined, 1025, -40];
 const afterAdjustReloads = [10, 365, -14];
-const onRenderReloads = [500, -25, null];
+const onRenderReloads = [500, -25, undefined];
 const syncFetchReloads = [1, 2, 3];
 const firstVisibleReloads: FirstVisibleScenario[] = [
   { index: 1, threshold: 50, interruptions: 1, reloads: 1 },
@@ -61,10 +69,10 @@ const largeDoubleReloadConfig: TestConfig = {
   templateSettings: { viewportHeight: 600 }
 };
 
-const reload = (misc: Misc, index: number | null) =>
-  index === null ? misc.adapter.reload() : misc.adapter.reload(index);
+const resolveGetRequest = (request: ControlledRequest): void =>
+  request.resolve(makeItems(request.index, request.count));
 
-const expectedStartIndex = (config: TestConfig, index: number | null): number =>
+const expectedStartIndex = (config: TestConfig, index?: number): number =>
   index ?? (config.datasourceSettings?.startIndex as number);
 
 const expectReloaded = (
@@ -97,13 +105,13 @@ const expectReloaded = (
 const registerSettledReload = (
   config: TestConfig,
   title: string,
-  index: number | null,
+  index?: number,
   scrolls = 0
 ): void =>
   makeTest({
     config,
     title,
-    meta: index === null ? 'default index' : `index = ${index}`,
+    meta: index === undefined ? 'default index' : `index = ${index}`,
     it: misc => async () => {
       misc.trackVisibleItems();
       await misc.relaxNext();
@@ -111,7 +119,7 @@ const registerSettledReload = (
         await misc.scrollMaxRelax();
       }
 
-      await reload(misc, index);
+      await misc.adapter.reload(index);
 
       expectReloaded(misc, config, {
         index,
@@ -121,17 +129,17 @@ const registerSettledReload = (
     }
   });
 
-const registerBeforeLoad = (config: TestConfig, index: number | null): void =>
+const registerBeforeLoad = (config: TestConfig, index?: number): void =>
   makeTest({
     config,
     title: 'should reload between initial inner loops',
-    meta: index === null ? 'default index' : `index = ${index}`,
+    meta: index === undefined ? 'default index' : `index = ${index}`,
     it: misc => async () => {
       misc.trackVisibleItems();
       await misc.captureInnerLoops(1, () => null);
       const finished = misc.waitForCycles(2);
 
-      await reload(misc, index);
+      await misc.adapter.reload(index);
       await finished;
       await misc.adapter.relax();
 
@@ -145,27 +153,50 @@ const registerBeforeLoad = (config: TestConfig, index: number | null): void =>
 
 const registerAsyncFetch = (
   baseConfig: TestConfig,
-  index: number | null
+  index?: number
 ): void => {
   const config: TestConfig = {
     ...baseConfig,
-    datasource: () => getDatasource({ delay: 150 }),
-    timeout: 5000
+    datasource: () => new ControlledDatasource()
   };
 
   makeTest({
     config,
     title: 'should reload during a pending datasource request',
-    meta: index === null ? 'default index' : `index = ${index}`,
+    meta: index === undefined ? 'default index' : `index = ${index}`,
     it: misc => async () => {
       misc.trackVisibleItems();
-      await misc.captureInnerLoops(1, () => null);
-      await misc.delay(75);
-      const finished = misc.waitForCycles(2);
+      const datasource = misc.source<ControlledDatasource>();
 
-      await reload(misc, index);
-      await finished;
-      await misc.adapter.relax();
+      // Complete the initial fetch so the workflow reaches its next request,
+      // then deliberately leave that request pending.
+      const initialGetRequest = await datasource.nextRequest();
+      resolveGetRequest(initialGetRequest);
+
+      const staleGetRequest = await datasource.nextRequest();
+      expect(misc.adapter.isLoading).toBe(true);
+
+      // Reload must interrupt the waiting workflow and issue a replacement
+      // request without waiting for the old promise to settle. Do not await
+      // reload yet: it cannot finish until the replacement request is captured
+      // and resolved below.
+      const reloadPromise = misc.adapter.reload(index);
+      const replacementGetRequest = await datasource.nextRequest();
+      expect(misc.workflow.interruptionCount).toBe(1);
+
+      // The new workflow may need more fetches after its replacement request.
+      // Auto-resolve only those future requests; resolve the abandoned request
+      // first to prove that its late result cannot affect the reload.
+      const stopResponding =
+        datasource.respondToFutureRequests(resolveGetRequest);
+      try {
+        resolveGetRequest(staleGetRequest);
+        resolveGetRequest(replacementGetRequest);
+        await reloadPromise;
+        await misc.adapter.relax();
+      } finally {
+        stopResponding();
+      }
 
       expectReloaded(misc, config, {
         index,
@@ -199,7 +230,6 @@ const registerBeforeInit = (baseConfig: TestConfig): void => {
 
       expect(misc.scroller.state.fetch.cancel).toBeNull();
       expectReloaded(misc, config, {
-        index: null,
         interruptions: 0,
         reloads: 0
       });
@@ -209,13 +239,15 @@ const registerBeforeInit = (baseConfig: TestConfig): void => {
 
 const registerDoubleReload = (
   config: TestConfig,
-  index: number | null,
+  index: number | undefined,
   timing: 'after adjust' | 'during render'
 ): void =>
   makeTest({
     config,
     title: 'should interrupt the first reload with the second',
-    meta: `${timing}, ${index === null ? 'default index' : `index = ${index}`}`,
+    meta: `${timing}, ${
+      index === undefined ? 'default index' : `index = ${index}`
+    }`,
     it: misc => async () => {
       misc.trackVisibleItems();
       await misc.relaxNext();
@@ -223,15 +255,15 @@ const registerDoubleReload = (
       let secondReload: ReturnType<typeof misc.adapter.reload>;
 
       if (timing === 'after adjust') {
-        let off = () => {};
+        let off = () => { };
         off = misc.scroller.state.cycle.innerLoop.busy.on(pending => {
           if (!pending) {
             off();
-            secondReload = reload(misc, index);
+            secondReload = misc.adapter.reload(index);
           }
         });
       } else {
-        setTimeout(() => (secondReload = reload(misc, index)));
+        setTimeout(() => (secondReload = misc.adapter.reload(index)));
       }
 
       const firstReload = misc.adapter.reload(10);
@@ -289,7 +321,7 @@ const registerFirstVisibleReload = (
     it: misc => async () => {
       misc.trackVisibleItems();
       let reloadResult: ReturnType<typeof misc.adapter.reload> | undefined;
-      let off = () => {};
+      let off = () => { };
       off = misc.adapter.firstVisible$.on(({ $index }) => {
         if (
           reloadResult ||
@@ -299,7 +331,7 @@ const registerFirstVisibleReload = (
           return;
         }
         off();
-        reloadResult = reload(misc, scenario.index);
+        reloadResult = misc.adapter.reload(scenario.index);
       });
 
       await misc.relaxNext();
@@ -317,8 +349,7 @@ describe('Adapter Reload Spec', () => {
     baseConfigs.forEach(config =>
       registerSettledReload(
         config,
-        'should reload at the initial position',
-        null
+        'should reload at the initial position'
       )
     );
     baseConfigs.forEach((config, index) =>

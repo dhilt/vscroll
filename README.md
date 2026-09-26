@@ -1,296 +1,193 @@
-[![build status](https://github.com/dhilt/vscroll/actions/workflows/build.yml/badge.svg)](https://github.com/dhilt/vscroll/actions/workflows/build.yml)
+[![build status](https://github.com/dhilt/vscroll/actions/workflows/general.yml/badge.svg)](https://github.com/dhilt/vscroll/actions/workflows/general.yml)
 [![npm version](https://badge.fury.io/js/vscroll.svg)](https://www.npmjs.com/package/vscroll)
 
 # VScroll
 
+A framework-independent virtual scrolling engine for JavaScript and TypeScript.
+
 - [Overview](#overview)
-- [Getting started](#getting-started)
+- [Installation](#installation)
 - [Usage](#usage)
-  - [Consumer](#1-consumer)
-  - [Element](#2-element)
-  - [Datasource](#3-datasource)
-  - [Run](#4-run)
-  - [Routines](#5-routines)
-- [Live](#live)
 - [Adapter API](#adapter-api)
+- [Documentation](#documentation)
 - [Thanks](#thanks)
 
 ## Overview
 
-VScroll is a JavaScript library providing virtual scroll engine. Can be seen as a core for platform-specific solutions designed to represent unlimited datasets using virtualization technique. Below is the diagram of how the VScroll engine is being distributed to the end user.
+Virtual scrolling is a technique for displaying large lists efficiently. Instead of rendering every item at once, it keeps a small set of items in the DOM — those in and around the visible area — and updates that set as the user scrolls. This reduces DOM size and rendering work while preserving a familiar scrolling experience.
 
-<br>
+VScroll provides a framework-independent **core engine** for virtual scrolling. An application can use it directly or through a platform-specific wrapper called a **consumer**. The diagram shows how the engine reaches the end user when a consumer is used.
+
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/4365660/104845671-ad1d4b80-58e7-11eb-9cc9-4a00ebcbc9e8.png">
+  <img src="docs/assets/vscroll-distribution.png" width="700" alt="VScroll core distributed through consumers and applications to the end user">
 </p>
 
-Basically, the consumer layer can be omitted and the end Application developers can use VScroll directly. This repository has a [minimal demo page](https://dhilt.github.io/vscroll/) of direct use of the VScroll library in a non-specific environment. There are also several consumer implementations built on top of VScroll:
+The [minimal browser demo](https://dhilt.github.io/vscroll/) demonstrates direct use of VScroll without a separate consumer.
 
-  - [ngx-ui-scroll](https://github.com/dhilt/ngx-ui-scroll), Angular virtual scroll directive
-  - [vscroll-native](https://github.com/dhilt/vscroll-native), virtual scroll module for native JavaScript applications
-  - [Vue integration sample](https://stackblitz.com/edit/vscroll-vue-integration?file=src%2Fcomponents%2FVScroll.vue), very rough implementation for Vue
+Existing consumers and integration examples include:
 
-## Getting started
+- [ngx-ui-scroll](https://github.com/dhilt/ngx-ui-scroll) — an Angular virtual scrolling directive.
+- [vscroll-native](https://github.com/dhilt/vscroll-native) — a virtual scrolling module for native JavaScript applications.
+- [Vue integration sample](https://stackblitz.com/edit/vscroll-vue-integration?file=src%2Fcomponents%2FVScroll.vue) — an example of using VScroll in Vue.
+
+## Installation
 
 ### CDN
+
+Load the library in a browser and access its exports through `VScroll`:
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/vscroll"></script>
 <script>
-  const workflow = new VScroll.Workflow(...);
+  new VScroll.Workflow(...);
 </script>
 ```
 
+For reproducible deployments, pin the CDN URL to a package version.
+
 ### NPM
 
-```
+```sh
 npm install vscroll
 ```
 
-```js
-import { Workflow } from 'vscroll';
+Import the library in the application's build:
 
-const workflow = new Workflow(...);
+```js
+import * as VScroll from 'vscroll';
+
+new VScroll.Workflow(...);
 ```
 
 ## Usage
 
-The main entity distributed via `vscroll` is the `Workflow` class. Its instantiating runs the virtual scroll engine.
+A `vscroll` consumer is responsible for the integration: supplying data when requested by the engine and rendering the current buffer in the DOM. The engine manages scrolling, determines which items are needed, and updates the buffer; the consumer defines how data is retrieved and displayed. This integration is configured when creating `Workflow`, the main entry point to the engine.
+
+### Workflow
+
+The Workflow class, exported by vscroll, is where the integration is configured. Instantiating it starts the engine. See the [Workflow reference](docs/workflow.md) for the requirements behind its constructor parameters.
 
 ```js
-new Workflow({ consumer, element, datasource, run });
+const workflow = new VScroll.Workflow({ consumer, element, datasource, run, Routines });
 ```
 
-The constructor of the `Workflow` class requires an argument of the following type:
+| Parameter | Purpose |
+| --- | --- |
+| `consumer` | Static integration metadata (`name` and `version`), used in diagnostics. |
+| `element` | The mounted DOM element containing the rendered list, not the scrollable viewport. |
+| `datasource` | The object that supplies data and scrolling settings, described below. See also [Datasource](docs/datasource.md). |
+| `run(items)` | The callback that keeps the rendered list in sync with the complete current buffer, including offscreen items. See [Rendering](docs/rendering.md). |
+| `Routines` | Optional subclass of `VScroll.Routines` for customizing DOM operations and render scheduling. See [Custom Routines](docs/routines.md). |
 
-```typescript
-interface WorkflowParams<ItemData> {
-  consumer: IPackage;
-  element: HTMLElement;
-  datasource: IDatasource<ItemData>;
-  run: OnDataChanged<ItemData>;
-  Routines?: RoutinesClassType;
-}
-```
+### Datasource
 
-This is a TypeScript definition, but speaking of JavaScript, an argument object must contain 4 mandatory and 1 optional fields described below.
+Every `Workflow` requires a datasource object to supply items on request and, optionally, configure scrolling. Its data and configuration fields are `{ get, settings, devSettings }`. See the [Datasource reference](docs/datasource.md) for the full contract, supported signatures, and implementation examples.
 
-### 1. Consumer
+- **`get`** is the required data retrieval function, called with a starting index and item count. It can be synchronous or asynchronous. A minimal callback example providing a synchronous, infinite data stream:
 
-A simple data object that provides information about a consumer. It is not critical to omit this, but if the result solution is going to be published as a separate 3d-party library ("consumer"), the name and the version of the result package should be passed as follows:
+  ```js
+  const get = (index, count, callback) =>
+    callback(Array.from({ length: count }, (_, i) => `Item ${index + i}`));
+  ```
 
-```js
-const consumer = {
-  name: 'my-vscroll-consumer',
-  version: 'v1.0.0-alpha.1'
-};
-```
+- **`settings`** is an optional object for configuring scrolling. The table below summarizes its options and defaults. See [Configuration](docs/configuration.md#settings) for types, constraints and examples.
 
-### 2. Element
+  | Setting | Default | Purpose |
+  | --- | --- | --- |
+  | [`startIndex`](docs/configuration.md#bounds-and-initial-positioning) | `1` | Initial item index, clamped to the configured bounds. |
+  | [`minIndex`](docs/configuration.md#bounds-and-initial-positioning) | `-Infinity` | Inclusive lower dataset index bound. |
+  | [`maxIndex`](docs/configuration.md#bounds-and-initial-positioning) | `Infinity` | Inclusive upper dataset index bound. |
+  | [`padding`](docs/configuration.md#settings) | `0.5` | Extra buffered area on each side, in viewport sizes. |
+  | [`bufferSize`](docs/configuration.md#settings) | `5` | Minimum fetch batch target, not a limit on buffered items. |
+  | [`itemSize`](docs/configuration.md#size-estimates-and-layout) | `NaN` | Initial item-size estimate in pixels; measured automatically when omitted. |
+  | [`sizeStrategy`](docs/configuration.md#size-estimates-and-layout) | `'average'` | Estimate unknown item sizes using `'average'`, `'frequent'` or `'constant'`. |
+  | [`viewportElement`](docs/configuration.md#viewport-horizontal-and-inverse-rules) | `null` | Custom viewport element or element factory; defaults to the content element's parent. Experimental. |
+  | [`windowViewport`](docs/configuration.md#viewport-horizontal-and-inverse-rules) | `false` | Use the browser window as the viewport. |
+  | [`horizontal`](docs/configuration.md#viewport-horizontal-and-inverse-rules) | `false` | Scroll horizontally instead of vertically. |
+  | [`inverse`](docs/configuration.md#viewport-horizontal-and-inverse-rules) | `false` | Align short content to the bottom or right without reversing item order. Experimental. |
+  | [`infinite`](docs/configuration.md#settings) | `false` | Keep loaded items instead of clipping them automatically. |
+  | [`onBeforeClip`](docs/configuration.md#settings) | `null` | Receive clipped items just before they leave the buffer. Experimental. |
 
-An HTML element the `Workflow` should use as a scrollable part of the viewport. It should be present in DOM before instantiating the `Workflow`.
-
-```js
-const element = document.getElementById('vscroll');
-```
-
-This element should be wrapped with another container with constrained height and overflow scroll/auto. And it also must have two special padding elements marked with special attributes for the virtualization purpose.
-
-```html
-<div id="viewport">
-  <div id="vscroll">
-    <div data-padding-backward></div>
-    <div data-padding-forward></div>
-  </div>
-</div>
-```
-
-```css
-#viewport {
-  height: 300px;
-  overflow-y: scroll;
-}
-```
-
-### 3. Datasource
-
-This is a special object, providing dataset items in runtime. There is a separate wiki document describing the Datasource: [github.com/dhilt/vscroll/wiki/Datasource](https://github.com/dhilt/vscroll/wiki/Datasource). Below is a short version.
-
-The Datasource can be defined in two ways. First, as an object literal:
-
-```js
-const datasource = {
-  get: (index, count, success) => {
-    const data = [];
-    for (let i = index; i < index + count; i++) {
-      data.push({ id: i, text: 'item #' + i });
-    }
-    success(data);
-  }
-};
-```
-
-Second, as an instance of Datasource class which can be obtained through a special factory method. Along with the `Workflow` class, VScroll exposes the `makeDatasource` method which can be used for creating Datasource class, so the end datasource object can be instantiated via operator `new`:
-
-```js
-import { makeDatasource } from 'vscroll';
-const Datasource = makeDatasource();
-
-const datasource = new Datasource({
-  get: (index, length, success) =>
-    success(Array.from({ length }).map((_, i) =>
-      ({ id: index + i, text: 'item #' + (index + i) })
-    ))
-});
-```
-
-The argument of the Datasource class is the same object literal as in the first case. It has one mandatory field which is the core of the App-Scroller integration: method `get`. The `Workflow` requests data via the `Datasource.get` method in runtime.
-
-For more solid understanding the concept of the Datasource with examples, please, refer to [the Datasource doc](https://github.com/dhilt/vscroll/wiki/Datasource).
-
-### 4. Run
-
-A callback that is called every time the Workflow decides that the UI needs to be changed. Its argument is a list of items to be present in the UI. This is a consumer responsibility to detect changes and display them in the UI.
-
-```js
-const run = newItems => {
-  // assume oldItems contains a list of items that are currently present in the UI
-  if (!newItems.length && !oldItems.length) {
-    return;
-  }
-  // make newItems to be present in the UI instead of oldItems
-  processItems(newItems, oldItems);
-  oldItems = newItems;
-};
-```
-
-Each item (in both `newItems` and `oldItems` lists) is an instance of the [Item class](https://github.com/dhilt/vscroll/blob/v1.5.0/src/classes/item.ts) implementing the [Item interface](https://github.com/dhilt/vscroll/blob/v1.5.0/src/interfaces/item.ts), whose props can be used for proper implementation of the `run` callback:
-
-|Name|Type|Description|
-|:--|:--|:----|
-|element|_HTMLElement_|HTML element associated with the item|
-|$index|_number_|Integer index of the item in the Datasource. Correlates with the first argument of the Datasource.get method|
-|data|_Data_|Data (contents) of the item. This is what the Datasource.get passes to the Scroller via success-callback as an array of data-items typed as Data[]|
-|invisible|_boolean_|Flag that determines whether the item should be hidden (if _true_) or visible (if _false_) when the _run_ method is called|
-|get|_()&nbsp;=>&nbsp;ItemAdapter&lt;Data&gt;_|Shortcut method returning { element, $index, data } object|
-
-`Run` callback is the most complex and environment-specific part of the `vscroll` API, which is fully depends on the environment for which the consumer is being created. Framework specific consumer should rely on internal mechanism of the framework to provide runtime DOM modifications.
-
-There are some requirements on how the items should be processed by `run` call.
-
-- After the `run` callback is completed, there must be `newItems.length` elements in the DOM between backward and forward padding elements.
-- Old items that are not in the new items list should be removed from DOM. Use `oldItems[].element` references for this purpose.
-- Old items that are in the new items list should not be removed and recreated, as this may result in unwanted scroll position shifts. Just don't touch them.
-- New items elements should be rendered in the correct order. Specifically, in accordance with `newItems[].$index` comparable to `$index` of elements that remain: `$index` must increase continuously and the directions of increase must persist across the `run` calls. The scroller maintains `$index` internally, so you only need to properly inject a set of `newItems[].element` into the DOM.
-- New elements should be rendered without being visible, and this should be achieved by "fixed" positioning and "left"/"top" coordinates that take the item element out of view. The Workflow will take care of visibility after calculations. An additional `newItems[].invisible` attribute can be used to determine whether a given element should be hidden. This requirement can be changed by the `Routines` class setting (see below).
-- New items elements should have a "data-sid" attribute whose value should reflect `newItems[].$index`.
-
-### 5. Routines
-
-A special class allowing to override the default behavior related to the DOM. All DOM-specific operations are implemented as the [DOM Routines class](https://github.com/dhilt/vscroll/blob/v1.5.0/src/classes/domRoutines.ts) methods inside core. When the `Routines` class setting is passed among the Workflow arguments, it replaces the core Routines. The custom Routines class must extend the core class, which can be taken from the VScroll imports:
-
-```js
-import { Routines, Workflow } from 'vscroll';
-
-class CustomRoutines extends Routines { ... }
-
-new Workflow({
-  consumer, element, datasource, run, // required params
-  Routines: CustomRoutines
-})
-```
-
-The Routines methods description can be taken from the [IRoutines interface](https://github.com/dhilt/vscroll/blob/v1.5.0/src/interfaces/routines.ts) sources. For example, there is a method that calculates the scroller's offset:
-
-```typescript
-getOffset(): number {
-  const get = (element: HTMLElement) =>
-    (this.settings.horizontal ? element.offsetLeft : element.offsetTop) || 0;
-  return get(this.element) - (!this.settings.window ? get(this.viewport) : 0);
-}
-```
-
-If we have a table layout case where we need to specify the offset of the table header, the base method can be overridden as follows:
-
-```js
-new Workflow({
-  consumer, element, datasource, run, // required params
-  Routines: class extends Routines {
-    getOffset() {
-      return document.querySelector('#viewport thead')?.offsetHeight || 0;
-    }
-  }
-});
-```
-
-It's worth noting that thanks to the extending, we can use parent methods and have access to the correct context after the engine instantiates the Routines:
-
-```js
-class CustomRoutines extends Routines {
-  onInit(...args) {
-    console.log('Routines settings:', this.settings);
-    super.onInit(...args);
-  }
-}
-```
-
-Various DOM calculations, setting/getting the scroll position, render process and other logic can be adjusted, improved or completely replaced by custom methods of the `Routines` class setting.
-
-## Live
-
-This repository has a minimal demonstration of the App-consumer implementation considering all of the requirements listed above: https://dhilt.github.io/vscroll/. This is all-in-one HTML demo with `vscroll` taken from CDN. The source code of the demo is [here](https://github.com/dhilt/vscroll/blob/main/demo/index.html). The approach is rough and non-optimized, if you are seeking for more general solution for native JavaScript applications, please have a look at [vscroll-native](https://github.com/dhilt/vscroll-native) project. It is relatively new and has no good documentation, but its [source code](https://github.com/dhilt/vscroll-native/tree/main/src) and its [demo](https://github.com/dhilt/vscroll-native/tree/main/demo) may shed light on `vscroll` usage in no-framework environment.
-
-Another example is [ngx-ui-scroll](https://github.com/dhilt/ngx-ui-scroll). Before 2021 `vscroll` was part of `ngx-ui-scroll`, and its [demo page](https://dhilt.github.io/ngx-ui-scroll/#/) contains well-documented samples that can be used to get an idea on the API and functionality offered by `vscroll`. The code of the [UiScrollComponent](https://github.com/dhilt/ngx-ui-scroll/blob/v2.3.1/src/ui-scroll.component.ts) clearly demonstrates the `Workflow` instantiation in the context of Angular. Also, since ngx-ui-scroll is the intermediate layer between `vscroll` and the end Application, the Datasource is being provided from the outside. Method `makeDatasource` is used to provide `Datasource` class to the end Application.
+- **`devSettings`** is an optional object for logging, timing, caching and scroll behavior. See [Development settings](docs/configuration.md#development-settings) for its options and defaults.
 
 ## Adapter API
 
-Adapter API is a powerful feature of the `vscroll` engine allowing to collect the statistics and provide runtime manipulations with the viewport: adding, removing, updating items. This API is very useful when building the real-time interactive applications when data can change over time by not only scrolling (like chats).
+The Adapter API extends the scrolling engine with reactive state observation and runtime control. It provides access to loading state, visible items and dataset boundaries, supports adding, removing and updating items or reloading data, and enables synchronization of application actions with scroller activity. These capabilities support interactive interfaces such as chats, live feeds and editable lists, where content evolves in response to incoming data and user actions.
 
-Please refer to the ngx-ui-scroll [Adapter API doc](https://github.com/dhilt/ngx-ui-scroll#adapter-api) as it can be applied to `vscroll` case with only one important difference: vscroll does not have RxJs entities, it has [Reactive](https://github.com/dhilt/vscroll/blob/main/src/classes/reactive.ts) ones instead. It means, for example, `eof$` has no "subscribe" method, but "on":
-
-```js
-// ngx-ui-scroll
-myDatasource.adapter.bof$.subscribe(value =>
-  value && console.log('Begin of file is reached')
-);
-// vscroll
-myDatasource.adapter.bof$.on(value =>
-  value && console.log('Begin of file is reached')
-);
-```
-
-Adapter API becomes available as the `Datasource.adapter` property after the Datasource is instantiated via operator "new". In terms of "vscroll" you need to get a Datasource class by calling the `makeDatasource` method, then you can instantiate it. `makeDatasource` accepts 1 argument, which is an Adapter custom configuration. Currently this config can only be used to redefine the just mentioned Adapter reactive props. Here's an example of how simple Reactive props can be overridden with RxJs Subject and BehaviorSubject entities: [ui-scroll.datasource.ts](https://github.com/dhilt/ngx-ui-scroll/blob/v2.3.1/src/ui-scroll.datasource.ts). 
-
-An important note is that the Adapter getting ready breaks onto 2 parts: instantiation (which is synchronous with the Datasource instantiation) and initialization (which occurs during the Workflow instantiating). Adapter gets all necessary props and methods during the first phase, but they start work only when the second phase is done. Practically this means 
- - you may arrange any Adapter reactive subscriptions in your app/consumer right after the Datasource is instantiated, 
- - some of the initial (default) values can be unusable, like `Adapter.bufferInfo.minIndex` = NaN (because Scroller's Buffer is empty before the very first `Datasource.get` call),
- - Adapter methods do nothing when called before phase 2, they immediately resolve some default "good" value (`{ immediate: true, success: true, ... }`).
-
-If there is some logic that could potentially run before the Adapter initialization and you don't want this to happen, the following approach can be applied:
+The Adapter API is available when a datasource is created through the `makeDatasource` factory exported by `vscroll`.
 
 ```js
-myDatasource = new VScroll.makeDatasource()({...});
-myDatasource.adapter.init$.once(() => {
-  console.log('The Adapter is initialized'); // 2nd output
-});
-workflow = new VScroll.Workflow({...});
-console.log('The Workflow runs'); // 1st output
+const Datasource = VScroll.makeDatasource();
+const datasource = new Datasource({ get, settings });
+const adapter = datasource.adapter;
+
+// Reload data when the refresh button is clicked.
+refreshButton.addEventListener('click', () => adapter.reload());
+
+// Log loading state changes.
+adapter.isLoading$.on(isLoading => console.log('Loading:', isLoading));
 ```
 
-VScroll will receive its own Adapter API documentation later, but for now please refer to [ngx-ui-scroll](https://github.com/dhilt/ngx-ui-scroll#adapter-api).
+The Adapter is created when the datasource is instantiated. Its reactive properties can be observed before constructing `Workflow`, but method calls have no effect until `Workflow` finishes initializing. See [Adapter lifecycle and sequencing](docs/adapter.md#results-lifecycle-and-sequencing).
+
+`makeDatasource` also accepts an optional configuration factory for customizing the Adapter's reactive properties. See [Custom Adapter reactivity](docs/datasource.md#consumer-specific-adapter-reactivity).
+
+The tables below provide a brief overview of the Adapter's properties and methods. See the [Adapter reference](docs/adapter.md) for detailed documentation.
+
+### Properties
+
+Properties are read-only. Each `$` counterpart provides [reactive updates](docs/adapter.md#reactive-subscriptions).
+
+| Property | Purpose |
+| --- | --- |
+| [`init`, `init$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#init) | Whether the Adapter is initialized. |
+| [`isLoading`, `isLoading$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#is-loading) | Whether a workflow cycle is running, including fetching and rendering. |
+| [`loopPending`, `loopPending$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#is-loading-advanced) | Whether an inner workflow loop is running. |
+| [`paused`, `paused$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#pause-resume) | Whether workflow processing is paused. |
+| [`bufferInfo`](https://dhilt.github.io/ngx-ui-scroll/#adapter#buffer-info) | Buffer, cache and dataset index bounds, plus the estimated item size. |
+| [`itemsCount`](https://dhilt.github.io/ngx-ui-scroll/#adapter#items-count) | Number of rendered buffer items, including offscreen items. |
+| [`firstVisible`, `firstVisible$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#first-last-visible-items) | First item intersecting the viewport, including a partially visible item. |
+| [`lastVisible`, `lastVisible$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#first-last-visible-items) | Last item intersecting the viewport, including a partially visible item. |
+| [`bof`, `bof$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#bof-eof) | Whether the buffer has reached the dataset's beginning. |
+| [`eof`, `eof$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#bof-eof) | Whether the buffer has reached the dataset's end. |
+| [`packageInfo`](https://dhilt.github.io/ngx-ui-scroll/#adapter#package-info) | Core and consumer package names and versions. |
+| `version` | Core version associated with the Adapter context. |
+
+### Methods
+
+| Method | Purpose |
+| --- | --- |
+| [`relax`](https://dhilt.github.io/ngx-ui-scroll/#adapter#relax) | Wait until the scroller is idle. |
+| [`reload`](https://dhilt.github.io/ngx-ui-scroll/#adapter#reload) | Reload data at an optional starting index, keeping the current configuration. |
+| [`reset`](https://dhilt.github.io/ngx-ui-scroll/#adapter#reset) | Restart the scroller with optional datasource and settings changes. |
+| [`pause`, `resume`](https://dhilt.github.io/ngx-ui-scroll/#adapter#pause-resume) | Suspend or resume workflow processing. |
+| [`append`, `prepend`](https://dhilt.github.io/ngx-ui-scroll/#adapter#append-prepend) | Add items after or before the known range. |
+| [`insert`](https://dhilt.github.io/ngx-ui-scroll/#adapter#insert) | Insert items before or after a target item. |
+| [`remove`](https://dhilt.github.io/ngx-ui-scroll/#adapter#remove) | Remove selected items by predicate or indexes. |
+| [`replace`](https://dhilt.github.io/ngx-ui-scroll/#adapter#replace) | Replace matching buffered items with a new set of items. |
+| [`update`](https://dhilt.github.io/ngx-ui-scroll/#adapter#update) | Keep, remove or replace buffered items using a callback. |
+| [`check`](https://dhilt.github.io/ngx-ui-scroll/#adapter#check-size) | Re-measure rendered items after their sizes change. |
+| [`clip`](https://dhilt.github.io/ngx-ui-scroll/#adapter#clip) | Trim offscreen buffer items beyond the configured padding. |
+| `fix` | Directly adjust scroll position, index bounds or items. Experimental. Demos: [position](https://dhilt.github.io/ngx-ui-scroll/#experimental#adapter-fix-position), [updater](https://dhilt.github.io/ngx-ui-scroll/#experimental#adapter-fix-updater), [scroll to item](https://dhilt.github.io/ngx-ui-scroll/#experimental#adapter-fix-scrollToItem). |
+| `showLog` | Print collected debug logs. |
+
+## Documentation
+
+The reference pages below are being developed separately from this README. See the [documentation index](docs/index.md) for a guided path through them.
+
+- **Core integration**
+  - [Virtual scrolling model](docs/virtual-scrolling.md) — understand how the viewport, item buffer and DOM rows fit together.
+  - [Workflow and lifecycle](docs/workflow.md) — construct, dispose and recreate an integration.
+  - [Datasource](docs/datasource.md) — provide data, handle failures and manage request ownership.
+  - [Rendering](docs/rendering.md) — implement the consumer's DOM and rendering contract.
 
 ## Thanks
 
- \- to [Mike Feingold](https://github.com/mfeingold) as he started all this story in far 2013,
+- To [Mike Feingold](https://github.com/mfeingold), who started this project family in 2013.
+- To [Joshua Toenyes](https://github.com/JoshuaToenyes), who transferred ownership of the vscroll npm package name.
+- To all contributors to [ui-scroll](https://github.com/angular-ui/ui-scroll/graphs/contributors) and [ngx-ui-scroll](https://github.com/dhilt/ngx-ui-scroll/graphs/contributors).
+- To everyone supporting the project through donations.
 
- \- to [Joshua Toenyes](https://github.com/JoshuaToenyes) as he transferred ownership to the "vscroll" npm repository which he owned but did not use,
+---
 
- \- to all contributors of related repositories ([link](https://github.com/angular-ui/ui-scroll/graphs/contributors), [link](https://github.com/dhilt/ngx-ui-scroll/graphs/contributors)),
-
- \- to all donators as their great support does increase motivation.
-
- <br>
-
- __________
-
-2026 &copy; [Denis Hilt](https://github.com/dhilt)
+2026 &copy; [Denis Hilt](https://github.com/dhilt) · [MIT license](LICENSE)

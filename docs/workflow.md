@@ -36,7 +36,7 @@ The engine calls `run(items)` whenever it assigns a new item buffer—for exampl
 
 The first call is `run([])` during construction, before the constructor returns, even if later initialization is delayed. Prepare the renderer beforehand; `run` must not depend on the `workflow` variable being assigned yet.
 
-The constructor can throw on invalid inputs. Returning from it does not mean the initial data has finished loading. Use the [Adapter API](adapter.md#results-lifecycle-and-sequencing) to observe initialization and wait for the first cycle to settle. See [Development settings](configuration.md#development-settings) for initialization delays.
+The constructor can throw on invalid inputs. Returning from it does not mean the initial data has finished loading. Use the [Adapter API](adapter-methods.md#results-lifecycle-and-sequencing) to observe initialization and wait for the first cycle to settle. See [Development settings](configuration.md#development-settings) for initialization delays.
 
 ## Disposal and recreation
 
@@ -44,10 +44,10 @@ Call `workflow.dispose()` once before removing the view. It detaches the scroll 
 
 To recreate, dispose the old Workflow, reset the consumer's rendered-item state, leave or restore the two empty padding elements, then construct a new Workflow with the same datasource. Do not dispose that datasource between instances or attach it to two live workflows.
 
-Use [Adapter `reload`](adapter.md#reload) to re-read data and [Adapter `reset`](adapter.md#reset) to change datasource configuration without replacing the Workflow.
+Use [Adapter `reload`](adapter-methods.md#reload) to re-read data and [Adapter `reset`](adapter-methods.md#reset) to change datasource configuration without replacing the Workflow.
 
 ## Diagnostics
 
 While the Workflow is alive, `isInitialized` and `disposed` describe its lifecycle; `cyclesDone` and `interruptionCount` count completed cycles and interruptions. `errors` records engine failures with `process`, `message`, `time` and `loop`, but does not capture arbitrary exceptions from application code. Read diagnostics before disposal: most instance fields are removed then.
 
-`cyclesDone$` notifies completed cycles before the final loading-state transition. It is useful for observation, not for waiting until idle; use `adapter.relax()` for that. Control a running scroller through the [Adapter](adapter.md), not Workflow's internal process methods. See [Troubleshooting](troubleshooting.md) for failure diagnosis.
+`cyclesDone$` notifies completed cycles before the final loading-state transition. It is useful for observation, not for waiting until idle; use `adapter.relax()` for that. Control a running scroller through the [Adapter](adapter-methods.md), not Workflow's internal process methods. See [Troubleshooting](troubleshooting.md) for failure diagnosis.

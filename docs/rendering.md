@@ -31,7 +31,7 @@ const element = document.getElementById('content');
 const workflow = new Workflow({ element, ... });
 ```
 
-By default, the Scroller uses the content element's parent as its viewport; [Configuration](configuration.md#viewport-horizontal-and-inverse-rules) explains how to select a different scroll target.
+By default, the Scroller uses the content element's parent as its viewport; [Configuration](configuration.md#viewport-and-horizontal-scrolling) explains how to select a different scroll target.
 
 The padding elements remain mounted as rows come and go; the Scroller sizes them to represent virtual space. Rows must be measurable. By default, their size comes from `getBoundingClientRect()`, which excludes margins; unaccounted margins or gaps distort the virtual geometry. Row measurement can be customized through [Routines](routines.md#geometry-and-padding-sizes).
 
@@ -89,4 +89,4 @@ The example illustrates five rendering requirements:
 4. **Keep new rows measurable.** With default Routines, `item.invisible` rows are positioned off-screen and outside normal flow, not hidden with `display: none`.
 5. **Commit in time.** Renderer state must exist before `new Workflow(...)`, which calls `run([])` during construction. With default Routines, DOM changes must be synchronous; a returned Promise is not awaited.
 
-After `run` adds new rows, `Routines.render` schedules the Scroller's processing of them. When its callback runs, those rows must be in the DOM: the Scroller finds them by `data-sid`, restores normal positioning and measures them. A renderer with a later DOM commit needs a custom [render hook](routines.md#scheduling-and-cancellation) that waits for that commit. Later row-size changes require [Adapter `check()`](adapter.md#check) after the DOM update; the Scroller does not observe them automatically.
+After `run` adds new rows, `Routines.render` schedules the Scroller's processing of them. When its callback runs, those rows must be in the DOM: the Scroller finds them by `data-sid`, restores normal positioning and measures them. A renderer with a later DOM commit needs a custom [render hook](routines.md#scheduling-and-cancellation) that waits for that commit. Later row-size changes require [Adapter `check()`](adapter-methods.md#check) after the DOM update; the Scroller does not observe them automatically.

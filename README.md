@@ -101,10 +101,10 @@ Every `Workflow` requires a datasource object to supply items on request and, op
   | [`bufferSize`](docs/configuration.md#settings) | `5` | Minimum fetch batch target, not a limit on buffered items. |
   | [`itemSize`](docs/configuration.md#size-estimates-and-layout) | `NaN` | Initial item-size estimate in pixels; measured automatically when omitted. |
   | [`sizeStrategy`](docs/configuration.md#size-estimates-and-layout) | `'average'` | Estimate unknown item sizes using `'average'`, `'frequent'` or `'constant'`. |
-  | [`viewportElement`](docs/configuration.md#viewport-horizontal-and-inverse-rules) | `null` | Custom viewport element or element factory; defaults to the content element's parent. Experimental. |
-  | [`windowViewport`](docs/configuration.md#viewport-horizontal-and-inverse-rules) | `false` | Use the browser window as the viewport. |
-  | [`horizontal`](docs/configuration.md#viewport-horizontal-and-inverse-rules) | `false` | Scroll horizontally instead of vertically. |
-  | [`inverse`](docs/configuration.md#viewport-horizontal-and-inverse-rules) | `false` | Align short content to the bottom or right without reversing item order. Experimental. |
+  | [`viewportElement`](docs/configuration.md#viewport-and-horizontal-scrolling) | `null` | Custom viewport element or element factory; defaults to the content element's parent. Experimental. |
+  | [`windowViewport`](docs/configuration.md#viewport-and-horizontal-scrolling) | `false` | Use the browser window as the viewport. |
+  | [`horizontal`](docs/configuration.md#viewport-and-horizontal-scrolling) | `false` | Scroll horizontally instead of vertically. |
+  | [`inverse`](docs/configuration.md#other-settings) | `false` | Align short content to the bottom or right without reversing item order. Experimental. |
   | [`infinite`](docs/configuration.md#settings) | `false` | Keep loaded items instead of clipping them automatically. |
   | [`onBeforeClip`](docs/configuration.md#settings) | `null` | Receive clipped items just before they leave the buffer. Experimental. |
 
@@ -128,11 +128,11 @@ refreshButton.addEventListener('click', () => adapter.reload());
 adapter.isLoading$.on(isLoading => console.log('Loading:', isLoading));
 ```
 
-The Adapter is created when the datasource is instantiated. Its reactive properties can be observed before constructing `Workflow`, but method calls have no effect until `Workflow` finishes initializing. See [Adapter lifecycle and sequencing](docs/adapter.md#results-lifecycle-and-sequencing).
+The Adapter is created when the datasource is instantiated. Its reactive properties can be observed before constructing `Workflow`, but method calls have no effect until `Workflow` finishes initializing. See [Adapter lifecycle and sequencing](docs/adapter-methods.md#results-lifecycle-and-sequencing).
 
 `makeDatasource` also accepts an optional configuration factory for customizing the Adapter's reactive properties. See [Custom Adapter reactivity](docs/datasource.md#consumer-specific-adapter-reactivity).
 
-The tables below provide a brief overview of the Adapter's properties and methods. See the [Adapter reference](docs/adapter.md) for detailed documentation.
+The tables below provide a brief overview of the Adapter's properties and methods. See [Adapter properties](docs/adapter.md) and [Adapter methods](docs/adapter-methods.md) for details.
 
 ### Properties
 
@@ -151,7 +151,6 @@ Properties are read-only. Each `$` counterpart provides [reactive updates](docs/
 | [`bof`, `bof$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#bof-eof) | Whether the buffer has reached the dataset's beginning. |
 | [`eof`, `eof$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#bof-eof) | Whether the buffer has reached the dataset's end. |
 | [`packageInfo`](https://dhilt.github.io/ngx-ui-scroll/#adapter#package-info) | Core and consumer package names and versions. |
-| `version` | Core version associated with the Adapter context. |
 
 ### Methods
 
@@ -180,6 +179,10 @@ The reference pages below are being developed separately from this README. See t
   - [Workflow and lifecycle](docs/workflow.md) — construct, dispose and recreate an integration.
   - [Datasource](docs/datasource.md) — provide data, handle failures and manage request ownership.
   - [Rendering](docs/rendering.md) — implement the consumer's DOM and rendering contract.
+
+- **Configuration and extensions**
+  - [Configuration](docs/configuration.md) — configure sizing, buffering, scrolling and diagnostics.
+  - [Adapter properties](docs/adapter.md) — inspect workflow state and visible items.
 
 ## Thanks
 

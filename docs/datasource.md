@@ -117,7 +117,7 @@ const datasource = new Datasource({
 const adapter = datasource.adapter;
 ```
 
-The resulting datasource serves as the `datasource` argument to `Workflow`. Reactive Adapter properties can be observed immediately; methods that control the scroller take effect only after [Workflow initialization](adapter.md#results-lifecycle-and-sequencing).
+The resulting datasource serves as the `datasource` argument to `Workflow`. Reactive Adapter properties can be observed immediately; methods that control the scroller take effect only after [Workflow initialization](adapter-methods.md#results-lifecycle-and-sequencing).
 
 For TypeScript, `IDatasource<T>` describes the general shape and `IDatasourceConstructed<T>` guarantees the Adapter property. Both interfaces are exported from `vscroll`.
 

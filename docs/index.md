@@ -15,3 +15,9 @@ Read the first four pages for the core integration contract, then use the remain
 
 5. [Configuration](configuration.md) — scrolling settings and development settings.
 6. [Adapter properties](adapter.md) — observe workflow state, visible items and boundaries.
+7. [Adapter methods](adapter-methods.md) — control the scroller and modify buffered items.
+8. [Custom Routines](routines.md) — optional DOM and scheduling overrides.
+
+## Help
+
+9. [Troubleshooting](troubleshooting.md) — common failures, logs and bug reports.

@@ -36,7 +36,7 @@ The engine calls `run(items)` whenever it assigns a new item buffer—for exampl
 
 The first call is `run([])` during construction, before the constructor returns, even if later initialization is delayed. Prepare the renderer beforehand; `run` must not depend on the `workflow` variable being assigned yet.
 
-The constructor can throw on invalid inputs. Returning from it does not mean the initial data has finished loading. Use the [Adapter API](adapter-methods.md#results-lifecycle-and-sequencing) to observe initialization and wait for the first cycle to settle. See [Development settings](configuration.md#development-settings) for initialization delays.
+The constructor can throw on invalid inputs. Returning from it does not mean the initial data has finished loading. Use the [Adapter API](adapter-methods.md#calling-methods) to observe initialization and wait for the first cycle to settle. See [Development settings](configuration.md#development-settings) for initialization delays.
 
 ## Disposal and recreation
 

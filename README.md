@@ -128,11 +128,11 @@ refreshButton.addEventListener('click', () => adapter.reload());
 adapter.isLoading$.on(isLoading => console.log('Loading:', isLoading));
 ```
 
-The Adapter is created when the datasource is instantiated. Its reactive properties can be observed before constructing `Workflow`, but method calls have no effect until `Workflow` finishes initializing. See [Adapter lifecycle and sequencing](docs/adapter-methods.md#results-lifecycle-and-sequencing).
+The Adapter is created when the datasource is instantiated. Its reactive properties can be observed before constructing `Workflow`, but method calls have no effect until `Workflow` finishes initializing. See [Calling Adapter methods](docs/adapter-methods.md#calling-methods).
 
 `makeDatasource` also accepts an optional configuration factory for customizing the Adapter's reactive properties. See [Custom Adapter reactivity](docs/datasource.md#consumer-specific-adapter-reactivity).
 
-The tables below provide a brief overview of the Adapter's properties and methods. See [Adapter properties](docs/adapter.md) and [Adapter methods](docs/adapter-methods.md) for details.
+The tables below provide a brief overview of the Adapter's properties and methods. See [Adapter properties](docs/adapter.md) and [Adapter methods](docs/adapter-methods.md) for details, and the [ngx-ui-scroll Adapter demos](https://dhilt.github.io/ngx-ui-scroll/#adapter) for interactive examples.
 
 ### Properties
 
@@ -140,34 +140,34 @@ Properties are read-only. Each `$` counterpart provides [reactive updates](docs/
 
 | Property | Purpose |
 | --- | --- |
-| [`init`, `init$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#init) | Whether the Adapter is initialized. |
-| [`isLoading`, `isLoading$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#is-loading) | Whether a workflow cycle is running, including fetching and rendering. |
-| [`loopPending`, `loopPending$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#is-loading-advanced) | Whether an inner workflow loop is running. |
-| [`paused`, `paused$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#pause-resume) | Whether workflow processing is paused. |
-| [`bufferInfo`](https://dhilt.github.io/ngx-ui-scroll/#adapter#buffer-info) | Buffer, cache and dataset index bounds, plus the estimated item size. |
-| [`itemsCount`](https://dhilt.github.io/ngx-ui-scroll/#adapter#items-count) | Number of rendered buffer items, including offscreen items. |
-| [`firstVisible`, `firstVisible$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#first-last-visible-items) | First item intersecting the viewport, including a partially visible item. |
-| [`lastVisible`, `lastVisible$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#first-last-visible-items) | Last item intersecting the viewport, including a partially visible item. |
-| [`bof`, `bof$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#bof-eof) | Whether the buffer has reached the dataset's beginning. |
-| [`eof`, `eof$`](https://dhilt.github.io/ngx-ui-scroll/#adapter#bof-eof) | Whether the buffer has reached the dataset's end. |
-| [`packageInfo`](https://dhilt.github.io/ngx-ui-scroll/#adapter#package-info) | Core and consumer package names and versions. |
+| `init`, `init$` | Whether the Adapter is initialized. |
+| `isLoading`, `isLoading$` | Whether a workflow cycle is running, including fetching and rendering. |
+| `loopPending`, `loopPending$` | Whether an inner workflow loop is running. |
+| `paused`, `paused$` | Whether workflow processing is paused. |
+| `bufferInfo` | Buffer, cache and dataset index bounds, plus the estimated item size. |
+| `itemsCount` | Number of rendered buffer items, including offscreen items. |
+| `firstVisible`, `firstVisible$` | First item intersecting the viewport, including a partially visible item. |
+| `lastVisible`, `lastVisible$` | Last item intersecting the viewport, including a partially visible item. |
+| `bof`, `bof$` | Whether the buffer has reached the dataset's beginning. |
+| `eof`, `eof$` | Whether the buffer has reached the dataset's end. |
+| `packageInfo` | Core and consumer package names and versions. |
 
 ### Methods
 
 | Method | Purpose |
 | --- | --- |
-| [`relax`](https://dhilt.github.io/ngx-ui-scroll/#adapter#relax) | Wait until the scroller is idle. |
-| [`reload`](https://dhilt.github.io/ngx-ui-scroll/#adapter#reload) | Reload data at an optional starting index, keeping the current configuration. |
-| [`reset`](https://dhilt.github.io/ngx-ui-scroll/#adapter#reset) | Restart the scroller with optional datasource and settings changes. |
-| [`pause`, `resume`](https://dhilt.github.io/ngx-ui-scroll/#adapter#pause-resume) | Suspend or resume workflow processing. |
-| [`append`, `prepend`](https://dhilt.github.io/ngx-ui-scroll/#adapter#append-prepend) | Add items after or before the known range. |
-| [`insert`](https://dhilt.github.io/ngx-ui-scroll/#adapter#insert) | Insert items before or after a target item. |
-| [`remove`](https://dhilt.github.io/ngx-ui-scroll/#adapter#remove) | Remove selected items by predicate or indexes. |
-| [`replace`](https://dhilt.github.io/ngx-ui-scroll/#adapter#replace) | Replace matching buffered items with a new set of items. |
-| [`update`](https://dhilt.github.io/ngx-ui-scroll/#adapter#update) | Keep, remove or replace buffered items using a callback. |
-| [`check`](https://dhilt.github.io/ngx-ui-scroll/#adapter#check-size) | Re-measure rendered items after their sizes change. |
-| [`clip`](https://dhilt.github.io/ngx-ui-scroll/#adapter#clip) | Trim offscreen buffer items beyond the configured padding. |
-| `fix` | Directly adjust scroll position, index bounds or items. Experimental. Demos: [position](https://dhilt.github.io/ngx-ui-scroll/#experimental#adapter-fix-position), [updater](https://dhilt.github.io/ngx-ui-scroll/#experimental#adapter-fix-updater), [scroll to item](https://dhilt.github.io/ngx-ui-scroll/#experimental#adapter-fix-scrollToItem). |
+| `relax` | Wait until the scroller is idle. |
+| `reload` | Reload data at an optional starting index, keeping the current configuration. |
+| `reset` | Restart the scroller with optional datasource and settings changes. |
+| `pause`, `resume` | Suspend or resume workflow processing. |
+| `append`, `prepend` | Add items after or before the known range. |
+| `insert` | Insert items before or after a target item. |
+| `remove` | Remove selected items by predicate or indexes. |
+| `replace` | Replace matching buffered items with a new set of items. |
+| `update` | Keep, remove or replace buffered items using a callback. |
+| `check` | Re-measure rendered items after their sizes change. |
+| `clip` | Trim offscreen buffer items beyond the configured padding. |
+| `fix` | Directly adjust scroll position, index bounds or items. Experimental. |
 | `showLog` | Print collected debug logs. |
 
 ## Documentation
@@ -183,6 +183,11 @@ The reference pages below are being developed separately from this README. See t
 - **Configuration and extensions**
   - [Configuration](docs/configuration.md) — configure sizing, buffering, scrolling and diagnostics.
   - [Adapter properties](docs/adapter.md) — inspect workflow state and visible items.
+  - [Adapter methods](docs/adapter-methods.md) — control the scroller and modify buffered items.
+  - [Custom Routines](docs/routines.md) — customize DOM operations and scheduling.
+
+- **Help**
+  - [Troubleshooting](docs/troubleshooting.md) — diagnose integration problems and use debug logs.
 
 ## Thanks
 

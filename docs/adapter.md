@@ -73,9 +73,3 @@ expect(visibleCount).toBeLessThanOrEqual(adapter.itemsCount);
 ```
 
 Tracking of each edge begins when its scalar or `$` property is first accessed. Until a visible item is available, the value is `EMPTY_ITEM`, not an item with a usable `$index` or DOM element. The reactive properties report changes to the visible edges, not every scroll event or in-place change to an item's data.
-
-## Integration metadata
-
-`id`, `mock` and `augmented` are public Adapter properties used mainly by integrations: they identify the Adapter context, reflect its configured mock flag and indicate connection to the runtime implementation. They are not readiness or scrolling-state indicators.
-
-The package root exports `IAdapter<Data>`, `IAdapterItem<Data>`, `AdapterPropName`, `EMPTY_ITEM` and `getDefaultAdapterProps()`. The last function provides property descriptors for constructing an Adapter context; it does not reset a running Adapter. Custom reactive sources belong to [datasource configuration](datasource.md#consumer-specific-adapter-reactivity), not ordinary Adapter method calls.

@@ -1,6 +1,6 @@
 # Adapter methods
 
-[← Adapter properties](adapter.md) · [Documentation index](index.md) · Working draft
+[← Adapter properties](adapter.md) · [Documentation index](index.md)
 
 The Adapter exposes methods for working with a running scroller: waiting for it to settle, reloading data, and changing buffered items. The table below lists their arguments and behavior.
 
@@ -28,9 +28,11 @@ Adapter methods can trigger several internal scroller processes, including data 
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `success` | `boolean` | `true` — successful completion; `false` — error or interruption. |
+| `success` | `boolean` | `true` — successful completion of the Adapter call; `false` — Adapter error or interruption. |
 | `immediate` | `boolean` | `true` for immediate completion. `false` does not necessarily mean asynchronous execution. The result is always returned through a Promise. |
-| `details` | `string \| null` | Reason for an error, interruption, or completion without performing an operation; otherwise `null`. |
+| `details` | `string \| null` | Reason for an Adapter error, interruption, or completion without performing an operation; otherwise `null`. |
+
+Reported errors during data fetching or rendering are recorded in `workflow.errors`, but the Adapter call may still return `success: true` and `details: null`.
 
 Adapter methods are available as `datasource.adapter` immediately after datasource instantiation from the class returned by `makeDatasource()`. Before `Workflow` initializes the Adapter, calls complete without performing an operation and return `success: true`, `immediate: true`, and `details: 'Adapter is not initialized'`.
 

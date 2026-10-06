@@ -1,6 +1,6 @@
 # Troubleshooting
 
-[← Documentation index](index.md) · Working draft
+[← Documentation index](index.md)
 
 The scroller depends on data retrieval, rendering the buffer in the DOM and measuring its geometry. The table below connects common problems to these requirements; the diagnostic log shows the engine's actions and changes in list state.
 

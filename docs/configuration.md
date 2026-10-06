@@ -1,6 +1,6 @@
 # Configuration
 
-[← Documentation index](index.md) · Working draft
+[← Documentation index](index.md)
 
 Configuration is supplied through the [datasource](datasource.md) passed to `Workflow`. Its optional `settings` object controls scrolling; `devSettings` controls diagnostics and lower-level behavior. Both are read when the scroller is created. Sizes below are CSS pixels along the scrolling axis, and delays are milliseconds.
 

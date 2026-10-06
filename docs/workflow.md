@@ -1,6 +1,6 @@
 # Workflow and lifecycle
 
-[← Documentation index](index.md) · Working draft
+[← Documentation index](index.md)
 
 Constructing `Workflow` starts the virtual scroll engine for a mounted list. Prepare the content DOM and renderer first. See [Virtual scrolling model](virtual-scrolling.md) for how the datasource, item buffer and DOM fit together.
 

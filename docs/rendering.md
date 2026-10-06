@@ -1,6 +1,6 @@
 # Rendering and DOM contract
 
-[← Documentation index](index.md) · Working draft
+[← Documentation index](index.md)
 
 The rendering integration is established when `Workflow` is instantiated. Two constructor parameters define its core contract: `element` identifies the mounted content element, and `run(items)` keeps its rows aligned with the Scroller's item buffer.
 

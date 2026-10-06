@@ -172,12 +172,12 @@ Properties are read-only. Each `$` counterpart provides [reactive updates](docs/
 
 ## Documentation
 
-The reference pages below are being developed separately from this README. See the [documentation index](docs/index.md) for a guided path through them.
+See the [documentation index](docs/index.md) for a guided path through the reference pages below.
 
 - **Core integration**
   - [Virtual scrolling model](docs/virtual-scrolling.md) — understand how the viewport, item buffer and DOM rows fit together.
   - [Workflow and lifecycle](docs/workflow.md) — construct, dispose and recreate an integration.
-  - [Datasource](docs/datasource.md) — provide data, handle failures and manage request ownership.
+  - [Datasource](docs/datasource.md) — provide data, handle failures and cache items.
   - [Rendering](docs/rendering.md) — implement the consumer's DOM and rendering contract.
 
 - **Configuration and extensions**

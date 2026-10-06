@@ -1,6 +1,6 @@
 # Documentation
 
-[← Project README](../README.md) · Working draft
+[← Project README](../README.md)
 
 Read the first four pages for the core integration contract, then use the remaining references as needed.
 

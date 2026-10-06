@@ -1,6 +1,6 @@
 # Adapter API
 
-[← Documentation index](index.md) · [Adapter methods →](adapter-methods.md) · Working draft
+[← Documentation index](index.md) · [Adapter methods →](adapter-methods.md)
 
 The Adapter adds runtime observation and control to virtual scrolling. It exposes workflow state, visible items and dataset boundaries, and supports data changes without recreating `Workflow`. It is available as `datasource.adapter` when the datasource is constructed through [`makeDatasource()`](datasource.md#creating-a-datasource-with-an-adapter). The Adapter exists at datasource construction; scroller-control methods take effect after Workflow initialization.
 

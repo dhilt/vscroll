@@ -1,6 +1,6 @@
 # Datasource
 
-[← Documentation index](index.md) · Working draft
+[← Documentation index](index.md)
 
 A datasource is the application-provided object from which vscroll obtains data. During initialization and as scrolling reveals missing items, the Scroller calls its `get` function. The application supplies values; vscroll adds them to its item buffer and passes that buffer to the consumer's `run(items)` for [rendering](rendering.md). The datasource itself does not render DOM.
 

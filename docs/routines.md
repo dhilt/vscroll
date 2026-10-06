@@ -1,6 +1,6 @@
 # Custom Routines
 
-[← Documentation index](index.md) · Working draft
+[← Documentation index](index.md)
 
 `Routines` is the scroller's DOM operations class, exported from `vscroll`. It handles element lookup, geometry measurement, scrolling and scheduling of internal work. The engine uses the built-in implementation by default. Custom Routines adapt these operations to a particular layout or rendering mechanism without changing the scrolling algorithm.
 

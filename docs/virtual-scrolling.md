@@ -1,6 +1,6 @@
 # Virtual scrolling model
 
-[← Documentation index](index.md) · Working draft
+[← Documentation index](index.md)
 
 To the end user, VScroll presents one continuous scrollable list. It maintains an ordered buffer of items; the **consumer**—an application or framework integration—renders a DOM row for each. Dataset positions outside the buffer remain virtual, represented by empty space.
 

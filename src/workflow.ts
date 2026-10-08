@@ -77,16 +77,7 @@ export class Workflow<ItemData = unknown> {
 
   init(): void {
     this.scroller.init(this.adapterRun$);
-
-    // set up scroll event listener
-    const { routines } = this.scroller;
-    const onScrollHandler: EventListener = event =>
-      this.callWorkflow({
-        process: CommonProcess.scroll,
-        status: Status.start,
-        payload: { event }
-      });
-    this.offScroll = routines.onScroll(onScrollHandler);
+    this.bindScroll();
 
     // run the Workflow
     this.isInitialized = true;
@@ -94,6 +85,22 @@ export class Workflow<ItemData = unknown> {
       process: CommonProcess.init,
       status: Status.start
     });
+  }
+
+  private bindScroll(): void {
+    // Custom onScroll may notify before reset starts its initialization cycle.
+    let bound = false;
+    this.offScroll = this.scroller.routines.onScroll(event => {
+      if (!bound) {
+        return;
+      }
+      this.callWorkflow({
+        process: CommonProcess.scroll,
+        status: Status.start,
+        payload: { event }
+      });
+    });
+    bound = true;
   }
 
   changeItems(items: Item<ItemData>[]): void {
@@ -191,9 +198,11 @@ export class Workflow<ItemData = unknown> {
       const reInit = () => {
         this.scroller.logger.log('new Scroller instantiation');
         const scroller = new Scroller<ItemData>({ datasource, scroller: this.scroller });
+        this.offScroll();
         this.scroller.dispose();
         this.scroller = scroller;
         this.scroller.init();
+        this.bindScroll();
       };
       if (this.scroller.state.cycle.busy.get()) {
         // todo: think about immediate re-initialization even is there are pending processes
@@ -229,5 +238,5 @@ export class Workflow<ItemData = unknown> {
     this.disposed = true;
   }
 
-  finalize(): void {}
+  finalize(): void { }
 }

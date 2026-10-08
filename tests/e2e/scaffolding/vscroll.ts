@@ -1,6 +1,7 @@
 export {
   AdapterPropName,
   Direction,
+  Routines,
   SizeStrategy,
   Workflow,
   makeDatasource
@@ -21,5 +22,6 @@ export type {
   IAdapterProp,
   Item,
   ItemAdapter,
+  RoutinesClassType,
   Settings
 } from '../../../src/interfaces/index';

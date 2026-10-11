@@ -34,6 +34,8 @@ export class Scroller<Data = unknown> {
   public state: State;
   public adapter: Adapter<Data>;
 
+  private readonly Routines: ScrollerParams<Data>['Routines'];
+
   constructor({
     datasource,
     consumer,
@@ -50,6 +52,8 @@ export class Scroller<Data = unknown> {
     const packageInfo = scroller ? scroller.state.packageInfo : ({ consumer, core } as IPackages);
     element = scroller ? scroller.routines.element : (element as HTMLElement);
     workflow = scroller ? scroller.workflow : (workflow as ScrollerWorkflow<Data>);
+    CustomRoutines = CustomRoutines || scroller?.Routines;
+    this.Routines = CustomRoutines;
 
     // In general, custom Routines must extend the original Routines. If not, we provide implicit extending.
     // This is undocumented feature. It should be removed in vscroll v2.

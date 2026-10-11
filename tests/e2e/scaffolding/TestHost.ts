@@ -65,6 +65,7 @@ export class TestHost<Data extends TestItem = TestItem> {
 
   private readonly settings: TemplateSettings;
   private readonly windowViewport: boolean;
+  private readonly Routines: TestConfig<unknown, Data>['Routines'];
   private readonly setProcessor?: (
     processor: DatasourceProcessor<Data>
   ) => void;
@@ -104,6 +105,7 @@ export class TestHost<Data extends TestItem = TestItem> {
   }
 
   constructor(config: TestConfig<unknown, Data>) {
+    this.Routines = config.Routines;
     this.windowViewport = !!config.datasourceSettings?.windowViewport;
     this.settings = {
       ...defaultTemplateSettings,
@@ -166,7 +168,8 @@ export class TestHost<Data extends TestItem = TestItem> {
       consumer: { name: 'vscroll-browser-tests', version: '1.0.0' },
       element: this.contentElement,
       datasource: this.datasource,
-      run: items => this.render(items)
+      run: items => this.render(items),
+      Routines: this.Routines
     });
   }
 

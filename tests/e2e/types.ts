@@ -1,6 +1,7 @@
 import type {
   DevSettings,
   IDatasource,
+  RoutinesClassType,
   Settings
 } from './scaffolding/vscroll';
 
@@ -27,6 +28,7 @@ export interface TestConfig<Custom = void, Data = TestItem> {
   datasourceSettings?: Settings<Data>;
   datasourceDevSettings?: DevSettings;
   templateSettings?: TemplateSettings;
+  Routines?: RoutinesClassType;
   noAdapter?: boolean;
   custom?: Custom;
   timeout?: number;

@@ -431,10 +431,10 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
         });
       }
       // reset reactive props
-      if (type === AdapterPropType.Reactive && reactiveStore) {
-        const property = reactiveStore[name];
+      if (type === AdapterPropType.Reactive) {
+        this.source[name].reset();
+        const property = reactiveStore?.[name];
         if (property) {
-          property.default.reset();
           property.emit(property.source, property.default.get());
         }
       }

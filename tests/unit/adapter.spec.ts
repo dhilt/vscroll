@@ -90,7 +90,7 @@ describe('Adapter Init Spec', () => {
 });
 
 describe('Adapter Custom Reactive Source Spec', () => {
-  it('should preserve the source and forward values across recreation', () => {
+  it('should preserve and reset reactive sources across recreation', () => {
     const source = {};
     const values: unknown[] = [];
     const CustomDatasource = makeDatasource(() => ({
@@ -106,6 +106,16 @@ describe('Adapter Custom Reactive Source Spec', () => {
       }
     }));
     const datasource = new CustomDatasource(MOCK.datasource);
+    const bof$ = datasource.adapter.bof$;
+    const bofValues: boolean[] = [];
+    const offBof = bof$.on(value => {
+      expect(datasource.adapter.bof).toBe(value);
+      bofValues.push(value);
+    });
+    const initValues: boolean[] = [];
+    const offInit = datasource.adapter.init$.on(value =>
+      initValues.push(value)
+    );
     const createScroller = () => {
       const scroller = new Scroller({
         datasource,
@@ -121,14 +131,25 @@ describe('Adapter Custom Reactive Source Spec', () => {
     try {
       expect(datasource.adapter.isLoading$).toBe(source);
       scroller.state.cycle.busy.set(true);
+      scroller.buffer.absMinIndex = 1;
       scroller.dispose(true);
+      expect(datasource.adapter.bof).toBe(false);
+      expect(bof$.get()).toBe(false);
 
       scroller = createScroller();
       expect(datasource.adapter.isLoading$).toBe(source);
+      expect(datasource.adapter.bof$).toBe(bof$);
+      expect(datasource.adapter.bof).toBe(false);
+      expect(bof$.get()).toBe(false);
       scroller.state.cycle.busy.set(true);
+      scroller.buffer.absMinIndex = 1;
 
       expect(values).toEqual([true, false, true]);
+      expect(bofValues).toEqual([true, false, true]);
+      expect(initValues).toEqual([true, false, true]);
     } finally {
+      offBof();
+      offInit();
       scroller.dispose(true);
       datasource.dispose();
     }

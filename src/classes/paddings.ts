@@ -52,7 +52,6 @@ export class Paddings {
   reset(viewportSize: number, startIndex: number, offset: number): void {
     const positive = this.getPositiveSize(startIndex, viewportSize, offset);
     const negative = this.getNegativeSize(startIndex);
-    // Inverse alignment is applied after rendering; initial geometry must preserve startIndex.
     this.forward.reset(positive);
     this.backward.reset(negative);
     const diff = viewportSize - this.forward.size - offset;

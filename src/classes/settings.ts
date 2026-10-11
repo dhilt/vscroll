@@ -27,7 +27,7 @@ export class Settings<Data = unknown> implements ISettings, IDevSettings {
   horizontal: boolean;
   windowViewport: boolean;
   viewportElement: HTMLElement | (() => void) | null;
-  inverse: boolean; // if true, bwd padding element will have a priority when filling the viewport (if lack of items)
+  alignShortContentToEnd: boolean; // align content shorter than the viewport to the bottom/right
   onBeforeClip: ItemsProcessor | null; // if set, it will be run before clipping items from Buffer after they are hidden
   sizeStrategy: SizeStrategy; // "average" | "frequent", determines behavior of unknown items
 
@@ -150,6 +150,15 @@ export class Settings<Data = unknown> implements ISettings, IDevSettings {
    */
   viewport: HTMLElement | null;
 
+  /** @deprecated Use alignShortContentToEnd. */
+  get inverse(): boolean {
+    return this.alignShortContentToEnd;
+  }
+
+  set inverse(value: boolean) {
+    this.alignShortContentToEnd = value;
+  }
+
   constructor(
     settings: ISettings<Data> | undefined,
     devSettings: IDevSettings | undefined,
@@ -160,6 +169,7 @@ export class Settings<Data = unknown> implements ISettings, IDevSettings {
     this.instanceIndex = instanceIndex;
     this.initializeDelay = this.getInitializeDelay();
     this.viewport = this.getViewport();
+    this.alignShortContentToEnd = this.getAlignShortContentToEnd(settings);
     // todo: min/max indexes must be ignored if infinite mode is enabled ??
   }
 
@@ -197,5 +207,16 @@ export class Settings<Data = unknown> implements ISettings, IDevSettings {
       return null; // fallback to default (null) if Function didn't return HTML element synchronously
     }
     return result.value as HTMLElement;
+  }
+
+  getAlignShortContentToEnd(settings: ISettings<Data> | undefined): boolean {
+    if (settings?.alignShortContentToEnd !== undefined || settings?.inverse === undefined) {
+      return this.alignShortContentToEnd;
+    }
+    return validateOne(
+      { inverse: settings.inverse },
+      'inverse',
+      SETTINGS.alignShortContentToEnd
+    ).value as boolean;
   }
 }

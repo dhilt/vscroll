@@ -25,7 +25,7 @@ const createConfig = (
     itemSize,
     bufferSize: 5,
     padding: 0.5,
-    inverse: true,
+    alignShortContentToEnd: true,
     horizontal,
     ...settings
   },
@@ -54,7 +54,7 @@ const oversizedConfig: TestConfig = {
     startIndex: -1,
     bufferSize: 7,
     itemSize,
-    inverse: true
+    alignShortContentToEnd: true
   },
   templateSettings: { viewportHeight: 300, dynamicSize: 'size' }
 };
@@ -93,7 +93,8 @@ const expectShortContent = (misc: Misc): void => {
 const registerShortContent = (config: TestConfig): void =>
   makeTest({
     config,
-    title: 'should align short content and readjust as items are added and removed',
+    title:
+      'should align short content and readjust as items are added and removed',
     it: misc => async () => {
       misc.trackVisibleItems();
       await misc.relaxNext();
@@ -115,7 +116,7 @@ const registerShortContent = (config: TestConfig): void =>
     }
   });
 
-describe('Inverse Spec', () => {
+describe('Short Content Alignment Spec', () => {
   describe('Initialization', () =>
     initialConfigs.forEach(config =>
       registerInitialization(
@@ -138,8 +139,21 @@ describe('Inverse Spec', () => {
   describe('Short content', () => shortConfigs.forEach(registerShortContent));
 
   makeTest({
+    config: createConfig(
+      false,
+      { alignShortContentToEnd: undefined, inverse: true },
+      3
+    ),
+    title: 'should align short content with the legacy inverse setting',
+    it: misc => async () => {
+      await misc.relaxNext();
+      expectShortContent(misc);
+    }
+  });
+
+  makeTest({
     config: oversizedConfig,
-    title: 'should not extend forward padding for an oversized inverse item',
+    title: 'should not extend forward padding for an oversized item',
     before: misc =>
       misc.setItemProcessor(({ $index, data }) => {
         data.size = $index === 4 ? 120 : 20;

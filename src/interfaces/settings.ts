@@ -13,6 +13,8 @@ export interface Settings<T = unknown> {
   horizontal?: boolean;
   windowViewport?: boolean;
   viewportElement?: HTMLElement | (() => void) | null;
+  alignShortContentToEnd?: boolean;
+  /** @deprecated Use alignShortContentToEnd. */
   inverse?: boolean;
   onBeforeClip?: ItemsProcessor<T> | null;
   sizeStrategy?: SizeStrategy;

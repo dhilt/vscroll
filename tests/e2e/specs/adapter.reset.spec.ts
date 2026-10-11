@@ -79,18 +79,15 @@ const newGetScenarios: ResetScenario[] = [baseConfigs[0], baseConfigs[2]].map(
   config => ({ config, options: { get: starGet }, starData: true })
 );
 
-const routinesScenarios: ResetScenario[] = [false, true].map(interruption => ({
-  config: {
-    ...baseConfigs[0],
-    Routines: class extends Routines {
-      makeElementVisible(element: HTMLElement): void {
-        super.makeElementVisible(element);
-        element.dataset.customRoutines = 'true';
-      }
+const routinesConfig: TestConfig = {
+  ...baseConfigs[0],
+  Routines: class extends Routines {
+    makeElementVisible(element: HTMLElement): void {
+      super.makeElementVisible(element);
+      element.dataset.customRoutines = 'true';
     }
-  },
-  interruption
-}));
+  }
+};
 
 const synchronousScrollConfig: TestConfig = {
   ...baseConfigs[0],
@@ -103,26 +100,30 @@ const synchronousScrollConfig: TestConfig = {
   }
 };
 
-const viewportScenarios: ViewportResetScenario[] = [false, true].map(
-  windowViewport => {
-    const scenario: ViewportResetScenario = {
-      config: {
-        datasourceSettings: { minIndex: 1, maxIndex: 100, itemSize: 20 },
-        skipInvariantAutoCheck: true,
-        Routines: class extends Routines {
-          onScroll(handler: EventListener): () => void {
-            return super.onScroll(event => {
-              scenario.scrollCount++;
-              handler(event);
-            });
+const viewportScenarios: ViewportResetScenario[] = [false, true].flatMap(
+  windowViewport =>
+    [false, true].map(interruption => {
+      const scenario: ViewportResetScenario = {
+        config: {
+          datasource: () =>
+            getDatasource({ mode: interruption ? 'promise' : 'callback' }),
+          datasourceSettings: { minIndex: 1, maxIndex: 100, itemSize: 20 },
+          skipInvariantAutoCheck: true,
+          Routines: class extends Routines {
+            onScroll(handler: EventListener): () => void {
+              return super.onScroll(event => {
+                scenario.scrollCount++;
+                handler(event);
+              });
+            }
           }
-        }
-      },
-      windowViewport,
-      scrollCount: 0
-    };
-    return scenario;
-  }
+        },
+        windowViewport,
+        interruption,
+        scrollCount: 0
+      };
+      return scenario;
+    })
 );
 
 const invalidOptions: unknown[] = [
@@ -187,39 +188,22 @@ const expectScrollListeners = (
   }
 };
 
-const registerRoutinesReset = (scenario: ResetScenario, title: string): void =>
-  makeTest({
-    config: scenario.config,
-    title,
-    meta: scenario.interruption ? 'pending reload' : 'idle',
-    it: misc => async () => {
-      await misc.relaxNext();
-      for (let step = 0; step < 2; step++) {
-        const previousRoutines = misc.scroller.routines;
-        // An interrupted reload ends its cycle before reset's own load begins.
-        const resetCyclesPromise = misc.waitForCycles(
-          misc.workflow.cyclesDone + (scenario.interruption ? 2 : 1)
-        );
-        // The immediate reset interrupts the reload's pending fetch.
-        const reloadPromise = scenario.interruption
-          ? misc.adapter.reload()
-          : undefined;
-        await misc.adapter.reset();
-        await reloadPromise;
-        await resetCyclesPromise;
-        await misc.adapter.relax();
+const expectRoutinesReset = (misc: Misc) => async () => {
+  await misc.relaxNext();
+  for (let step = 0; step < 2; step++) {
+    const previousRoutines = misc.scroller.routines;
+    await misc.adapter.reset();
 
-        expect(misc.scroller.routines).not.toBe(previousRoutines);
-        expect(misc.getElements().length).toBeGreaterThan(0);
-        expect(
-          misc
-            .getElements()
-            .every(element => element.dataset.customRoutines === 'true')
-        ).toBe(true);
-        expect(misc.workflow.errors).toEqual([]);
-      }
-    }
-  });
+    expect(misc.scroller.routines).not.toBe(previousRoutines);
+    expect(misc.getElements().length).toBeGreaterThan(0);
+    expect(
+      misc
+        .getElements()
+        .every(element => element.dataset.customRoutines === 'true')
+    ).toBe(true);
+    expect(misc.workflow.errors).toEqual([]);
+  }
+};
 
 const expectSynchronousScrollReset = (misc: Misc) => async () => {
   misc.trackVisibleItems();
@@ -246,7 +230,9 @@ const registerViewportReset = (
   makeTest({
     config: scenario.config,
     title,
-    meta: scenario.windowViewport ? 'window viewport' : 'external viewport',
+    meta: `${scenario.windowViewport ? 'window' : 'external'} viewport, ${
+      scenario.interruption ? 'pending reload' : 'idle'
+    }`,
     it: misc => async () => {
       misc.trackVisibleItems();
       await misc.relaxNext();
@@ -257,9 +243,16 @@ const registerViewportReset = (
       const targets = [original, external, window];
       const originalStyle = original.style.cssText;
 
-      // Reset twice on each target: a switch must remove the old listener,
-      // and resetting on the same target must not duplicate the new one.
-      for (const target of [replacement, replacement, original, original]) {
+      // Switch targets, check repeated reset, then return to the original target.
+      for (const target of [replacement, replacement, original]) {
+        const interruptions = misc.workflow.interruptionCount;
+        const resetCyclesPromise = misc.waitForCycles(
+          misc.workflow.cyclesDone + (scenario.interruption ? 2 : 1)
+        );
+        // Reset in this same tick interrupts reload's pending Promise-based get.
+        const reloadPromise = scenario.interruption
+          ? misc.adapter.reload()
+          : undefined;
         const useWindow = target === window;
         const viewport = target instanceof HTMLElement ? target : original;
         original.style.cssText = originalStyle;
@@ -277,6 +270,12 @@ const registerViewportReset = (
             viewportElement: useWindow ? undefined : viewport
           }
         });
+        await reloadPromise;
+        await resetCyclesPromise;
+        await misc.adapter.relax();
+        expect(misc.workflow.interruptionCount).toBe(
+          interruptions + Number(!!scenario.interruption)
+        );
 
         await misc.adapter.pause();
         expectScrollListeners(scenario, targets, target);
@@ -294,6 +293,7 @@ const registerViewportReset = (
         misc.expect.domIndexesMatchBuffer();
       }
 
+      expect(misc.workflow.errors).toEqual([]);
       misc.dispose();
       expectScrollListeners(scenario, targets);
       window.scrollTo(0, 0);
@@ -396,12 +396,11 @@ describe('Adapter Reset Spec', () => {
     ));
 
   describe('Custom Routines', () =>
-    routinesScenarios.forEach(scenario =>
-      registerRoutinesReset(
-        scenario,
-        'should preserve custom Routines across repeated resets'
-      )
-    ));
+    makeTest({
+      config: routinesConfig,
+      title: 'should preserve custom Routines across repeated resets',
+      it: expectRoutinesReset
+    }));
 
   describe('Scroll listeners', () => {
     makeTest({

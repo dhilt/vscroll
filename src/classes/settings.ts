@@ -202,7 +202,10 @@ export class Settings<Data = unknown> implements ISettings, IDevSettings {
       return this.viewportElement;
     }
     const value = this.viewportElement();
-    const result = validateOne({ value }, 'value', { validators: [VALIDATORS.ELEMENT] });
+    const result = validateOne({ value }, 'value', {
+      validators: [VALIDATORS.ELEMENT],
+      mandatory: true
+    });
     if (!result.isValid) {
       return null; // fallback to default (null) if Function didn't return HTML element synchronously
     }

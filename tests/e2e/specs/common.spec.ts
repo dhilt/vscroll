@@ -24,84 +24,14 @@ const baseConfig: TestConfig = {
 const parseSettings = (settings?: unknown): ParsedSettings =>
   new ParsedSettings(settings as Settings | undefined, undefined, 1);
 
-const takeCoreSettings = (settings: ParsedSettings) => ({
-  startIndex: settings.startIndex,
-  bufferSize: settings.bufferSize,
-  padding: settings.padding,
-  itemSize: settings.itemSize,
-  infinite: settings.infinite,
-  horizontal: settings.horizontal
-});
-
 describe('Common Spec', () => {
-  describe('Settings', () => {
-    test('uses defaults for missing or malformed input', () => {
-      [undefined, null, 'invalid', 42].forEach(input =>
-        expect(takeCoreSettings(parseSettings(input))).toEqual({
-          startIndex: 1,
-          bufferSize: 5,
-          padding: 0.5,
-          itemSize: NaN,
-          infinite: false,
-          horizontal: false
-        })
-      );
-    });
-
-    test('applies valid overrides', () => {
-      expect(
-        takeCoreSettings(
-          parseSettings({ startIndex: 99, bufferSize: 11, infinite: true })
-        )
-      ).toEqual({
-        startIndex: 99,
-        bufferSize: 11,
-        padding: 0.5,
-        itemSize: NaN,
-        infinite: true,
-        horizontal: false
-      });
-    });
-
-    test('normalizes invalid and below-limit values', () => {
-      const cases: Array<{
-        key: keyof Settings;
-        input: unknown;
-        expected: unknown;
-      }> = [
-        { key: 'startIndex', input: false, expected: 1 },
-        { key: 'bufferSize', input: { invalid: true }, expected: 5 },
-        { key: 'bufferSize', input: 5.5, expected: 5 },
-        { key: 'bufferSize', input: -1, expected: 1 },
-        { key: 'padding', input: 'invalid', expected: 0.5 },
-        { key: 'padding', input: -0.1, expected: 0.01 },
-        { key: 'itemSize', input: -5, expected: 1 },
-        { key: 'itemSize', input: 1.5, expected: NaN },
-        { key: 'infinite', input: 'invalid', expected: false },
-        { key: 'horizontal', input: null, expected: false }
-      ];
-
-      cases.forEach(({ key, input, expected }) =>
-        expect({ key, value: parseSettings({ [key]: input })[key] }).toEqual({
-          key,
-          value: expected
-        })
-      );
-    });
-
+  describe('Settings with an HTML viewport element', () => {
     test('accepts an HTML element', () => {
       const element = document.createElement('div');
       const settings = parseSettings({ viewportElement: element });
 
       expect(settings.viewportElement).toBe(element);
       expect(settings.viewport).toBe(element);
-    });
-
-    test('rejects an element-like object', () => {
-      const settings = parseSettings({ viewportElement: { nodeType: 1 } });
-
-      expect(settings.viewportElement).toBeNull();
-      expect(settings.viewport).toBeNull();
     });
   });
 

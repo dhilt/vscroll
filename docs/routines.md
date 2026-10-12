@@ -127,7 +127,7 @@ Sizes and coordinates are expressed in CSS pixels. The active dimension is heigh
 | `setSizeStyle(element: HTMLElement, value: number): void` | Rounds the size, clamps it to zero or greater, and writes inline `height` or `width` in pixels. Used for padding elements. |
 | `getEdge(element: HTMLElement, direction: Direction): number` | Returns the corresponding edge from `getElementParams(element)`. |
 | `getViewportEdge(direction: Direction): number` | Returns the corresponding edge of the window rectangle in window mode; otherwise, `getEdge(viewport, direction)`. |
-| `getOffset(): number` | Returns the content element's `offsetTop` or `offsetLeft`, minus the viewport's corresponding offset. No subtraction is performed in window mode. |
+| `getOffset(): number` | Returns the content element's top/left offset from the viewport at scroll position zero, using measured edges and current scroll position. In window mode, returns its document-relative position. |
 
 ### Visibility and scrolling
 

@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>vscroll custom Routines demo</title>
+  <meta charset="utf-8" />
+  <style>
+    #viewport {
+      height: 300px;
+      width: 300px;
+      overflow-y: auto;
+      scroll-padding-top: 40px;
+    }
+
+    #toolbar {
+      position: sticky;
+      top: 0;
+      height: 40px;
+      line-height: 40px;
+      background: #eee;
+      z-index: 1;
+    }
+
+    #content>[data-sid] {
+      height: 22px;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/vscroll/dist/bundles/vscroll.umd.js"></script>
+</head>
+
+<body>
+  <h3>VScroll Custom Routines Demo (CDN)</h3>
+  <p>
+    Custom Routines exclude the sticky toolbar from the measured viewport. Only rows below it are
+    reported as visible.
+  </p>
+  <p>
+    <button id="scroll">Scroll down 5 items</button>
+    <button id="reload">Reload</button>
+  </p>
+  <div id="viewport">
+    <div id="toolbar">Visible items: <span id="visible"></span></div>
+    <div id="content">
+      <div data-padding-backward></div>
+      <div data-padding-forward></div>
+    </div>
+  </div>
+  <script>
+    const Datasource = VScroll.makeDatasource();
+    const DATA = Array.from({ length: 1000 }, (_, i) => ({ text: `Item ${i + 1}` }));
+    const datasource = new Datasource({
+      get: (index, count, success) => success(DATA.slice(index - 1, index - 1 + count)),
+      settings: { minIndex: 1, maxIndex: DATA.length }
+    });
+
+    class ToolbarRoutines extends VScroll.Routines {
+      getElementParams(element) {
+        const rect = super.getElementParams(element);
+        // Crop only the viewport; row and content measurements stay unchanged.
+        if (element === this.viewport) {
+          // The CSS inset matches the toolbar's height in pixels.
+          const inset = parseFloat(getComputedStyle(element).scrollPaddingTop) || 0;
+          rect.y += inset; // Move the top edge below the toolbar.
+          rect.height -= inset; // Keep the bottom edge unchanged.
+        }
+        return rect;
+      }
+    }
+
+    const contentElt = document.getElementById('content');
+    const fwdPaddingElt = contentElt.querySelector('[data-padding-forward]');
+    const visibleHintElt = document.getElementById('visible');
+    const doScrollElt = document.getElementById('scroll');
+    const doReloadElt = document.getElementById('reload');
+
+    function renderRow(item) {
+      const row = (item.element ??= document.createElement('div'));
+      row.dataset.sid = String(item.$index);
+      row.style.position = item.invisible ? 'fixed' : '';
+      row.style.top = item.invisible ? '-99999px' : '';
+      row.textContent = `${item.$index}: ${item.data.text}`;
+      return row;
+    }
+
+    let previous = [];
+
+    function run(items) {
+      for (const item of previous) {
+        if (!items.includes(item)) {
+          item.element?.remove();
+        }
+      }
+      let next = fwdPaddingElt;
+      for (const item of [...items].reverse()) {
+        const row = renderRow(item);
+        if (row.nextElementSibling !== next) {
+          contentElt.insertBefore(row, next);
+        }
+        next = row;
+      }
+      previous = [...items];
+    }
+
+    const adapter = datasource.adapter;
+    const updateVisible = () => {
+      visibleHintElt.textContent =
+        `${adapter.firstVisible.$index}–${adapter.lastVisible.$index}`;
+    };
+    adapter.firstVisible$.on(updateVisible);
+    adapter.lastVisible$.on(updateVisible);
+
+    const workflow = new VScroll.Workflow({
+      consumer: { name: 'VScroll Custom Routines Demo (CDN)', version: 'not published' },
+      element: contentElt,
+      datasource,
+      run,
+      Routines: ToolbarRoutines
+    });
+
+    doScrollElt.onclick = () => {
+      const index = Math.min(adapter.firstVisible.$index + 5, DATA.length);
+      adapter.fix({ scrollToItem: item => item.$index === index });
+    };
+    doReloadElt.onclick = () => adapter.reload();
+  </script>
+</body>
+
+</html>

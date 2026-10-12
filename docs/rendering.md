@@ -31,7 +31,7 @@ const element = document.getElementById('content');
 const workflow = new Workflow({ element, ... });
 ```
 
-By default, the Scroller uses the content element's parent as its viewport; [Configuration](configuration.md#viewport-and-horizontal-scrolling) explains how to select a different scroll target.
+By default, the Scroller uses the content element's parent as its viewport; [Configuration](configuration.md#viewport-scrolling-axis-and-alignment) explains how to select a different scroll target.
 
 The padding elements remain mounted as rows come and go; the Scroller sizes them to represent virtual space. Rows must be measurable. By default, their size comes from `getBoundingClientRect()`, which excludes margins; unaccounted margins or gaps distort the virtual geometry. Row measurement can be customized through [Routines](routines.md#geometry-and-padding-sizes).
 

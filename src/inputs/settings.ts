@@ -17,7 +17,7 @@ enum Settings {
   horizontal = 'horizontal',
   windowViewport = 'windowViewport',
   viewportElement = 'viewportElement',
-  inverse = 'inverse',
+  alignShortContentToEnd = 'alignShortContentToEnd',
   onBeforeClip = 'onBeforeClip',
   sizeStrategy = 'sizeStrategy'
 }
@@ -91,7 +91,7 @@ export const SETTINGS: ICommonProps<Settings> = {
     validators: [OR([ELEMENT, FUNC])],
     defaultValue: null
   },
-  [Settings.inverse]: {
+  [Settings.alignShortContentToEnd]: {
     validators: [BOOLEAN],
     defaultValue: false
   },

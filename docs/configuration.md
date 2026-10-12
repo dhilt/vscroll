@@ -51,23 +51,25 @@ Before the first render, the scroller estimates how many rows to request for the
 
 After rendering, the scroller measures actual row sizes. With `'average'` (the default) or `'frequent'`, later requests use those measurements rather than the initial `itemSize` estimate. With `'constant'`, `itemSize` remains the estimate for unseen rows; if omitted, the first measured size takes its place. No strategy forces equal CSS sizes. In TypeScript, use the exported `SizeStrategy` enum (for example, `SizeStrategy.Frequent`). See [Rendering](rendering.md) for the DOM and layout requirements.
 
-### Viewport and horizontal scrolling
+### Viewport, scrolling axis and alignment
 
-The viewport is the scrollable area whose position and size the scroller tracks; by default, it is the content element's parent. `windowViewport` and `viewportElement` choose a different scroll target, while `horizontal` changes the scroll axis.
+The viewport is the scrollable area whose position and size the scroller tracks; by default, it is the content element's parent. `windowViewport` and `viewportElement` choose a different scroll target, while `horizontal` changes the scroll axis and `alignShortContentToEnd` controls the alignment of short content.
 
 | Setting | Type | Default | Effect |
 | --- | --- | --- | --- |
 | `windowViewport` | `boolean` | `false` | Use the browser window for scrolling and viewport dimensions. |
 | `viewportElement` | `HTMLElement`, synchronous function returning one, or `null` | `null` | Use an explicit viewport instead of the content element's parent. Experimental. |
 | `horizontal` | `boolean` | `false` | Scroll and measure along the horizontal axis; the DOM/CSS layout must also be horizontal. |
+| `alignShortContentToEnd` | `boolean` | `false` | Align content shorter than the viewport to the bottom/right. |
 
 `windowViewport` takes precedence over `viewportElement`. A viewport factory is evaluated when the scroller is created; it must return an element synchronously. An invalid result falls back to the parent viewport.
+
+With `alignShortContentToEnd: true`, content shorter than the viewport is aligned to the bottom in vertical mode or to the right in horizontal mode; `false` aligns it to the top or left. For content that fills or exceeds the viewport, scrolling and the initial position selected by `startIndex` are unchanged. The setting neither reverses item order nor automatically keeps the viewport at the end when items are added.
 
 ### Other settings
 
 | Setting | Type | Default | Effect |
 | --- | --- | --- | --- |
-| `inverse` | `boolean` | `false` | Align content shorter than the viewport to the bottom/right without reversing item order. Experimental. |
 | `onBeforeClip` | `(items: IAdapterItem<T>[]) => void` or `null` | `null` | Called synchronously after clipped rows are hidden, before their items leave the buffer. Experimental. |
 
 ## Development settings

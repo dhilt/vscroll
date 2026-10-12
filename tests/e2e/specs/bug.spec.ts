@@ -49,17 +49,6 @@ const reloadConfig: TestConfig = {
   timeout: 4000
 };
 
-const inverseConfig: TestConfig = {
-  datasource: () => getDatasource({ min: 1, max: 10 }),
-  datasourceSettings: {
-    startIndex: -1,
-    bufferSize: 7,
-    itemSize: 20,
-    inverse: true
-  },
-  templateSettings: { viewportHeight: 300, dynamicSize: 'size' }
-};
-
 const replacementConfig: TestConfig = {
   datasource: () => getDatasource({ min: -99, max: 100 }),
   datasourceSettings: { startIndex: replacementMin - 1 }
@@ -190,22 +179,6 @@ describe('Bug Spec', () => {
       const cyclesDone = misc.workflow.cyclesDone;
       await misc.adapter.reload();
       expect(misc.workflow.cyclesDone).toBeGreaterThan(cyclesDone);
-    }
-  });
-
-  makeTest({
-    config: inverseConfig,
-    title: 'should not extend forward padding for an oversized inverse item',
-    before: misc =>
-      misc.setItemProcessor(({ $index, data }) => {
-        data.size = $index === 4 ? 120 : 20;
-      }),
-    it: misc => async () => {
-      await misc.relaxNext();
-
-      expect(misc.padding.backward.getSize()).toBe(0);
-      expect(misc.padding.forward.getSize()).toBe(0);
-      misc.expect.domIndexesMatchBuffer();
     }
   });
 

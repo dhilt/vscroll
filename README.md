@@ -101,10 +101,10 @@ Every `Workflow` requires a datasource object to supply items on request and, op
   | [`bufferSize`](docs/configuration.md#settings) | `5` | Minimum fetch batch target, not a limit on buffered items. |
   | [`itemSize`](docs/configuration.md#size-estimates-and-layout) | `NaN` | Initial item-size estimate in pixels; measured automatically when omitted. |
   | [`sizeStrategy`](docs/configuration.md#size-estimates-and-layout) | `'average'` | Estimate unknown item sizes using `'average'`, `'frequent'` or `'constant'`. |
-  | [`viewportElement`](docs/configuration.md#viewport-and-horizontal-scrolling) | `null` | Custom viewport element or element factory; defaults to the content element's parent. Experimental. |
-  | [`windowViewport`](docs/configuration.md#viewport-and-horizontal-scrolling) | `false` | Use the browser window as the viewport. |
-  | [`horizontal`](docs/configuration.md#viewport-and-horizontal-scrolling) | `false` | Scroll horizontally instead of vertically. |
-  | [`inverse`](docs/configuration.md#other-settings) | `false` | Align short content to the bottom or right without reversing item order. Experimental. |
+  | [`viewportElement`](docs/configuration.md#viewport-scrolling-axis-and-alignment) | `null` | Custom viewport element or element factory; defaults to the content element's parent. Experimental. |
+  | [`windowViewport`](docs/configuration.md#viewport-scrolling-axis-and-alignment) | `false` | Use the browser window as the viewport. |
+  | [`horizontal`](docs/configuration.md#viewport-scrolling-axis-and-alignment) | `false` | Scroll horizontally instead of vertically. |
+  | [`alignShortContentToEnd`](docs/configuration.md#viewport-scrolling-axis-and-alignment) | `false` | Align short content to the bottom or right without reversing item order. |
   | [`infinite`](docs/configuration.md#settings) | `false` | Keep loaded items instead of clipping them automatically. |
   | [`onBeforeClip`](docs/configuration.md#settings) | `null` | Receive clipped items just before they leave the buffer. Experimental. |
 

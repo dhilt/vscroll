@@ -56,13 +56,13 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
     const scrollSize = bwdSize + bufferSize + fwdSize;
     const viewportSizeDiff = viewport.getSize() - scrollSize;
     if (viewportSizeDiff > 0) {
-      if (settings.inverse) {
+      if (settings.alignShortContentToEnd) {
         bwdSize += viewportSizeDiff;
       } else {
         fwdSize += viewportSizeDiff;
       }
       scroller.logger.log(() =>
-        settings.inverse
+        settings.alignShortContentToEnd
           ? 'backward'
           : 'forward' + ` padding will be increased by ${viewportSizeDiff} to fill the viewport`
       );

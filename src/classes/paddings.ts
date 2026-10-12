@@ -52,22 +52,12 @@ export class Paddings {
   reset(viewportSize: number, startIndex: number, offset: number): void {
     const positive = this.getPositiveSize(startIndex, viewportSize, offset);
     const negative = this.getNegativeSize(startIndex);
-    if (this.settings.inverse) {
-      this.forward.reset(negative);
-      this.backward.reset(positive);
-      const diff = viewportSize - this.backward.size - offset;
-      if (diff > 0) {
-        this.backward.size += diff;
-        this.forward.size -= diff;
-      }
-    } else {
-      this.forward.reset(positive);
-      this.backward.reset(negative);
-      const diff = viewportSize - this.forward.size - offset;
-      if (diff > 0) {
-        this.backward.size -= diff;
-        this.forward.size += diff;
-      }
+    this.forward.reset(positive);
+    this.backward.reset(negative);
+    const diff = viewportSize - this.forward.size - offset;
+    if (diff > 0) {
+      this.backward.size -= diff;
+      this.forward.size += diff;
     }
   }
 

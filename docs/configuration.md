@@ -67,8 +67,10 @@ The viewport is the scrollable area whose position and size the scroller tracks;
 
 | Setting | Type | Default | Effect |
 | --- | --- | --- | --- |
-| `alignShortContentToEnd` | `boolean` | `false` | Align content shorter than the viewport to the bottom/right without reversing item order. Experimental. |
+| `alignShortContentToEnd` | `boolean` | `false` | Align content shorter than the viewport to the bottom/right. Experimental. |
 | `onBeforeClip` | `(items: IAdapterItem<T>[]) => void` or `null` | `null` | Called synchronously after clipped rows are hidden, before their items leave the buffer. Experimental. |
+
+With `alignShortContentToEnd: true`, content shorter than the viewport is aligned to the bottom in vertical mode or to the right in horizontal mode; `false` aligns it to the top or left. For content that fills or exceeds the viewport, scrolling and the initial position selected by `startIndex` are unchanged. The setting neither reverses item order nor automatically keeps the viewport at the end when items are added.
 
 ## Development settings
 

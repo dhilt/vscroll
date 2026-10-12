@@ -101,17 +101,64 @@ const registerShortContent = (config: TestConfig): void =>
       expectShortContent(misc);
 
       const source = misc.source<MutableDatasource>();
-      const items = makeItems(4, 9);
-      source.insert(items, 3, false);
-      await misc.adapter.append({ items, eof: true });
+      const fillItems = makeItems(4, 3);
+      source.insert(fillItems, 3, false);
+      await misc.adapter.append({ items: fillItems, eof: true });
+
+      misc.expect.bufferRange([1, 6]);
+      misc.expect.viewportFilled();
+      misc.expect.noForwardGap();
+      expect(misc.padding.backward.getSize()).toBe(0);
+      expect(misc.getScrollableSize()).toBe(misc.getViewportSize());
+
+      const overflowItems = makeItems(7, 6);
+      source.insert(overflowItems, 6, false);
+      await misc.adapter.append({ items: overflowItems, eof: true });
 
       expect(misc.padding.backward.getSize()).toBe(0);
+      expect(misc.getScrollableSize()).toBeGreaterThan(misc.getViewportSize());
       misc.expect.startVisible(1);
       misc.expect.viewportFilled();
 
-      const indexes = items.map(({ id }) => id);
+      const indexes = [...fillItems, ...overflowItems].map(({ id }) => id);
       source.remove(indexes);
       await misc.adapter.remove({ indexes });
+      expectShortContent(misc);
+
+      source.remove([1, 2, 3]);
+      await misc.adapter.remove({ indexes: [1, 2, 3] });
+      expect(misc.adapter.itemsCount).toBe(0);
+      expect(misc.getElements()).toEqual([]);
+      expect(misc.getScrollableSize()).toBe(misc.getViewportSize());
+      expect(misc.getScrollPosition()).toBe(0);
+      misc.expect.domMatchesBuffer();
+    }
+  });
+
+const resizeRows = (misc: Misc, sizes: number[]): void =>
+  misc.getElements().forEach((element, index) => {
+    element.style[misc.horizontal ? 'width' : 'height'] = `${sizes[index]}px`;
+  });
+
+const registerSizeChanges = (config: TestConfig): void =>
+  makeTest({
+    config,
+    title: 'should readjust short content after row sizes change',
+    it: misc => async () => {
+      misc.trackVisibleItems();
+      await misc.relaxNext();
+      expectShortContent(misc);
+
+      resizeRows(misc, [40, 80, 60]);
+      await misc.adapter.check();
+      expect(misc.padding.backward.getSize()).toBe(0);
+      expect(misc.getScrollableSize()).toBeGreaterThan(misc.getViewportSize());
+      misc.expect.bufferRange([1, 3]);
+      misc.expect.startVisible(1);
+      misc.expect.viewportFilled();
+
+      resizeRows(misc, [10, 30, 20]);
+      await misc.adapter.check();
       expectShortContent(misc);
     }
   });
@@ -137,6 +184,9 @@ describe('Short Content Alignment Spec', () => {
     ));
 
   describe('Short content', () => shortConfigs.forEach(registerShortContent));
+
+  describe('Changed row sizes', () =>
+    shortConfigs.forEach(registerSizeChanges));
 
   makeTest({
     config: createConfig(

@@ -164,9 +164,11 @@ export class Routines implements IRoutines {
   }
 
   getOffset(): number {
-    const get = (element: HTMLElement) =>
-      (this.settings.horizontal ? element.offsetLeft : element.offsetTop) || 0;
-    return get(this.element) - (!this.settings.window ? get(this.viewport) : 0);
+    return (
+      this.getEdge(this.element, Direction.backward) -
+      this.getViewportEdge(Direction.backward) +
+      this.getScrollPosition()
+    );
   }
 
   scrollTo(element: HTMLElement, argument?: boolean | ScrollIntoViewOptions): void {

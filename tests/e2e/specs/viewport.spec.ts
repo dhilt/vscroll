@@ -2,6 +2,7 @@ import {
   getDatasource,
   makeTest,
   Misc,
+  MutableDatasource,
   TestConfig
 } from '../scaffolding';
 
@@ -56,6 +57,80 @@ const testWindowViewport =
     expect(misc.adapter.firstVisible.$index).toEqual(index);
   };
 
+const offsetConfigs: TestConfig[] = [false, true].map(horizontal => ({
+  datasource: () => new MutableDatasource(1, 100),
+  datasourceSettings: {
+    startIndex: 1,
+    minIndex: 1,
+    maxIndex: 100,
+    itemSize: 20,
+    horizontal
+  },
+  templateSettings: {
+    viewportHeight: 120,
+    viewportWidth: 120,
+    itemHeight: 20,
+    itemWidth: 20,
+    horizontal
+  }
+}));
+
+const externalOffsetConfigs: TestConfig[] = offsetConfigs.map(config => ({
+  ...config,
+  datasourceSettings: {
+    ...config.datasourceSettings,
+    viewportElement: () =>
+      document.querySelector<HTMLElement>('[data-test-viewport]')
+  }
+}));
+
+const prepareOffsetLayout = (misc: Misc, external: boolean): void => {
+  const { root, viewportElement, contentElement, horizontal } = misc;
+  root.style[horizontal ? 'paddingLeft' : 'paddingTop'] = '100px';
+  const header = document.createElement('div');
+  header.style[horizontal ? 'width' : 'height'] = '40px';
+  if (horizontal) {
+    header.style.display = 'inline-block';
+  }
+  viewportElement.prepend(header);
+
+  if (external) {
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'relative';
+    if (horizontal) {
+      wrapper.style.display = 'inline-block';
+    }
+    viewportElement.append(wrapper);
+    wrapper.append(contentElement);
+  } else {
+    viewportElement.style.position = 'relative';
+    viewportElement.style.border = '3px solid transparent';
+  }
+};
+
+const testOffset = (external: boolean) => (misc: Misc) => async () => {
+  misc.trackVisibleItems();
+  await misc.relaxNext();
+
+  const offset = external ? 40 : 43;
+  misc.expect.startVisible(1);
+  expect(misc.getScrollPosition()).toBe(0);
+  expect(misc.scroller.viewport.offset).toBe(offset);
+  expect(misc.adapter.itemsCount).toBeLessThan(100);
+  expect(misc.source<MutableDatasource>().requests).toHaveLength(1);
+
+  await misc.scrollToRelax(offset + 200);
+  misc.expect.startVisible(11);
+  expect(misc.scroller.routines.getOffset()).toBe(offset);
+
+  await misc.adapter.reload(51);
+  misc.expect.startVisible(51);
+  expect(misc.scroller.viewport.offset).toBe(offset);
+
+  await misc.scrollMinRelax();
+  misc.expect.startVisible(1);
+};
+
 describe('Viewport Spec', () => {
   describe('Entire Window with Header', () => {
     configs.forEach(config =>
@@ -69,5 +144,47 @@ describe('Viewport Spec', () => {
         it: testWindowViewport(config)
       })
     );
+  });
+
+  describe('Positioned layouts', () => {
+    [false, true].forEach(external =>
+      (external ? externalOffsetConfigs : offsetConfigs).forEach(config =>
+        makeTest({
+          config,
+          meta: external ? 'external viewport' : 'parent viewport',
+          title:
+            'should preserve the starting index across scrolling and reload',
+          before: misc => prepareOffsetLayout(misc, external),
+          it: testOffset(external)
+        })
+      )
+    );
+  });
+
+  makeTest({
+    config: {
+      ...offsetConfigs[0],
+      datasourceSettings: {
+        ...offsetConfigs[0].datasourceSettings,
+        windowViewport: true,
+        startIndex: 21
+      }
+    },
+    title: 'should preserve the starting index in a positioned window wrapper',
+    before: misc => prepareOffsetLayout(misc, true),
+    it: misc => async () => {
+      misc.trackVisibleItems();
+      await misc.relaxNext();
+
+      misc.expect.startVisible(21);
+      expect(misc.scroller.viewport.offset).toBe(140);
+
+      await misc.scrollToRelax(600);
+      expect(misc.scroller.routines.getOffset()).toBe(140);
+
+      await misc.adapter.reload(21);
+      expect(misc.scroller.viewport.offset).toBe(140);
+      misc.expect.startVisible(21);
+    }
   });
 });

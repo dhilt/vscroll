@@ -16,19 +16,35 @@ The exported `IRoutines` interface describes the class contract. The following i
 | `viewport` | `HTMLElement` | Viewport element determined by `getViewportElement()`. |
 | `settings` | `IRoutines['settings']` | Reduced settings: `viewport` is the explicitly configured viewport or `null`; `horizontal` selects horizontal mode; `window` holds the value of `windowViewport`. |
 
-For example, the [table demo](../demo/table-demo.html) uses `tbody` as the content element and explicitly selects an outer scrollable container through `settings.viewportElement`. The `getOffset()` method determines the list's offset relative to the viewport. For this layout, the override sets it to the height of the preceding table header:
+For example, a sticky toolbar can cover the top of a vertical element viewport. Default Routines measure the full viewport, so rows behind the toolbar can still be reported as visible. `scroll-padding-top` accounts for a 40px toolbar when the browser scrolls to an item:
+
+```css
+#viewport { scroll-padding-top: 40px; }
+```
+
+`ToolbarRoutines` applies the same inset to the viewport's measured rectangle:
 
 ```js
 import { Routines, Workflow } from 'vscroll';
 
-class TableRoutines extends Routines {
-  getOffset() {
-    return this.viewport.querySelector('thead')?.offsetHeight || 0;
+class ToolbarRoutines extends Routines {
+  getElementParams(element) {
+    const rect = super.getElementParams(element);
+    // Crop only the viewport; row and content measurements stay unchanged.
+    if (element === this.viewport) {
+      // The CSS inset matches the toolbar's height in pixels.
+      const inset = parseFloat(getComputedStyle(element).scrollPaddingTop) || 0;
+      rect.y += inset; // Move the top edge below the toolbar.
+      rect.height -= inset; // Keep the bottom edge unchanged.
+    }
+    return rect;
   }
 }
 
-new Workflow({ Routines: TableRoutines, ... });
+new Workflow({ Routines: ToolbarRoutines, ... });
 ```
+
+The adjusted top edge and height describe the uncovered area; row and content measurements remain unchanged. See the [working demo](https://dhilt.github.io/vscroll/toolbar-demo.html).
 
 The inherited constructor initializes `element` and reduced `settings`, assigns `viewport` from `getViewportElement()`, then calls `onInit(settings)`. Both hooks run before subclass fields are initialized; `this.viewport` is not yet available inside `getViewportElement()`. A custom constructor must forward its arguments to `super`; overriding it is usually unnecessary.
 
@@ -127,7 +143,7 @@ Sizes and coordinates are expressed in CSS pixels. The active dimension is heigh
 | `setSizeStyle(element: HTMLElement, value: number): void` | Rounds the size, clamps it to zero or greater, and writes inline `height` or `width` in pixels. Used for padding elements. |
 | `getEdge(element: HTMLElement, direction: Direction): number` | Returns the corresponding edge from `getElementParams(element)`. |
 | `getViewportEdge(direction: Direction): number` | Returns the corresponding edge of the window rectangle in window mode; otherwise, `getEdge(viewport, direction)`. |
-| `getOffset(): number` | Returns the content element's `offsetTop` or `offsetLeft`, minus the viewport's corresponding offset. No subtraction is performed in window mode. |
+| `getOffset(): number` | Returns the content element's top/left offset from the viewport at scroll position zero, using measured edges and current scroll position. In window mode, returns its document-relative position. |
 
 ### Visibility and scrolling
 

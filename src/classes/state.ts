@@ -82,6 +82,7 @@ export class State implements IState {
   }
 
   dispose(): void {
+    this.clip.dispose();
     this.scroll.stop();
     this.cycle.dispose();
     this.paused.dispose();

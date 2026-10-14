@@ -25,6 +25,7 @@ let instanceCount = 0;
 export class Scroller<Data = unknown> {
   public datasource: IDatasourceConstructed<Data>;
   public workflow: ScrollerWorkflow<Data>;
+  public disposed = false;
 
   public settings: Settings<Data>;
   public logger: Logger;
@@ -63,8 +64,8 @@ export class Scroller<Data = unknown> {
         .filter(method => method !== 'constructor')
         .forEach(
           method =>
-            ((__Routines.prototype as unknown as Record<string, unknown>)[method] =
-              CustomRoutines?.prototype[method])
+          ((__Routines.prototype as unknown as Record<string, unknown>)[method] =
+            CustomRoutines?.prototype[method])
         );
       CustomRoutines = __Routines;
     }
@@ -125,13 +126,14 @@ export class Scroller<Data = unknown> {
   }
 
   dispose(forever?: boolean): void {
+    this.disposed = true;
     this.logger.log(() => 'disposing scroller' + (forever ? ' (forever)' : ''));
+    this.state.dispose();
     if (forever) {
       // Adapter is not re-instantiated on reset
       this.adapter.dispose();
     }
     this.buffer.dispose();
-    this.state.dispose();
   }
 
   finalize(): void {}

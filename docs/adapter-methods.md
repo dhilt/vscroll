@@ -34,6 +34,8 @@ Adapter methods can trigger several internal scroller processes, including data 
 
 Reported errors during data fetching or rendering are recorded in `workflow.errors`, but the Adapter call may still return `success: true` and `details: null`.
 
+Exceptions from [`onBeforeClip`](configuration.md#other-settings) reject the Adapter Promise with the original thrown value only if rethrown before the call returns. If rethrown during asynchronous rendering or scroll adjustment, they reach the browser's normal error handling instead; the Promise may still return `success: true`.
+
 Adapter methods are available as `datasource.adapter` immediately after datasource instantiation from the class returned by `makeDatasource()`. Before `Workflow` initializes the Adapter, calls complete without performing an operation and return `success: true`, `immediate: true`, and `details: 'Adapter is not initialized'`.
 
 ```js

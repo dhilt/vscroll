@@ -339,6 +339,41 @@ describe('Adapter Reload Spec', () => {
   });
 
   describe('Interruption', () => {
+    makeTest({
+      config: {
+        datasource: () => getDatasource({ min: 1, max: 100 }),
+        datasourceSettings: { minIndex: 1, maxIndex: 100, itemSize: 20 },
+        datasourceDevSettings: { throttle: 0 }
+      },
+      title: 'should complete reload triggered by firstVisible after scrolling',
+      it: misc => async () => {
+        misc.trackVisibleItems();
+        await misc.relaxNext();
+        let reloadPromise: ReturnType<typeof misc.adapter.reload> | undefined;
+        let off = () => {};
+        off = misc.adapter.firstVisible$.on(({ $index }) => {
+          if ($index === 21) {
+            off();
+            // Reload while End updates visible items, before the old loop is finalized.
+            reloadPromise = misc.adapter.reload(60);
+          }
+        });
+
+        const finished = misc.waitForCycles(misc.workflow.cyclesDone + 2);
+        misc.scrollTo(400);
+        await finished;
+        await reloadPromise;
+        await misc.adapter.relax();
+
+        expect(reloadPromise).toBeDefined();
+        expect(misc.adapter.isLoading).toBe(false);
+        expect(misc.adapter.loopPending).toBe(false);
+        expect(misc.scroller.adapter.reloadCount).toBe(1);
+        expect(misc.workflow.interruptionCount).toBe(1);
+        misc.expect.startVisible(60);
+      }
+    });
+
     baseConfigs.forEach((config, index) =>
       registerBeforeLoad(config, beforeLoadReloads[index])
     );

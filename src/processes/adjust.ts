@@ -121,7 +121,7 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
 
   static setAdditionalForwardPadding(scroller: Scroller, position: number): void {
     const { viewport, buffer, state } = scroller;
-    if (!state.cycle.isInitial || !End.shouldContinueRun(scroller, null)) {
+    if (!state.cycle.isInitial || !End.shouldContinueRun(scroller)) {
       return;
     }
     const diff = position - viewport.getMaxScrollPosition();

@@ -15,7 +15,7 @@ export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
   }
 
   static doClip(scroller: Scroller): void {
-    const { buffer, viewport, state, logger } = scroller;
+    const { buffer, viewport, state, logger, workflow } = scroller;
     const size = { [Direction.backward]: 0, [Direction.forward]: 0 };
 
     logger.stat(`before clip (${++state.clip.callCount})`);
@@ -37,7 +37,15 @@ export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
         viewport.paddings.byDirection(Direction.forward).size += size[Direction.forward];
       }
       if (scroller.settings.onBeforeClip) {
-        scroller.settings.onBeforeClip(itemsToRemove.map(item => item.get()));
+        try {
+          scroller.settings.onBeforeClip(itemsToRemove.map(item => item.get()));
+        } catch (error) {
+          if (workflow.call.interrupted || scroller.disposed) {
+            // The original workflow can no longer reach End to rethrow this exception.
+            throw error;
+          }
+          state.clip.exception = error;
+        }
       }
     }
 

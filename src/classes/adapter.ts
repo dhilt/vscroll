@@ -132,12 +132,18 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   private relaxRun: Promise<AdapterMethodResult> | null;
 
   private getPromisifiedMethod(method: MethodResolver, args: unknown[]) {
-    return new Promise<AdapterMethodResult>(resolve => {
-      if (this.relax$) {
-        this.relax$.once(value => resolve(value));
-      }
-      method.apply(this, args);
+    let off: (() => void) | undefined;
+    const result = new Promise<AdapterMethodResult>(resolve => {
+      off = this.relax$?.once(resolve);
     });
+    try {
+      method.apply(this, args);
+    } catch (error) {
+      // Cycle completion may already have resolved result; preserve the synchronous exception.
+      off?.();
+      return Promise.reject(error);
+    }
+    return result;
   }
 
   private getWorkflowRunnerMethod(method: MethodResolver, name: AdapterPropName) {

@@ -7,27 +7,34 @@ const isInterrupted = ({ call }: ScrollerWorkflow): boolean => !!call.interrupte
 export default class End extends BaseProcessFactory(CommonProcess.end) {
   static run(scroller: Scroller, { error }: { error?: unknown } = {}): void {
     const { workflow, state } = scroller;
-    const { interrupter } = state.cycle;
+    const { cycle: { interrupter }, clip } = state;
+    // Move the exception out of state so nested End calls cannot throw it again.
+    const { hasException, exception } = clip;
+    delete clip.exception;
+    let next = false;
 
     if (!error && !interrupter) {
-      // set out params accessible via Adapter
+      // Refresh Adapter.firstVisible and Adapter.lastVisible for the current viewport.
       End.calculateParams(scroller);
     }
 
-    // explicit interruption for we don't want to go through the inner loop finalizing
-    if (isInterrupted(workflow)) {
-      workflow.call({ process: End.process, status: ProcessStatus.done });
-      return;
+    // Finalize the inner loop unless the workflow was explicitly interrupted.
+    const interrupted = isInterrupted(workflow);
+    if (!interrupted) {
+      next = End.shouldContinueRun(scroller, !!(hasException || error));
+      scroller.state.endInnerLoop();
     }
-
-    const next = End.shouldContinueRun(scroller, error);
-    scroller.state.endInnerLoop();
 
     workflow.call({
       process: End.process,
       status: next ? ProcessStatus.next : ProcessStatus.done,
-      payload: { ...(interrupter ? { process: interrupter } : {}) }
+      payload: !interrupted && interrupter ? { process: interrupter } : {}
     });
+
+    // Rethrow the original exception only after cycle finalization.
+    if (hasException) {
+      throw exception;
+    }
   }
 
   static calculateParams(scroller: Scroller): void {
@@ -37,14 +44,14 @@ export default class End extends BaseProcessFactory(CommonProcess.end) {
     adapter.setFirstOrLastVisible({ last: true, workflow });
   }
 
-  static shouldContinueRun(scroller: Scroller, error: unknown): boolean {
+  static shouldContinueRun(scroller: Scroller, hasError: boolean = false): boolean {
     const { cycle, fetch, render } = scroller.state;
     // Adapter.reload or Adapter.reset
     if (cycle.interrupter) {
       return true;
     }
     // critical error
-    if (error) {
+    if (hasError) {
       return false;
     }
     // Adapter.check

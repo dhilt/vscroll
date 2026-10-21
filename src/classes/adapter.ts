@@ -442,7 +442,7 @@ export class Adapter<Item = unknown> implements IAdapter<Item> {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  reset(options?: IDatasourceOptional): any {
+  reset(options?: IDatasourceOptional<Item>): any {
     this.reloadCounter++;
     this.logger.logAdapterMethod('reset', options, ` of ${this.reloadId}`);
     this.workflow.call({

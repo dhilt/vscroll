@@ -6,7 +6,8 @@ import {
   Routines,
   starGet,
   IDatasourceOptional,
-  TestConfig
+  TestConfig,
+  TestItem
 } from '../scaffolding';
 
 interface ResetSnapshot {
@@ -20,7 +21,7 @@ interface ResetSnapshot {
 
 interface ResetScenario {
   config: TestConfig;
-  options?: IDatasourceOptional;
+  options?: IDatasourceOptional<TestItem>;
   scrolls?: number;
   direction?: Direction;
   interruption?: boolean;
@@ -62,7 +63,7 @@ const settingsScenarios: ResetScenario[] = [baseConfigs[0], baseConfigs[2]].map(
       settings: {
         ...config.datasourceSettings,
         startIndex: 999
-      } as IDatasourceOptional['settings']
+      } as IDatasourceOptional<TestItem>['settings']
     }
   })
 );
@@ -172,7 +173,7 @@ const expectReset = (
   misc.expect.uniqueItems();
 };
 
-const reset = (misc: Misc, options?: IDatasourceOptional) =>
+const reset = (misc: Misc, options?: IDatasourceOptional<TestItem>) =>
   options ? misc.adapter.reset(options) : misc.adapter.reset();
 
 const expectScrollListeners = (
@@ -358,7 +359,7 @@ describe('Adapter Reset Spec', () => {
           const before = takeSnapshot(misc);
 
           const result = await misc.adapter.reset(
-            options as IDatasourceOptional
+            options as IDatasourceOptional<TestItem>
           );
 
           expect(result.success).toBe(false);

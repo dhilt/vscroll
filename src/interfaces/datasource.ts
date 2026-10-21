@@ -14,7 +14,7 @@ type DSGetCallback<T> = (
   success: SuccessFn<T>,
   fail?: ErrorFn
 ) => void;
-type DSGetObservable<T> = (index: number, count: number) => ObservableLike<T[]>;
+type DSGetObservable<T> = (index: number, count: number) => ObservableLike<T>;
 type DSGetPromise<T> = (index: number, count: number) => PromiseLike<T[]>;
 
 export type DatasourceGet<T> = DSGetCallback<T> | DSGetObservable<T> | DSGetPromise<T>;

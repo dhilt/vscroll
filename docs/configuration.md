@@ -72,6 +72,10 @@ With `alignShortContentToEnd: true`, content shorter than the viewport is aligne
 | --- | --- | --- | --- |
 | `onBeforeClip` | `(items: IAdapterItem<T>[]) => void` or `null` | `null` | Called synchronously after clipped rows are hidden, before their items leave the buffer. Experimental. |
 
+`onBeforeClip` must return normally. The consumer is responsible for catching exceptions inside the callback, including errors from functions it calls. Its error handler must also return normally, without rethrowing.
+
+An exception escaping the callback interrupts clipping and may leave the scroller inconsistent or busy, so `adapter.relax()` may never resolve. Catching the exception outside the callback does not resume clipping. This applies to both automatic clipping and explicit [Adapter `clip()`](adapter-methods.md#clip).
+
 ## Development settings
 
 `devSettings` exposes diagnostic logging as well as timing, cache, and browser-behavior controls. The [development log](https://github.com/dhilt/vscroll/wiki/Dev-Log) explains how a trace reveals workflow cycles, data fetches, rendering, clipping, and scroll adjustments. For a focused trace, set `devSettings: { debug: true, immediateLog: false }` and call `datasource.adapter.showLog()` after the activity of interest; this requires an [Adapter-enabled datasource](datasource.md#creating-a-datasource-with-an-adapter).

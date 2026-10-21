@@ -5,6 +5,10 @@ import { Item } from '../../classes/item';
 import { Direction } from '../../inputs/index';
 import { AdapterInsertOptions, AdapterUpdateOptions } from '../../interfaces/index';
 
+interface InsertParams extends AdapterInsertOptions {
+  virtualize?: boolean;
+}
+
 export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.insert) {
   static run(scroller: Scroller, options: AdapterInsertOptions): void {
     const { params } = Insert.parseInput(scroller, options);
@@ -19,7 +23,7 @@ export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.ins
     });
   }
 
-  static doInsert(scroller: Scroller, params: AdapterInsertOptions): boolean {
+  static doInsert(scroller: Scroller, params: InsertParams): boolean {
     if (!Insert.insertEmpty(scroller, params)) {
       if (!Insert.insertInBuffer(scroller, params)) {
         if (!Insert.insertVirtually(scroller, params)) {
@@ -52,7 +56,7 @@ export default class Insert extends BaseAdapterProcessFactory(AdapterProcess.ins
     return true;
   }
 
-  static insertInBuffer(scroller: Scroller, params: AdapterInsertOptions): boolean {
+  static insertInBuffer(scroller: Scroller, params: InsertParams): boolean {
     const { before, after, beforeIndex, afterIndex, items, decrease } = params;
     const indexToInsert = scroller.buffer.getIndexToInsert(
       before || after,

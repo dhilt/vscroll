@@ -96,7 +96,7 @@ export class Viewport {
       bwd ? i <= items.length - 1 : i >= 0;
       i += bwd ? 1 : -1
     ) {
-      const itemEdge = this.routines.getEdge(items[i].element, opposite);
+      const itemEdge = this.routines.getEdge(items[i].element as HTMLElement, opposite);
       diff = itemEdge - viewportEdge;
       if ((bwd && diff > 0) || (!bwd && diff < 0)) {
         item = items[i];

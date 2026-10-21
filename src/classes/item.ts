@@ -36,8 +36,8 @@ export class Item<Data = unknown> implements _Item<Data> {
     this.container.data = value;
   }
 
-  get element(): HTMLElement {
-    return this.container.element as HTMLElement;
+  get element(): HTMLElement | undefined {
+    return this.container.element;
   }
   set element(value: HTMLElement) {
     this.container.element = value;
@@ -68,7 +68,7 @@ export class Item<Data = unknown> implements _Item<Data> {
   }
 
   makeVisible(): void {
-    this.routines.makeElementVisible(this.element);
+    this.routines.makeElementVisible(this.element as HTMLElement);
     this.invisible = false;
   }
 

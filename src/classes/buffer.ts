@@ -218,10 +218,11 @@ export class Buffer<Data> {
     if (!this.checkCall.insertVirtual(items, index, direction)) {
       return false;
     }
+    const indexToInsert = index + (direction === Direction.forward ? 1 : 0);
     let shift = 0;
-    if (index <= this.firstIndex && !fixRight) {
+    if (indexToInsert <= this.firstIndex && !fixRight) {
       shift = items.length;
-    } else if (index >= this.lastIndex && fixRight) {
+    } else if (indexToInsert > this.lastIndex && fixRight) {
       shift = -items.length;
     }
     if (shift) {

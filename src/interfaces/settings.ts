@@ -65,11 +65,11 @@ export interface Settings<T = unknown> {
   windowViewport?: boolean;
 
   /**
-   * Explicit viewport element, or a synchronous factory returning one; windowViewport takes precedence.
-   * An invalid factory result falls back to the content element's parent.
+   * Explicit viewport element, or a synchronous factory returning an element or null; windowViewport takes precedence.
+   * A null or invalid factory result falls back to the content element's parent.
    * Experimental. Default: null (the content element's parent).
    */
-  viewportElement?: HTMLElement | (() => void) | null;
+  viewportElement?: HTMLElement | (() => HTMLElement | null) | null;
 
   /**
    * Aligns content shorter than the viewport to the bottom vertically or to the right horizontally.

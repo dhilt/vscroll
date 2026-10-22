@@ -11,10 +11,10 @@ export const makeItems = (firstId: number, count: number): TestItem[] =>
 export const starGet = ((
   index: number,
   count: number,
-  success: (items: unknown[]) => void
+  success: (items: TestItem[]) => void
 ): void => {
   success(makeItems(index, count).map(item => ({ ...item, text: `${item.text} *` })));
-}) as DatasourceGet<unknown>;
+}) as DatasourceGet<TestItem>;
 
 const minSize = 1;
 const maxSize = 100;

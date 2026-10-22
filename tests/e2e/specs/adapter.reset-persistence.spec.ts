@@ -6,14 +6,14 @@ import {
   makeTest,
   Misc,
   starGet,
-  DatasourceGet,
   IDatasourceOptional,
-  TestConfig
+  TestConfig,
+  TestItem
 } from '../scaffolding';
 
 interface ResetVariant {
   isNew: boolean;
-  options: IDatasourceOptional;
+  options: IDatasourceOptional<TestItem>;
 }
 
 type PermanentProp = Adapter.id | Adapter.version;
@@ -63,10 +63,8 @@ const reset = (misc: Misc, variant: ResetVariant) => {
     return misc.adapter.reset(variant.options);
   }
 
-  const datasource = new Datasource<unknown>({
-    get:
-      variant.options.get ??
-      (misc.datasource.get as unknown as DatasourceGet<unknown>),
+  const datasource = new Datasource<TestItem>({
+    get: variant.options.get ?? misc.datasource.get,
     settings: variant.options.settings,
     devSettings: variant.options.devSettings
   });

@@ -26,7 +26,7 @@ export class Settings<Data = unknown> implements ISettings, IDevSettings {
   infinite: boolean;
   horizontal: boolean;
   windowViewport: boolean;
-  viewportElement: HTMLElement | (() => void) | null;
+  viewportElement: HTMLElement | (() => HTMLElement | null) | null;
   alignShortContentToEnd: boolean; // align content shorter than the viewport to the bottom/right
   onBeforeClip: ItemsProcessor | null; // if set, it will be run before clipping items from Buffer after they are hidden
   sizeStrategy: SizeStrategy; // "average" | "frequent", determines behavior of unknown items

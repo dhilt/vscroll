@@ -210,7 +210,7 @@ describe('Settings', () => {
       expect(calls).toBe(1);
     });
 
-    it('falls back to null for invalid or asynchronous factory results', () => {
+    it('falls back to null when a factory does not return an element', () => {
       [
         undefined,
         null,

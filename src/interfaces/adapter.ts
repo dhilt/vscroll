@@ -110,7 +110,6 @@ export interface AdapterInsertOptions<Data = unknown> {
   beforeIndex?: number;
   afterIndex?: number;
   decrease?: boolean;
-  virtualize?: boolean;
 }
 
 export interface AdapterReplaceOptions<Data = unknown> {
@@ -164,7 +163,7 @@ export interface IAdapter<Data = unknown> {
   readonly eof$: Reactive<boolean>;
   readonly paused: boolean;
   readonly paused$: Reactive<boolean>;
-  reset(datasource?: IDatasourceOptional): MethodResult;
+  reset(datasource?: IDatasourceOptional<Data>): MethodResult;
   reload(reloadIndex?: number | string): MethodResult;
   append(options: AdapterAppendOptions<Data>): MethodResult;
   append(items: Data | Data[], eof?: boolean): MethodResult; // old signature

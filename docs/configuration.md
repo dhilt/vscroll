@@ -58,11 +58,11 @@ The viewport is the scrollable area whose position and size the scroller tracks;
 | Setting | Type | Default | Effect |
 | --- | --- | --- | --- |
 | `windowViewport` | `boolean` | `false` | Use the browser window for scrolling and viewport dimensions. |
-| `viewportElement` | `HTMLElement`, synchronous function returning one, or `null` | `null` | Use an explicit viewport instead of the content element's parent. Experimental. |
+| `viewportElement` | `HTMLElement`, `null`, or a synchronous function returning either | `null` | Use an explicit viewport instead of the content element's parent. Experimental. |
 | `horizontal` | `boolean` | `false` | Scroll and measure along the horizontal axis; the DOM/CSS layout must also be horizontal. |
 | `alignShortContentToEnd` | `boolean` | `false` | Align content shorter than the viewport to the bottom/right. |
 
-`windowViewport` takes precedence over `viewportElement`. A viewport factory is evaluated when the scroller is created; it must return an element synchronously. An invalid result falls back to the parent viewport.
+`windowViewport` takes precedence over `viewportElement`. A viewport factory is evaluated when the scroller is created; it must return an element or `null` synchronously. A `null` or invalid result falls back to the parent viewport.
 
 With `alignShortContentToEnd: true`, content shorter than the viewport is aligned to the bottom in vertical mode or to the right in horizontal mode; `false` aligns it to the top or left. For content that fills or exceeds the viewport, scrolling and the initial position selected by `startIndex` are unchanged. The setting neither reverses item order nor automatically keeps the viewport at the end when items are added.
 

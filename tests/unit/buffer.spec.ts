@@ -43,29 +43,29 @@ const makeBuffer = (params: BufferParams): Buffer<Data> => {
 
 const checkUpdate =
   ({ min, max, predicate, fixRight, list }: BufferUpdateConfig) =>
-  () => {
-    const buffer = makeBuffer({ min, max });
-    buffer.updateItems(predicate, cb, NaN, fixRight);
-    // console.log(buffer.items.map(i => i.get()));
-    expect(buffer.size).toEqual(list.length);
-    list.forEach((current, index) => {
-      const $index = Number(Object.keys(current)[0]);
-      if (index === 0) {
-        expect(buffer.firstIndex).toEqual($index);
-        expect(buffer.minIndex).toEqual($index);
-        expect(buffer.absMinIndex).toEqual($index);
-      }
-      if (index === list.length - 1) {
-        expect(buffer.lastIndex).toEqual($index);
-        expect(buffer.maxIndex).toEqual($index);
-        expect(buffer.absMaxIndex).toEqual($index);
-      }
-      const id = current[$index];
-      const item = buffer.items[index];
-      expect(item.$index).toEqual($index);
-      expect(item.data.id).toEqual(id);
-    });
-  };
+    () => {
+      const buffer = makeBuffer({ min, max });
+      buffer.updateItems(predicate, cb, NaN, fixRight);
+      // console.log(buffer.items.map(i => i.get()));
+      expect(buffer.size).toEqual(list.length);
+      list.forEach((current, index) => {
+        const $index = Number(Object.keys(current)[0]);
+        if (index === 0) {
+          expect(buffer.firstIndex).toEqual($index);
+          expect(buffer.minIndex).toEqual($index);
+          expect(buffer.absMinIndex).toEqual($index);
+        }
+        if (index === list.length - 1) {
+          expect(buffer.lastIndex).toEqual($index);
+          expect(buffer.maxIndex).toEqual($index);
+          expect(buffer.absMaxIndex).toEqual($index);
+        }
+        const id = current[$index];
+        const item = buffer.items[index];
+        expect(item.$index).toEqual($index);
+        expect(item.data.id).toEqual(id);
+      });
+    };
 
 const checkIndexTrackingOnUpdate = (params: BufferUpdateTrackConfig) => () => {
   const { index, predicate, fixRight, result, debug = false } = params;
@@ -99,22 +99,32 @@ tracked index: ${trackedIndex ? `${trackedIndex}~${trackedItem ? trackedItem.get
 const checkInsert = (params: BufferInsertConfig) => () => {
   const bufferBefore = makeBuffer(params);
   const buffer = makeBuffer(params);
+  const beforeItems = [...buffer.items];
   const { result } = params;
   const items = params.items.map(id => generateItem(id));
-  buffer.insertVirtually(
+  const resultInsert = buffer.insertVirtually(
     items,
     params.index,
     params.direction,
     params.fixRight
   );
+  expect(resultInsert).toBe(!!result);
+  expect(buffer.size).toBe(beforeItems.length);
 
   buffer.items.forEach((item, i) => {
     const $index = result
       ? Number(Object.keys(result.list[i])[0])
       : bufferBefore.items[i].$index;
     const id = result ? result.list[i][$index] : bufferBefore.items[i].data.id;
+    expect(item).toBe(beforeItems[i]);
     expect(item.$index).toBe($index);
     expect(item.data.id).toBe(id);
+    if (i === 0) {
+      expect(buffer.minIndex).toBe($index);
+    }
+    if (i === buffer.size - 1) {
+      expect(buffer.maxIndex).toBe($index);
+    }
   });
 
   expect(buffer.absMinIndex).toEqual(
@@ -152,7 +162,7 @@ describe('Buffer Spec', () => {
             case 4:
               return () => null;
             case 5:
-              return class {};
+              return class { };
             case 6:
               return new Map();
             case 7:
@@ -1160,9 +1170,65 @@ describe('Buffer Spec', () => {
         index: -101,
         direction: Direction.backward,
         fixRight: true
+      },
+      {
+        title: 'before a single buffered item, backward',
+        items: ['A', 'B'],
+        index: 5,
+        direction: Direction.backward,
+        fixRight: false,
+        min: 5,
+        max: 5,
+        result: {
+          list: [{ 7: 5 }],
+          absMin: -100,
+          absMax: 102
+        }
+      },
+      {
+        title: 'before a single buffered item, backward + fixRight',
+        items: ['A', 'B'],
+        index: 5,
+        direction: Direction.backward,
+        fixRight: true,
+        min: 5,
+        max: 5,
+        result: {
+          list: [{ 5: 5 }],
+          absMin: -102,
+          absMax: 100
+        }
+      },
+      {
+        title: 'after a single buffered item, forward',
+        items: ['A', 'B'],
+        index: 5,
+        direction: Direction.forward,
+        fixRight: false,
+        min: 5,
+        max: 5,
+        result: {
+          list: [{ 5: 5 }],
+          absMin: -100,
+          absMax: 102
+        }
+      },
+      {
+        title: 'after a single buffered item, forward + fixRight',
+        items: ['A', 'B'],
+        index: 5,
+        direction: Direction.forward,
+        fixRight: true,
+        min: 5,
+        max: 5,
+        result: {
+          list: [{ 3: 5 }],
+          absMin: -102,
+          absMax: 100
+        }
       }
     ]
-      .map(c => ({ ...c, min: -1, max: 1, absMin: -100, absMax: 100 }))
+      .map(c => ({ min: -1, max: 1, absMin: -100, absMax: 100, ...c }))
       .forEach(config =>
         it(config.title, checkInsert(config as BufferInsertConfig))
       ));

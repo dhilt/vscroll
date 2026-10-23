@@ -111,15 +111,15 @@ const addItems = (
 ) =>
   operation === Adapter.append
     ? misc.adapter.append({
-        items,
-        decrease: opposite,
-        ...(virtualize ? { virtualize: true } : { eof: !!boundary })
-      })
+      items,
+      decrease: opposite,
+      ...(virtualize ? { virtualize: true } : { eof: !!boundary })
+    })
     : misc.adapter.prepend({
-        items,
-        increase: opposite,
-        ...(virtualize ? { virtualize: true } : { bof: !!boundary })
-      });
+      items,
+      increase: opposite,
+      ...(virtualize ? { virtualize: true } : { bof: !!boundary })
+    });
 
 const createBasicConfig = (operation: Operation): TestConfig => ({
   datasource: () => getDatasource({ min, max }),
@@ -155,6 +155,19 @@ const createVirtualConfig = (
   templateSettings: { viewportHeight: 200, itemHeight: itemSize }
 });
 
+const createSingleItemConfig = (): TestConfig => ({
+  datasource: () => new MutableDatasource(min, min),
+  datasourceSettings: {
+    startIndex: min,
+    minIndex: min,
+    maxIndex: min,
+    itemSize,
+    bufferSize: 1,
+    padding
+  },
+  templateSettings: { viewportHeight: itemSize, itemHeight: itemSize }
+});
+
 const createEmptyConfig = (
   operation: Operation,
   indexed: boolean
@@ -162,16 +175,16 @@ const createEmptyConfig = (
   datasource: () => getDatasource({ min: 1, max: 0 }),
   datasourceSettings: indexed
     ? {
-        startIndex:
-          operation === Adapter.append
-            ? max - emptyAmount + 1
-            : min + emptyAmount - 1,
-        ...(operation === Adapter.append
-          ? { maxIndex: max - emptyAmount + 1 }
-          : { minIndex: min + emptyAmount - 1 }),
-        bufferSize: emptyAmount,
-        padding
-      }
+      startIndex:
+        operation === Adapter.append
+          ? max - emptyAmount + 1
+          : min + emptyAmount - 1,
+      ...(operation === Adapter.append
+        ? { maxIndex: max - emptyAmount + 1 }
+        : { minIndex: min + emptyAmount - 1 }),
+      bufferSize: emptyAmount,
+      padding
+    }
     : {},
   templateSettings: { viewportHeight: 200, itemHeight: itemSize }
 });
@@ -300,6 +313,46 @@ const registerVirtual = (
     }
   });
 
+const registerSingleItem = (operation: Operation, opposite: boolean): void =>
+  makeTest({
+    config: createSingleItemConfig(),
+    title:
+      `should ${operation} virtually next to a single buffered item` +
+      (opposite ? ' (opposite)' : ''),
+    it: misc => async () => {
+      await misc.relaxNext();
+      const append = operation === Adapter.append;
+      const fixRight = append ? opposite : !opposite;
+      const shift = opposite ? (append ? -amount : amount) : 0;
+      const { buffer } = misc.scroller;
+      const [item] = buffer.items;
+      const items = makeItems(append ? min + 1 : min - amount, amount);
+
+      expect(buffer.size).toBe(1);
+
+      misc.source<MutableDatasource>().insert(items, min, !append, fixRight);
+      const result = await addItems(misc, operation, items, opposite, false, true);
+      expect(result.success).toBe(true);
+
+      expect(item.$index).toBe(min + shift);
+      expect(buffer.items.find(({ data }) => data.id === min)).toBe(item);
+      expect(buffer.absMinIndex).toBe(min - (fixRight ? amount : 0));
+      expect(buffer.absMaxIndex).toBe(min + (fixRight ? 0 : amount));
+      misc.expect.domIndexesMatchBuffer();
+      expect(misc.checkElementContent(item.$index, min)).toBe(true);
+
+      if (append) {
+        await misc.scrollMaxRelax();
+      } else {
+        await misc.scrollMinRelax();
+      }
+      const edgeIndex = append ? buffer.absMaxIndex : buffer.absMinIndex;
+      const edgeId = append ? min + amount : min - amount;
+      expect(misc.checkElementContent(edgeIndex, edgeId)).toBe(true);
+      misc.expect.domIndexesMatchBuffer();
+    }
+  });
+
 const registerEmpty = (
   operation: Operation,
   opposite: boolean,
@@ -358,6 +411,7 @@ describe('Adapter Append-Prepend Spec', () =>
       [false, true].forEach(boundary =>
         registerEmpty(operation, opposite, true, boundary)
       );
+      registerSingleItem(operation, opposite);
       registerEmpty(operation, opposite, false);
     })
   ));

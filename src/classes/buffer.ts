@@ -411,6 +411,22 @@ export class Buffer<Data> {
     return this.cache.getSizeByIndex(index);
   }
 
+  getRangeSize(first: number, last: number): number {
+    return this.cache.getRangeSize(first, last);
+  }
+
+  getIndexAtOffset(offset: number): { index: number; position: number } {
+    const found = this.cache.getIndexAtOffset(this.startIndex, offset);
+    if (found.index < this.absMinIndex) {
+      found.index = this.absMinIndex;
+      found.position =
+        this.startIndex < found.index
+          ? this.getRangeSize(this.startIndex, found.index - 1)
+          : -this.getRangeSize(found.index, this.startIndex - 1);
+    }
+    return found;
+  }
+
   checkDefaultSize(): boolean {
     return this.cache.recalculateDefaultSize();
   }

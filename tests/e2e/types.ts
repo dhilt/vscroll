@@ -44,3 +44,9 @@ export type DatasourceProcessor<Data = TestItem> = (
   items: IndexedItem<Data>[],
   ...args: unknown[]
 ) => unknown;
+
+declare module 'vitest/browser' {
+  interface BrowserCommands {
+    wheel: (deltaX: number, deltaY: number) => Promise<void>;
+  }
+}

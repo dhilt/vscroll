@@ -61,9 +61,7 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
     if (!buffer.defaultSize) {
       return startDelta;
     }
-    for (let index = buffer.finiteAbsMinIndex; index < buffer.startIndex; index++) {
-      startDelta += buffer.getSizeByIndex(index);
-    }
+    startDelta += buffer.getRangeSize(buffer.finiteAbsMinIndex, buffer.startIndex - 1);
     scroller.logger.log(() => [
       `start delta is ${startDelta}`,
       ...(offset ? [` (+${offset} offset)`] : [])
@@ -82,37 +80,9 @@ export default class PreFetch extends BaseProcessFactory(CommonProcess.preFetch)
     } else if (!buffer.defaultSize) {
       scroller.logger.log('skipping fetch backward direction [no item size]');
     } else {
-      let position = firstIndexPosition;
-      let index = firstIndex;
-      while (true) {
-        if (start >= 0) {
-          const size = buffer.getSizeByIndex(index);
-          const diff = position + size - start;
-          if (diff > 0) {
-            firstIndex = index;
-            firstIndexPosition = position;
-            break;
-          }
-          position += size;
-          index++;
-          if (index < buffer.absMinIndex) {
-            break;
-          }
-        }
-        if (start < 0) {
-          index--;
-          if (index < buffer.absMinIndex) {
-            break;
-          }
-          position -= buffer.getSizeByIndex(index);
-          const diff = position - start;
-          firstIndex = index;
-          firstIndexPosition = position;
-          if (diff <= 0) {
-            break;
-          }
-        }
-      }
+      const found = buffer.getIndexAtOffset(start);
+      firstIndex = found.index;
+      firstIndexPosition = found.position;
     }
     first.index = first.indexBuffer = Math.max(firstIndex, buffer.absMinIndex);
     first.position = firstIndexPosition;

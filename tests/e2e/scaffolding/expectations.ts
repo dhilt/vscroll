@@ -1,3 +1,4 @@
+import { server } from 'vitest/browser';
 import { Direction } from './vscroll';
 import { TestHost } from './TestHost';
 import type { TestItem } from '../types';
@@ -9,7 +10,7 @@ const range = (from: number, to: number): number[] =>
 export class Expectations<Data extends TestItem> {
   constructor(private readonly host: TestHost<Data>) {}
 
-  /** DOM padding elements render exactly the model's padding sizes. */
+  /** DOM padding elements render the model's padding sizes, except the part hidden for huge sizes. */
   paddingsReflectModel(): void {
     const { host } = this;
     const domSize = (direction: Direction): number => {
@@ -19,9 +20,18 @@ export class Expectations<Data extends TestItem> {
       const rect = element?.getBoundingClientRect();
       return rect ? (host.horizontal ? rect.width : rect.height) : NaN;
     };
-    const { paddings } = host.scroller.viewport;
-    expect(domSize(Direction.backward)).toBe(paddings.backward.size);
-    expect(domSize(Direction.forward)).toBe(paddings.forward.size);
+    const { viewport, routines } = host.scroller;
+    const { backward, forward } = viewport.paddings;
+    const shift = viewport.scrollPosition - routines.getScrollPosition();
+    const excess = viewport.getScrollableSize() - routines.getScrollerSize();
+    // Firefox keeps rects in float32 and rounds huge native positions, see Viewport
+    const firefox = server.browser === 'firefox';
+    const expectSize = (actual: number, expected: number) =>
+      expect(Math.abs(actual - expected)).toBeLessThanOrEqual(
+        firefox ? Math.max(excess ? 1 : 0, expected / 2 ** 23) : 0
+      );
+    expectSize(domSize(Direction.backward), backward.size - shift);
+    expectSize(domSize(Direction.forward), forward.size - excess + shift);
   }
 
   /** DOM and Buffer contain the same contiguous indexed items. */

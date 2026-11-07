@@ -1,6 +1,6 @@
 import { Buffer } from '../../src/classes/buffer';
 
-import { Direction } from '../../src/inputs';
+import { Direction, SizeStrategy } from '../../src/inputs';
 import {
   generateItem as makeItem,
   generateBufferItem as cb,
@@ -1232,4 +1232,39 @@ describe('Buffer Spec', () => {
       .forEach(config =>
         it(config.title, checkInsert(config as BufferInsertConfig))
       ));
+
+  describe('Index at offset', () => {
+    const create = (minIndex: number, maxIndex: number, startIndex: number) => {
+      const buffer = new Buffer<Data>(
+        {
+          minIndex,
+          maxIndex,
+          startIndex,
+          itemSize: 1,
+          sizeStrategy: SizeStrategy.Constant
+        } as never,
+        () => null,
+        loggerMock as never
+      );
+      generateBufferItems(minIndex, maxIndex - minIndex + 1).forEach(item =>
+        buffer.cacheItem(item)
+      );
+      return buffer;
+    };
+
+    it('should clamp to the dataset beginning with its actual relative position', () => {
+      const buffer = create(-5, 5, 3);
+      const position = -buffer.getRangeSize(-5, 2);
+      expect(buffer.getIndexAtOffset(position - 1000)).toEqual({
+        index: -5,
+        position
+      });
+    });
+
+    it('should retain the origin when the minimum bound moves past it', () => {
+      const buffer = create(1, 5, 1);
+      buffer.absMinIndex = 3;
+      expect(buffer.getIndexAtOffset(0)).toEqual({ index: 3, position: 3 });
+    });
+  });
 });

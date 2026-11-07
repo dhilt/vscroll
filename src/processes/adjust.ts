@@ -39,17 +39,8 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
       last = first - 1;
     }
     const { forward, backward } = viewport.paddings;
-    let index,
-      bwdSize = 0,
-      fwdSize = 0;
-
-    // new backward and forward paddings size
-    for (index = buffer.finiteAbsMinIndex; index < first; index++) {
-      bwdSize += buffer.getSizeByIndex(index);
-    }
-    for (index = last + 1; index <= buffer.finiteAbsMaxIndex; index++) {
-      fwdSize += buffer.getSizeByIndex(index);
-    }
+    let bwdSize = buffer.getRangeSize(buffer.finiteAbsMinIndex, first - 1);
+    let fwdSize = buffer.getRangeSize(last + 1, buffer.finiteAbsMaxIndex);
 
     // lack of items case
     const bufferSize = viewport.getScrollableSize() - forward.size - backward.size;
@@ -116,7 +107,8 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
       position += viewport.offset;
     }
 
-    return Math.round(position);
+    // Preserve fractional native positions so rounding alone cannot interrupt smooth scrolling.
+    return position;
   }
 
   static setAdditionalForwardPadding(scroller: Scroller, position: number): void {
@@ -148,6 +140,7 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
     const { state, viewport, routines } = scroller;
     const { scroll } = state;
     if (!scroll.hasPositionChanged(position)) {
+      viewport.scrollPosition = position; // commits paddings
       return done();
     }
     scroll.syntheticPosition = position;
@@ -155,15 +148,16 @@ export default class Adjust extends BaseProcessFactory(CommonProcess.adjust) {
 
     scroll.cancelAnimation = routines.animate(() => {
       scroll.cancelAnimation = null;
+      // Preserve native motion in either direction while awaiting the animation frame.
       const inertiaDiff = (scroll.positionAfterAdjust as number) - viewport.scrollPosition;
       let diffLog = '';
-      if (inertiaDiff > 0) {
+      if (inertiaDiff) {
         position -= inertiaDiff;
-        scroll.syntheticPosition = position;
-        diffLog = ` (-${inertiaDiff})`;
+        diffLog = ` (${inertiaDiff > 0 ? '-' : '+'}${Math.abs(inertiaDiff)})`;
       }
       scroll.syntheticFulfill = true;
-      viewport.scrollPosition = position;
+      // The scroll event reports the position as applied, e.g. rounded to device pixels
+      scroll.syntheticPosition = viewport.setPosition(position);
       scroller.logger.stat('after scroll adjustment' + diffLog);
       done();
     });

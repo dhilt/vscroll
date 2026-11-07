@@ -4,7 +4,8 @@ import { Direction } from '../../inputs/index';
 
 export default class Check extends BaseAdapterProcessFactory(AdapterProcess.check) {
   static run(scroller: Scroller): void {
-    const { workflow, buffer, state, viewport } = scroller;
+    const { workflow, buffer, state, viewport, routines } = scroller;
+    const insetsChanged = viewport.updateInsets();
     let min = Infinity,
       max = -Infinity;
 
@@ -18,7 +19,8 @@ export default class Check extends BaseAdapterProcessFactory(AdapterProcess.chec
       }
     });
 
-    if (Number.isFinite(min)) {
+    const changed = Number.isFinite(min) || insetsChanged;
+    if (changed) {
       const { fetch } = state;
       fetch.first.indexBuffer = buffer.firstIndex;
       fetch.last.indexBuffer = buffer.lastIndex;
@@ -28,7 +30,11 @@ export default class Check extends BaseAdapterProcessFactory(AdapterProcess.chec
       );
       fetch.firstVisible.index = firstIndex;
       if (!isNaN(firstIndex)) {
-        fetch.firstVisible.delta = -buffer.getSizeByIndex(firstIndex) + diff;
+        // Keep the anchor delta in virtual-padding coordinates.
+        const leadingInset =
+          routines.getEdge(viewport.paddings.backward.element, Direction.backward) -
+          routines.getEdge(routines.element, Direction.backward);
+        fetch.firstVisible.delta = -buffer.getSizeByIndex(firstIndex) + diff - leadingInset;
       }
       fetch.check(buffer.items.filter(item => item.$index >= min && item.$index <= max));
     }
@@ -37,7 +43,7 @@ export default class Check extends BaseAdapterProcessFactory(AdapterProcess.chec
 
     workflow.call({
       process: Check.process,
-      status: Number.isFinite(min) ? ProcessStatus.next : ProcessStatus.done
+      status: changed ? ProcessStatus.next : ProcessStatus.done
     });
   }
 }

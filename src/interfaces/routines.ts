@@ -117,6 +117,13 @@ export interface IRoutines {
    */
   getScrollerSize: () => number;
 
+  /** Gets the content element's total padding and border size along the active axis.
+   * Excludes margins, virtual padding elements and min-width/min-height slack.
+   * Cached on viewport reset and refreshed by Adapter.check(); used only for compressed scroll geometry.
+   * @returns {number} Size in CSS pixels.
+   */
+  getScrollerInsets: () => number;
+
   /** Gets size of the viewport.
    * @returns {DOMRect} DOMRect object.
    */

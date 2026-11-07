@@ -6,6 +6,8 @@ export class Padding {
   element: HTMLElement;
   direction: Direction;
   routines: Routines;
+  private value = 0;
+  private rendered?: number; // reading the style back is imprecise for large values
 
   constructor(direction: Direction, routines: Routines) {
     const found = routines.findPaddingElement(direction);
@@ -19,12 +21,24 @@ export class Padding {
     this.size = size || 0;
   }
 
+  // Logical size, Viewport renders it
   get size(): number {
-    return this.routines.getSizeStyle(this.element);
+    return this.value;
   }
 
   set size(value: number) {
-    this.routines.setSizeStyle(this.element, value);
+    if (isFinite(value)) {
+      this.value = Math.max(0, Math.round(value));
+    }
+  }
+
+  get renderedSize(): number {
+    return this.rendered ?? this.routines.getSizeStyle(this.element);
+  }
+
+  set renderedSize(value: number) {
+    this.rendered = Math.max(0, Math.round(value));
+    this.routines.setSizeStyle(this.element, this.rendered);
   }
 }
 

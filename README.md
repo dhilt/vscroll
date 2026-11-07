@@ -165,7 +165,7 @@ Properties are read-only. Each `$` counterpart provides [reactive updates](docs/
 | `remove` | Remove selected items by predicate or indexes. |
 | `replace` | Replace matching buffered items with a new set of items. |
 | `update` | Keep, remove or replace buffered items using a callback. |
-| `check` | Re-measure rendered items after their sizes change. |
+| `check` | Re-measure rendered items and the content element's padding and borders. |
 | `clip` | Trim offscreen buffer items beyond the configured padding. |
 | `fix` | Directly adjust scroll position, index bounds or items. Experimental. |
 | `showLog` | Print collected debug logs. |

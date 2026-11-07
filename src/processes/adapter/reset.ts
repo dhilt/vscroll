@@ -25,6 +25,7 @@ export default class Reset extends BaseAdapterProcessFactory(AdapterProcess.rese
     buffer.reset(true);
     viewport.paddings.backward.reset();
     viewport.paddings.forward.reset();
+    viewport.renderPaddings();
 
     const payload: ProcessPayload = { datasource };
     if (state.cycle.busy.get()) {

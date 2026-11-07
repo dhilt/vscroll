@@ -967,4 +967,186 @@ describe('Cache Spec', () => {
       })
     );
   });
+
+  describe('Range size', () => {
+    let cache: Cache<Data>;
+
+    beforeEach(() => {
+      cache = new Cache(
+        {
+          ...settings,
+          itemSize: 10,
+          sizeStrategy: SizeStrategy.Constant
+        } as never,
+        loggerMock as never
+      );
+      [
+        { index: -2, size: 35 },
+        { index: 2, size: 0 },
+        { index: 8, size: 5 }
+      ].forEach(({ index, size }) =>
+        cache.add(generateBufferItem(index, { ...generateItem(index), size }))
+      );
+    });
+
+    [
+      { first: 1, last: 0, size: 0 },
+      { first: 1, last: 1, size: 10 },
+      { first: -2, last: -2, size: 35 },
+      { first: 2, last: 2, size: 10 },
+      { first: -2, last: 8, size: 130 },
+      { first: 3, last: 5, size: 30 },
+      { first: -1000000000, last: 1000000000, size: 20000000030 }
+    ].forEach(({ first, last, size }) =>
+      it(`should calculate the size of [${first}, ${last}]`, () => {
+        expect(cache.getRangeSize(first, last)).toBe(size);
+      })
+    );
+  });
+
+  describe('Index at offset', () => {
+    let cache: Cache<Data>;
+    const row = (index: number, size: number) =>
+      generateBufferItem(index, { ...generateItem(index), size });
+    // Deliberately unsorted, including fallback sizes and fractional measurements.
+    const rows = [
+      [40, 30],
+      [-2, 35],
+      [100, 1.25],
+      [2, 0],
+      [-100, 5],
+      [8, 5],
+      [-40, 25],
+      [90, 10]
+    ];
+
+    beforeEach(() => {
+      cache = new Cache(
+        {
+          ...settings,
+          itemSize: 10,
+          sizeStrategy: SizeStrategy.Constant
+        } as never,
+        loggerMock as never
+      );
+      rows.forEach(([index, size]) => cache.add(row(index, size)));
+    });
+
+    const checkGeometry = (at = (index: number) => index) => {
+      const sum = (first: number, last: number) => {
+        let result = 0;
+        for (let index = first; index <= last; index++) {
+          result += cache.getSizeByIndex(index);
+        }
+        return result;
+      };
+      [-160, -10, 0, 20, 160].map(at).forEach(origin => {
+        [
+          -120, -100, -99, -40, -39, -3, -2, -1, 0, 2, 8, 9, 40, 41, 99, 100,
+          101, 120
+        ].forEach(base => {
+          const index = at(base);
+          const position =
+            index >= origin ? sum(origin, index - 1) : -sum(index, origin - 1);
+          const size = cache.getSizeByIndex(index);
+          [0, size / 2, size - 0.25].forEach(delta => {
+            expect(cache.getIndexAtOffset(origin, position + delta)).toEqual({
+              index,
+              position
+            });
+          });
+          expect(
+            cache.getRangeSize(Math.min(origin, index), Math.max(origin, index))
+          ).toBe(sum(Math.min(origin, index), Math.max(origin, index)));
+        });
+      });
+    };
+
+    it('should resolve exact boundaries and row interiors in both directions', () =>
+      checkGeometry());
+
+    it('should use neighboring measurements without scanning the cache', () => {
+      const items = (cache as unknown as { items: Map<number, unknown> }).items;
+      const scan = jest.spyOn(items, 'values');
+      expect(cache.getIndexAtOffset(0, 20)).toEqual({ index: 2, position: 20 });
+      expect(cache.getIndexAtOffset(0, -45)).toEqual({
+        index: -2,
+        position: -45
+      });
+      expect(scan).not.toHaveBeenCalled();
+    });
+
+    it('should sum whole size buckets instead of scanning the cache', () => {
+      // spread over many buckets, so that ranges take whole buckets and visit only the edges
+      const spread = (index: number) => index * 37;
+      cache.reset(true);
+      rows.forEach(([index, size]) => cache.add(row(spread(index), size)));
+      const items = (cache as unknown as { items: Map<number, unknown> }).items;
+      const scans = [jest.spyOn(items, 'values'), jest.spyOn(items, 'forEach')];
+      checkGeometry(spread);
+      scans.forEach(scan => expect(scan).not.toHaveBeenCalled());
+      cache.add(row(spread(8), 45));
+      cache.add(row(spread(-90), 0));
+      checkGeometry(spread);
+      cache.removeItems([spread(-40)], true);
+      checkGeometry(spread);
+      cache.shiftIndexes(-300);
+      checkGeometry(spread);
+    });
+
+    it('should skip enormous unknown spans without walking individual indexes', () => {
+      cache.reset(true);
+      const read = jest.spyOn(cache, 'getSizeByIndex');
+      [-5_000_000_000, 5_000_000_000].forEach(offset => {
+        read.mockClear();
+        expect(cache.getIndexAtOffset(-250_000_000, offset)).toEqual({
+          index: -250_000_000 + offset / 10,
+          position: offset
+        });
+        expect(read.mock.calls.length).toBeLessThan(100);
+      });
+    });
+
+    it('should reflect measurements, mutations and resets without stale geometry', () => {
+      checkGeometry();
+      cache.add(row(8, 45));
+      cache.add(row(-90, 0));
+      checkGeometry();
+      cache.insertItems(
+        [generateItem(1), generateItem(2)],
+        0,
+        Direction.backward,
+        false
+      );
+      checkGeometry();
+      cache.removeItems([-40, 10], true);
+      checkGeometry();
+      const before = [row(20, 12), row(21, 15)];
+      before.forEach(item => cache.add(item));
+      cache.updateSubset(before, [row(20, 7), row(21, 8), row(22, 9)]);
+      checkGeometry();
+      cache.shiftIndexes(-30);
+      checkGeometry();
+      cache.reset(false);
+      checkGeometry();
+      cache.reset(true);
+      checkGeometry();
+    });
+
+    it('should use the current default estimate after it changes', () => {
+      cache = new Cache(
+        { ...settings, itemSize: 10 } as never,
+        loggerMock as never
+      );
+      cache.add(row(-100, 10));
+      cache.add(row(100, 20));
+      cache.recalculateDefaultSize();
+      expect(cache.getDefaultSize()).toBe(15);
+      checkGeometry();
+      cache.add(row(-100, 30));
+      cache.recalculateDefaultSize();
+      expect(cache.getDefaultSize()).toBe(25);
+      checkGeometry();
+    });
+  });
 });

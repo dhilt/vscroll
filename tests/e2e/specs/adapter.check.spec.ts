@@ -246,4 +246,37 @@ describe('Adapter Check Size Spec', () => {
   registerFetchAfterCheck(scenarios[4]);
   registerDoubleCheck(scenarios[1], 'prepend');
   registerDoubleCheck(scenarios[4], 'append');
+
+  [false, true].forEach(horizontal =>
+    makeTest({
+      config: {
+        datasource: () => getDatasource({ min: 1, max: 0 }),
+        datasourceSettings: { itemSize: 20, horizontal },
+        templateSettings: {
+          viewportHeight: 400,
+          viewportWidth: 400,
+          horizontal
+        }
+      },
+      title: 'should adjust changed content padding with an empty buffer',
+      it: misc => async () => {
+        await misc.relaxNext();
+        for (const padding of [20, 0]) {
+          misc.contentElement.style[
+            horizontal ? 'paddingRight' : 'paddingBottom'
+          ] = `${padding}px`;
+          const cycles = misc.workflow.cyclesDone;
+
+          const result = await misc.adapter.check();
+
+          expect(result.success).toBe(true);
+          expect(misc.workflow.cyclesDone).toBe(cycles + 1);
+          expect(misc.adapter.itemsCount).toBe(0);
+          expect(misc.getScrollableSize()).toBe(misc.getViewportSize());
+          expect(misc.workflow.errors).toEqual([]);
+          misc.expect.domMatchesBuffer();
+        }
+      }
+    })
+  );
 });

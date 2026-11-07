@@ -167,8 +167,8 @@ export class FetchModel {
 
   check(items: Item[]): void {
     this.startSimulate(items);
-    this.last.index = items[0].$index;
-    this.first.index = items[items.length - 1].$index;
+    this.last.index = items[0]?.$index ?? NaN;
+    this.first.index = items[items.length - 1]?.$index ?? NaN;
     this.isCheck = true;
   }
 

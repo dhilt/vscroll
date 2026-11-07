@@ -138,6 +138,7 @@ Sizes and coordinates are expressed in CSS pixels. The active dimension is heigh
 | `getWindowParams(): DOMRect` | Returns the window rectangle starting at `(0, 0)`, with dimensions `window.innerWidth` and `window.innerHeight`. |
 | `getSize(element: HTMLElement): number` | Returns the active dimension from `getElementParams(element)`, excluding margins. Used for both rows and the viewport. |
 | `getScrollerSize(): number` | Returns the content element's active dimension from `getElementParams(this.element)`, not its `scrollHeight` or `scrollWidth`. |
+| `getScrollerInsets(): number` | Returns the content element's total CSS padding and border size along the active axis, excluding margins, virtual padding elements and `min-width`/`min-height` slack. The value is cached on viewport reset and refreshed by Adapter `check()`; it is used only for compressed scroll geometry. |
 | `getViewportSize(): number` | Returns the active dimension from `getWindowParams()` in window mode; otherwise, `getSize(viewport)`. |
 | `getSizeStyle(element: HTMLElement): number` | Reads inline `height` or `width` using `parseFloat`, returning `0` when absent. Does not read computed CSS. |
 | `setSizeStyle(element: HTMLElement, value: number): void` | Rounds the size, clamps it to zero or greater, and writes inline `height` or `width` in pixels. Used for padding elements. |
@@ -154,7 +155,7 @@ Revealing new rows must match their initial hiding in `run`: the default impleme
 | `makeElementVisible(element: HTMLElement): void` | Clears inline `left`, `top` and `position`, returning the row to normal flow. Does not clear `display`. |
 | `hideElement(element: HTMLElement): void` | Sets `display: none` before row removal. This is a separate operation, not the inverse of `makeElementVisible`. |
 | `getScrollPosition(): number` | Returns `pageYOffset` or `pageXOffset` in window mode; otherwise, the viewport's `scrollTop` or `scrollLeft`. |
-| `setScrollPosition(value: number): void` | Clamps the value to zero or greater and sets the position through `window.scrollTo` or the viewport's scroll property. Window scrolling preserves the other axis; browser limits still apply. |
+| `setScrollPosition(value: number): void` | Clamps the value to zero or greater and scrolls the active axis immediately, independently of CSS `scroll-behavior`. The other axis is preserved; browser limits still apply. Overrides must also finish the position change synchronously. |
 | `scrollTo(element: HTMLElement, argument?: boolean \| ScrollIntoViewOptions): void` | Calls `element.scrollIntoView(argument)` to scroll to a specific element. |
 
 ### Scheduling and scroll listener

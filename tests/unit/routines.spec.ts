@@ -78,4 +78,30 @@ describe('Routines', () => {
       });
     });
   });
+
+  describe('Scroll position', () => {
+    it('should scroll instantly, regardless of CSS scroll-behavior', () => {
+      const scrollTo = jest.fn();
+      const routines = new Routines(
+        { parentElement: { style: {}, scrollTo } } as unknown as HTMLElement,
+        settings
+      );
+      routines.setScrollPosition(-5);
+      routines.setScrollPosition(100);
+      expect(scrollTo.mock.calls).toEqual([
+        [{ top: 0, behavior: 'instant' }],
+        [{ top: 100, behavior: 'instant' }]
+      ]);
+    });
+
+    it('should set the offset if there is no Element.scrollTo (e.g. jsdom)', () => {
+      const viewport = { style: {}, scrollTop: 0 };
+      const routines = new Routines(
+        { parentElement: viewport } as unknown as HTMLElement,
+        settings
+      );
+      routines.setScrollPosition(100);
+      expect(viewport.scrollTop).toBe(100);
+    });
+  });
 });

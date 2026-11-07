@@ -1,6 +1,20 @@
 import { fileURLToPath } from 'node:url';
 import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
+import type { BrowserCommand } from 'vitest/node';
+
+// Trusted wheel input over the test viewport, as a device produces it
+const wheel: BrowserCommand<[deltaX: number, deltaY: number]> = async (
+  { page, iframe },
+  deltaX,
+  deltaY
+) => {
+  const box = await iframe.locator('[data-test-viewport]').last().boundingBox();
+  if (box) {
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  }
+  await page.mouse.wheel(deltaX, deltaY);
+};
 
 const testsRoot = fileURLToPath(new URL('../', import.meta.url));
 const repositoryRoot = fileURLToPath(new URL('../../', import.meta.url));
@@ -48,7 +62,8 @@ export default defineConfig({
       screenshotFailures: true,
       screenshotDirectory: '.vitest-attachments/screenshots',
       viewport: { width: 1024, height: 768 },
-      instances: [{ browser: 'chromium' }]
+      instances: [{ browser: 'chromium' }],
+      commands: { wheel }
     }
   }
 });

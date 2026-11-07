@@ -28,6 +28,8 @@ For a nonempty dataset, use `minIndex <= startIndex <= maxIndex`. Unknown ends a
 
 Bounds also shape the scrollbar. With neither bound known, its range reflects the items discovered so far and grows as more data is fetched. A known bound lets the scroller estimate virtual space on that side; with both bounds known, the scrollbar represents the estimated extent of the full dataset from the initial load. The scrollable range and thumb size can still change as rendered rows are measured.
 
+For datasets larger than about 15M px, the padding elements render only a part of the virtual space, keeping the native scroll range within browser limits. Rows retain their measured sizes. Native scrolling (wheel, trackpad, keyboard, `scrollIntoView`, smooth scrolling) moves the content 1:1, while a jump into unrendered space, such as dragging the scrollbar thumb or pressing Home/End, maps proportionally to the whole dataset. To keep the scrollbar representative, the native position is occasionally realigned together with the paddings: the content stays in place, the thumb may shift slightly. Adapter pixel offsets refer to the whole dataset, while Routines use native DOM coordinates.
+
 ### Buffering and scrolling mode
 
 The buffer includes visible rows and a margin of offscreen rows. These settings determine how much is requested and retained around the viewport.

@@ -36,6 +36,7 @@ export default class Clip extends BaseProcessFactory(CommonProcess.clip) {
       if (size[Direction.forward]) {
         viewport.paddings.byDirection(Direction.forward).size += size[Direction.forward];
       }
+      viewport.renderPaddings();
       if (scroller.settings.onBeforeClip) {
         scroller.settings.onBeforeClip(itemsToRemove.map(item => item.get()));
       }

@@ -94,6 +94,8 @@ export class Workflow<ItemData = unknown> {
       if (!bound) {
         return;
       }
+      // Native moves are tracked even while paused, to tell jumps from steps
+      this.scroller.viewport.syncScrollPosition();
       this.callWorkflow({
         process: CommonProcess.scroll,
         status: Status.start,

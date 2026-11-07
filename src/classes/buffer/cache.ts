@@ -16,6 +16,14 @@ interface ItemUpdate {
   toRemove?: boolean;
 }
 
+interface IndexPosition {
+  index: number;
+  position: number;
+}
+
+// Known sizes are summed per this many indexes, so that ranges are measured without cache scans
+const BUCKET = 256;
+
 export class ItemCache<Data = unknown> {
   $index: number;
   data: Data | null;
@@ -43,6 +51,7 @@ export class Cache<Data = unknown> {
   readonly sizeStrategy: SizeStrategy;
   readonly logger: Logger;
   private items: Map<number, ItemCache<Data>>;
+  private buckets: Map<number, { count: number; size: number }>;
   private defaultSize: DefaultSize;
 
   constructor({ itemSize, cacheData, cacheOnReload, sizeStrategy }: Settings, logger: Logger) {
@@ -52,6 +61,7 @@ export class Cache<Data = unknown> {
     this.sizeStrategy = sizeStrategy;
     this.logger = logger;
     this.items = new Map<number, ItemCache<Data>>();
+    this.buckets = new Map();
     this.defaultSize = new DefaultSize(itemSize, sizeStrategy);
     this.reset(true);
   }
@@ -62,6 +72,7 @@ export class Cache<Data = unknown> {
       this.minIndex = +Infinity;
       this.maxIndex = -Infinity;
       this.items.clear();
+      this.buckets.clear();
     }
     this.defaultSize.reset(force);
   }
@@ -81,6 +92,79 @@ export class Cache<Data = unknown> {
 
   getDefaultSize(): number {
     return this.defaultSize.get();
+  }
+
+  getRangeSize(first: number, last: number): number {
+    if (last < first) return 0;
+    const fallback = this.defaultSize.get();
+    let size = (last - first + 1) * fallback;
+    const visit = (from: number, to: number) => {
+      const end = Math.min(to, this.maxIndex);
+      for (let index = Math.max(from, this.minIndex); index <= end; index++) {
+        const item = this.items.get(index);
+        if (item && item.size) {
+          size += item.size - fallback;
+        }
+      }
+    };
+    // Buckets inside the range are taken by their sums, the edges item by item
+    const from = Math.ceil(first / BUCKET);
+    const to = Math.floor((last + 1) / BUCKET) - 1;
+    if (from > to) {
+      visit(first, last);
+      return size;
+    }
+    this.buckets.forEach((bucket, key) => {
+      if (key >= from && key <= to) {
+        size += bucket.size - bucket.count * fallback;
+      }
+    });
+    visit(first, from * BUCKET - 1);
+    visit((to + 1) * BUCKET, last);
+    return size;
+  }
+
+  getIndexAtOffset(origin: number, offset: number): IndexPosition {
+    const backward = offset < 0;
+    const direction = backward ? -1 : 1;
+    let index = origin;
+    let position = 0;
+    const advance = (size: number): IndexPosition | undefined => {
+      const distance = Math.abs(offset) - position;
+      if (backward ? size >= distance : size > distance) {
+        const steps = backward ? Math.ceil(distance / size) : Math.floor(distance / size);
+        return {
+          index: index + direction * steps,
+          position: direction * (position + steps * size)
+        };
+      }
+      index += direction;
+      position += size;
+    };
+
+    // Nearby positions need only Map lookups, even when the size cache is large.
+    for (let step = 0; step < 32; step++) {
+      const found = advance(this.getSizeByIndex(index - (backward ? 1 : 0)));
+      if (found) return found;
+    }
+    if (!(this.defaultSize.get() > 0)) {
+      return { index, position: direction * position }; // unknown spans have no size to search by
+    }
+
+    // The item at a far offset is the last one starting at or before it: bracket it, then bisect.
+    const start = (target: number): number =>
+      target < origin
+        ? -this.getRangeSize(target, origin - 1)
+        : this.getRangeSize(origin, target - 1);
+    let [low, high] = [index, index];
+    for (let step = 1; backward ? start(low) > offset : start(high) <= offset; step *= 2) {
+      [low, high] = backward ? [index - step, low] : [high, index + step];
+    }
+    while (high - low > 1) {
+      const middle = Math.floor((low + high) / 2);
+      [low, high] = start(middle) <= offset ? [middle, high] : [low, middle];
+    }
+    return { index: low, position: start(low) };
   }
 
   recalculateDefaultSize(): boolean {
@@ -111,11 +195,14 @@ export class Cache<Data = unknown> {
         } else {
           this.defaultSize.setNew(item.size);
         }
+        this.countSize(item.$index, itemCache.size, -1);
         itemCache.size = item.size;
+        this.countSize(item.$index, itemCache.size, 1);
       }
     } else {
       itemCache = new ItemCache<Data>(item, this.saveData);
       this.items.set(item.$index, itemCache);
+      this.countSize(item.$index, itemCache.size, 1);
       this.defaultSize.setNew(item.size);
     }
     if (item.$index < this.minIndex) {
@@ -181,6 +268,7 @@ export class Cache<Data = unknown> {
     this.items = items;
     this.minIndex = min;
     this.maxIndex = max;
+    this.recountSizes();
   }
 
   /**
@@ -215,6 +303,7 @@ export class Cache<Data = unknown> {
     this.items = items;
     this.minIndex = min;
     this.maxIndex = max;
+    this.recountSizes();
   }
 
   /**
@@ -270,6 +359,7 @@ export class Cache<Data = unknown> {
     this.minIndex += leftDiff;
     this.maxIndex += rightDiff;
     this.items = items;
+    this.recountSizes();
   }
 
   /**
@@ -292,5 +382,42 @@ export class Cache<Data = unknown> {
     this.items = items;
     this.minIndex = min;
     this.maxIndex = max;
+    this.recountSizes();
+  }
+
+  private countSize(index: number, size: number | undefined, sign: number): void {
+    if (!size) {
+      return;
+    }
+    const key = Math.floor(index / BUCKET);
+    let bucket = this.buckets.get(key);
+    if (!bucket) {
+      bucket = { count: 0, size: 0 };
+      this.buckets.set(key, bucket);
+    }
+    bucket.count += sign;
+    bucket.size += sign * size;
+    if (!bucket.count) {
+      this.buckets.delete(key);
+    }
+  }
+
+  private recountSizes(): void {
+    this.buckets.clear();
+    let key = NaN;
+    let bucket = { count: 0, size: 0 };
+    this.items.forEach(({ $index, size }) => {
+      if (!size) {
+        return;
+      }
+      if (Math.floor($index / BUCKET) !== key) {
+        // neighboring items usually share a bucket
+        key = Math.floor($index / BUCKET);
+        bucket = this.buckets.get(key) || { count: 0, size: 0 };
+        this.buckets.set(key, bucket);
+      }
+      bucket.count++;
+      bucket.size += size;
+    });
   }
 }

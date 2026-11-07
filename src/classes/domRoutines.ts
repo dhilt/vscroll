@@ -74,16 +74,16 @@ export class Routines implements IRoutines {
   }
 
   setScrollPosition(value: number): void {
-    value = Math.max(0, value);
-    if (this.settings.window) {
-      if (this.settings.horizontal) {
-        window.scrollTo(value, window.scrollY);
-      } else {
-        window.scrollTo(window.scrollX, value);
-      }
+    // Internal geometry corrections must finish synchronously, regardless of CSS scroll-behavior.
+    const target = this.settings.window ? window : this.viewport;
+    if (!target.scrollTo) {
+      // Engines without Element.scrollTo (e.g. jsdom) don't support CSS scroll-behavior either
+      const token = this.settings.horizontal ? 'scrollLeft' : 'scrollTop';
+      this.viewport[token] = Math.max(0, value);
       return;
     }
-    this.viewport[this.settings.horizontal ? 'scrollLeft' : 'scrollTop'] = value;
+    const token = this.settings.horizontal ? 'left' : 'top';
+    target.scrollTo({ [token]: Math.max(0, value), behavior: 'instant' });
   }
 
   getElementParams(element: HTMLElement): DOMRect {
@@ -113,6 +113,15 @@ export class Routines implements IRoutines {
 
   getScrollerSize(): number {
     return this.getElementParams(this.element)[this.settings.horizontal ? 'width' : 'height'];
+  }
+
+  getScrollerInsets(): number {
+    this.checkElement(this.element);
+    const style = getComputedStyle(this.element);
+    const props = this.settings.horizontal
+      ? (['paddingLeft', 'paddingRight', 'borderLeftWidth', 'borderRightWidth'] as const)
+      : (['paddingTop', 'paddingBottom', 'borderTopWidth', 'borderBottomWidth'] as const);
+    return props.reduce((size, prop) => size + (parseFloat(style[prop]) || 0), 0);
   }
 
   getViewportSize(): number {
